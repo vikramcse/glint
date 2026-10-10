@@ -40,8 +40,7 @@ extension SQLiteConnection {
             ordinal: Int(row.int(2)),
             locator: locator,
             text: row.text(4),
-            thumbnail: row.text(5),
-            tags: ChunkWrite.decodeTags(row.text(6))
+            thumbnail: row.text(5)
         )
     }
 
@@ -121,16 +120,5 @@ extension Array {
 extension ChunkLocator {
     var json: String {
         (try? JSONEncoder().encode(self)).flatMap { String(data: $0, encoding: .utf8) } ?? "{\"whole\":{}}"
-    }
-}
-
-extension ChunkWrite {
-    /// Tags are stored one per line so FTS tokenizes them and they round-trip exactly.
-    static func encodeTags(_ tags: [String]) -> SQLValue {
-        tags.isEmpty ? .null : .text(tags.joined(separator: "\n"))
-    }
-
-    static func decodeTags(_ text: String?) -> [String] {
-        text?.split(separator: "\n").map(String.init) ?? []
     }
 }

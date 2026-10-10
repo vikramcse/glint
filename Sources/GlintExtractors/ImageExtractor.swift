@@ -42,12 +42,10 @@ public struct ImageExtractor: ContentExtractor {
                 Log.extractor.error("OCR failed: \(String(describing: error), privacy: .public)")
             }
         }
-        let tags = options.visualTagsEnabled ? VisualTagger().tags(for: image) : []
         return Chunk(
             ordinal: 0,
             locator: .whole,
             text: text,
-            tags: tags,
             input: .image(image),
             preview: ChunkPreview(thumbnail: thumbnail, thumbnailKey: "i")
         )

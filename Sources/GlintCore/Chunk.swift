@@ -50,9 +50,6 @@ public struct Chunk: Sendable {
     public var locator: ChunkLocator
     /// Text that goes into the keyword index and snippets (document text, OCR, transcript).
     public var text: String?
-    /// Words describing what an image or frame shows ("person in white shirt", "car"); keyword
-    /// indexed and fused into the embedding input.
-    public var tags: [String]
     /// What to embed. `nil` makes this a keyword-only chunk.
     public var input: EmbeddingInput?
     /// A feature the user needs for this chunk to be embedded (for example visual PDF pages).
@@ -63,7 +60,6 @@ public struct Chunk: Sendable {
         ordinal: Int,
         locator: ChunkLocator,
         text: String? = nil,
-        tags: [String] = [],
         input: EmbeddingInput? = nil,
         requiredFeature: Feature? = nil,
         preview: ChunkPreview = .none
@@ -71,7 +67,6 @@ public struct Chunk: Sendable {
         self.ordinal = ordinal
         self.locator = locator
         self.text = text
-        self.tags = tags
         self.input = input
         self.requiredFeature = requiredFeature
         self.preview = preview

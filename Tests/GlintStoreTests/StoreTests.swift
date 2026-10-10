@@ -226,58 +226,6 @@ struct KeywordSearchTests {
     }
 }
 
-@Suite("Visual tags in the store")
-struct TagStoreTests {
-    @Test func tagsAreKeywordSearchableAndRoundTrip() async throws {
-        let url = try makeDatabaseURL()
-        let writer = try IndexWriter(url: url)
-        let source = try await writer.addSource(path: "/s", bookmark: nil)
-        _ = try await writer.reconcile(
-            sourceID: source, scanned: [scanned("/s/IMG_1.heic", kind: .image), scanned("/s/copy.heic", kind: .image)])
-        let files = try await writer.claimPending(limit: 2, kinds: [.image])
-        let photo = try #require(files.first { $0.name == "IMG_1.heic" })
-        let copy = try #require(files.first { $0.name == "copy.heic" })
-        _ = try await writer.commit(
-            fileID: photo.id, contentHash: "p", space: space,
-            chunks: [
-                ChunkWrite(
-                    ordinal: 0, locator: .whole, text: nil, thumbnail: nil, vector: [1, 0, 0, 0],
-                    tags: ["person in white shirt", "white clothes", "outdoor"])
-            ])
-        _ = try await writer.copyIndex(from: photo.id, to: copy.id, contentHash: "p", space: space)
-
-        let reader = try IndexReader(url: url)
-        let hits = try await reader.chunkMatches(try #require(FTSQuery("white shirt").all), limit: 10)
-        #expect(Set(hits.map(\.fileID)) == [photo.id, copy.id])
-        let chunk = try #require(try await reader.chunks(hits.compactMap(\.chunkID)).values.first)
-        #expect(chunk.tags == ["person in white shirt", "white clothes", "outdoor"])
-        #expect(chunk.text == nil)
-    }
-
-    @Test func upgradingToV2QueuesPhotosForTagging() throws {
-        let url = try makeDatabaseURL()
-        let connection = try SQLiteConnection(url: url)
-        try connection.execute("BEGIN")
-        try connection.execute(Schema.migrations[0])
-        try connection.execute("PRAGMA user_version = 1")
-        try connection.execute("INSERT INTO sources(path, added_at) VALUES ('/s', 0)")
-        try connection.execute(
-            "INSERT INTO files(source_id, path, name, kind, uti, size, modified, status) VALUES (1, '/s/a.jpg', 'a.jpg', 'image', 'public.jpeg', 1, 0, 1)"
-        )
-        try connection.execute(
-            "INSERT INTO files(source_id, path, name, kind, uti, size, modified, status) VALUES (1, '/s/a.txt', 'a.txt', 'document', 'public.plain-text', 1, 0, 1)"
-        )
-        try connection.execute("INSERT INTO chunks(file_id, ordinal, locator, text) VALUES (2, 0, '{}', 'budget notes')")
-        try connection.execute("COMMIT")
-        try Schema.migrate(connection)
-        let counts = try connection.counts()
-        #expect(counts.pending[.image] == 1)
-        #expect(counts.indexed[.document] == 1)
-        // Existing chunk text is still keyword-searchable after the FTS rebuild.
-        #expect(try connection.scalarInt("SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH 'budget'") == 1)
-    }
-}
-
 @Suite("FTSQuery")
 struct FTSQueryTests {
     @Test func dropsStopWordsAndPrefixesLastTerm() {
