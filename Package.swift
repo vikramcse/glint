@@ -21,6 +21,10 @@ let package = Package(
         .executable(name: "glint-license", targets: ["GlintLicenseTool"]),
         .library(name: "GlintCore", targets: ["GlintCore"]),
     ],
+    dependencies: [
+        // In-app updates (ADR 0006). Linked only by the app target.
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.10.0")
+    ],
     targets: [
         // MARK: Libraries
 
@@ -54,8 +58,11 @@ let package = Package(
             dependencies: [
                 "GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch",
                 "GlintIndexer", "GlintLicensing", "GlintTelemetry", "GlintUI",
+                .product(name: "Sparkle", package: "Sparkle"),
             ],
-            swiftSettings: strictSettings
+            swiftSettings: strictSettings,
+            // Sparkle.framework is embedded in Glint.app/Contents/Frameworks.
+            linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]
         ),
         .executableTarget(
             name: "GlintEval",
@@ -105,7 +112,12 @@ let package = Package(
             ],
             swiftSettings: strictSettings
         ),
-        .testTarget(name: "GlintLicensingTests", dependencies: ["GlintLicensing"], swiftSettings: strictSettings),
+        .testTarget(
+            name: "GlintLicensingTests",
+            dependencies: ["GlintLicensing"],
+            resources: [.copy("Fixtures")],
+            swiftSettings: strictSettings
+        ),
         .testTarget(name: "GlintTelemetryTests", dependencies: ["GlintTelemetry"], swiftSettings: strictSettings),
         .testTarget(
             name: "GlintUITests",

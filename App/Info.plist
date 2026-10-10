@@ -67,5 +67,21 @@
 	<string>Glint transcribes speech in your recordings on this Mac so you can search what was said.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Glint searches photos already on this Mac. Nothing is uploaded.</string>
+	<!-- Endpoints (read by AppConfiguration). Empty license server = offline activation for development. -->
+	<key>GlintPurchaseURL</key>
+	<string>https://glint.app/buy</string>
+	<key>GlintLicenseServerURL</key>
+	<string></string>
+	<key>GlintTelemetryURL</key>
+	<string>https://telemetry.glint.app/v1/events</string>
+	<!-- Sparkle updates. The updater stays off until both are set (scripts/release/README.md). -->
+	<key>SUFeedURL</key>
+	<string></string>
+	<key>SUPublicEDKey</key>
+	<string></string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 </dict>
 </plist>

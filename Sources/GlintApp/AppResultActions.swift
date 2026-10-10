@@ -88,11 +88,11 @@ final class AppResultActions: ResultActions {
     }
 
     func openPurchasePage() {
-        if let url = AppLinks.purchasePage { NSWorkspace.shared.open(url) }
+        if let url = AppConfiguration.current.purchasePage { NSWorkspace.shared.open(url) }
     }
 
     func openFullDiskAccessSettings() {
-        if let url = AppLinks.fullDiskAccessSettings { NSWorkspace.shared.open(url) }
+        if let url = AppConfiguration.fullDiskAccessSettings { NSWorkspace.shared.open(url) }
     }
 
     func chooseFolders(message: String, allowsMultipleSelection: Bool) -> [URL] {

@@ -36,6 +36,19 @@ struct GeneralSettings: View {
             }
             Toggle("Open at login", isOn: $settings.launchAtLogin)
             Toggle("Hide menu bar item when idle", isOn: $settings.hideMenuBarItemWhenIdle)
+            if let updates = services.updates, updates.isAvailable {
+                Section("Updates") {
+                    Toggle(
+                        "Automatically check for updates",
+                        isOn: Binding {
+                            updates.automaticallyChecksForUpdates
+                        } set: {
+                            updates.automaticallyChecksForUpdates = $0
+                        })
+                    Button("Check for Updates…") { updates.checkForUpdates() }
+                        .disabled(!updates.canCheckForUpdates)
+                }
+            }
         }
         .formStyle(.grouped)
     }

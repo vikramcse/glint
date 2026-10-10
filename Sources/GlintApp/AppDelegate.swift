@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) var actions: AppResultActions?
     private var panel: SearchPanelController?
     private let hotKeys = HotKeyCenter()
+    private let updater = UpdaterController()
     private var timers: [Timer] = []
     private var launchError: (any Error)?
 
@@ -38,6 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let panel = SearchPanelController(services: environment.services)
         actions.panel = panel
         environment.services.actions = actions
+        environment.services.updates = updater
         self.actions = actions
         self.panel = panel
 

@@ -13,7 +13,8 @@ APP="$BUILD/Glint.app"
 STRINGS="$BUILD/stringsdata"
 
 cd "$ROOT"
-rm -rf "$STRINGS" && mkdir -p "$STRINGS"
+# Kept between runs: incremental builds only re-emit strings for files they recompile.
+mkdir -p "$STRINGS"
 
 echo "▸ Compiling ($CONFIG)"
 swift build -c "$CONFIG" --product Glint \
@@ -38,10 +39,26 @@ if [[ ! -f "$BUILD/AppIcon.icns" || scripts/make_icon.swift -nt "$BUILD/AppIcon.
 fi
 cp "$BUILD/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 
+# The hardened runtime's library validation refuses to load an ad hoc framework (Sparkle)
+# into an ad hoc process, so local builds sign without it. Developer ID builds, and the
+# release scripts, always use it (notarization requires it).
+IDENTITY="${SIGN_IDENTITY:--}"
+RUNTIME=()
+[[ "$IDENTITY" != "-" ]] && RUNTIME=(--options runtime)
+
+echo "▸ Frameworks"
+# Sparkle ships as a binary xcframework; embed its macOS slice next to the executable.
+SPARKLE_FRAMEWORK="$(find .build/artifacts -path '*Sparkle.xcframework/macos-*/Sparkle.framework' -maxdepth 6 -type d | head -1)"
+if [[ -n "$SPARKLE_FRAMEWORK" ]]; then
+  mkdir -p "$APP/Contents/Frameworks"
+  ditto "$SPARKLE_FRAMEWORK" "$APP/Contents/Frameworks/Sparkle.framework"
+  codesign --force ${RUNTIME[@]+"${RUNTIME[@]}"} --timestamp=none --sign "$IDENTITY" "$APP/Contents/Frameworks/Sparkle.framework"
+fi
+
 echo "▸ Signing"
-codesign --force --options runtime --timestamp=none \
+codesign --force ${RUNTIME[@]+"${RUNTIME[@]}"} --timestamp=none \
   --entitlements App/Glint.entitlements \
-  --sign "${SIGN_IDENTITY:--}" "$APP"
+  --sign "$IDENTITY" "$APP"
 codesign --verify --strict "$APP"
 
 echo "✓ $APP"

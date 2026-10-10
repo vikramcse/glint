@@ -35,6 +35,10 @@ public struct MenuBarContent: View {
         if services.entitlements.showsUpgrade {
             Button("Upgrade to Pro…") { services.actions?.showUpgrade(.menu) }
         }
+        if let updates = services.updates, updates.isAvailable {
+            Button("Check for Updates…") { updates.checkForUpdates() }
+                .disabled(!updates.canCheckForUpdates)
+        }
         SettingsLink {
             Text("Settings…")
         }

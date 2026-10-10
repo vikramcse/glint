@@ -44,8 +44,8 @@ final class AppEnvironment {
         license = LicenseManager(
             verifier: try LicenseVerifier.production(),
             store: SecureStoreFactory.make(fallbackDirectory: paths.root),
-            // The M3 license server is not deployed yet; signed keys activate offline until then.
-            activationService: AppLinks.licenseServer.map { HTTPActivationService(baseURL: $0) }
+            // Without GlintLicenseServerURL in Info.plist, signed keys activate offline (development).
+            activationService: AppConfiguration.current.licenseServer.map { HTTPActivationService(baseURL: $0) }
         )
         features = FeatureGateBox(license.entitlements.snapshot)
 
@@ -67,7 +67,7 @@ final class AppEnvironment {
 
         telemetrySender = QueuedTelemetryClient(
             queueURL: paths.telemetryQueue,
-            transport: HTTPTelemetryTransport(endpoint: AppLinks.telemetryEndpoint),
+            transport: HTTPTelemetryTransport(endpoint: AppConfiguration.current.telemetryEndpoint),
             keyValueStore: UserDefaultsKeyValueStore()
         )
         telemetry = OptInTelemetryClient(sender: telemetrySender, isEnabled: settings.analyticsEnabled)
@@ -150,14 +150,4 @@ final class AppEnvironment {
                 )
             })
     }
-}
-
-/// External endpoints, in one place.
-enum AppLinks {
-    static let purchasePage = URL(string: "https://glint.app/buy")
-    /// `nil` until the license server ships in M3.
-    static let licenseServer: URL? = nil
-    // swiftlint:disable:next force_unwrapping
-    static let telemetryEndpoint = URL(string: "https://telemetry.glint.app/v1/events") ?? URL(fileURLWithPath: "/dev/null")
-    static let fullDiskAccessSettings = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
 }
