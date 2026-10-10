@@ -26,18 +26,21 @@ struct FilePipeline: Sendable {
     let features: FeatureGateBox
     let options: IndexerOptions
     var stats: IndexingStats?
+    /// The Photos library, when it is a source.
+    var photos: (any PhotoLibraryProviding)?
 
     var space: VectorSpace { provider.descriptor.space }
 
     func process(_ record: FileRecord) async -> FileOutcome {
         do {
-            guard FileManager.default.fileExists(atPath: record.path) else {
+            guard let resolved = try await resolve(record) else {
                 let removed = try await writer.removeFiles(atOrBelow: record.path)
                 for id in removed { try await vectorIndex.remove(fileID: id) }
                 return .vanished
             }
+            defer { if let copy = resolved.temporaryCopy { try? FileManager.default.removeItem(at: copy) } }
             var clock = Stopwatch()
-            let hash = try ContentHasher.hash(of: record.url)
+            let hash = try resolved.contentHash ?? ContentHasher.hash(of: resolved.fileRef.url)
             await time(.hash, record, &clock)
             try Task.checkCancellation()
 
@@ -52,7 +55,7 @@ struct FilePipeline: Sendable {
                 return .failed(.unsupported)
             }
             let extractState = Signposts.indexing.beginInterval(Signposts.Name.extractFile)
-            let chunks = try await collect(extractor.chunks(of: record.fileRef))
+            let chunks = try await collect(extractor.chunks(of: resolved.fileRef))
             Signposts.indexing.endInterval(Signposts.Name.extractFile, extractState)
             await time(.extract, record, &clock)
 

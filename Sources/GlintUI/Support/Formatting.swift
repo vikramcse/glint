@@ -30,6 +30,7 @@ public enum Formatting {
 
     /// The folder shown under a result title, with the home folder abbreviated to "~".
     public static func folder(of path: String) -> String {
+        if PhotosLibraryPath.isAsset(path) { return String(localized: "Photos Library") }
         let folder = (path as NSString).deletingLastPathComponent
         return (folder as NSString).abbreviatingWithTildeInPath
     }
@@ -41,6 +42,14 @@ public enum Formatting {
         case .time(let start, _): timecode(start)
         case .whole, .text: nil
         }
+    }
+}
+
+extension SourceInfo {
+    /// Symbol for a source row: Photos library, external drive or folder.
+    public var symbolName: String {
+        if isPhotosLibrary { return "photo.on.rectangle.angled" }
+        return isExternalVolume ? "externaldrive" : "folder"
     }
 }
 

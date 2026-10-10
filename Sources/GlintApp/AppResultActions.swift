@@ -16,10 +16,13 @@ final class AppResultActions: ResultActions {
     private var upgradeWindow: NSWindow?
     private var playerWindows: [NSWindow] = []
     private var windowObservers: [any NSObjectProtocol] = []
+    private var pdfWindows: [NSWindow] = []
+    private let photos: (any PhotoLibraryProviding)?
 
-    init(services: GlintServices, savedSearches: any SavedSearchProviding) {
+    init(services: GlintServices, savedSearches: any SavedSearchProviding, photos: (any PhotoLibraryProviding)? = nil) {
         self.services = services
         self.savedSearches = savedSearches
+        self.photos = photos
     }
 
     // MARK: ResultActions
@@ -28,8 +31,13 @@ final class AppResultActions: ResultActions {
         let state = Signposts.search.beginInterval(Signposts.Name.openResult)
         defer { Signposts.search.endInterval(Signposts.Name.openResult, state) }
         panel?.hide()
-        if let range = result.match.locator.timeRange, result.file.kind == .video || result.file.kind == .audio {
+        if PhotosLibraryPath.isAsset(result.file.path) {
+            // Photos has no public way to open one asset, so preview the local original.
+            quickLook([result], selected: result)
+        } else if let range = result.match.locator.timeRange, result.file.kind == .video || result.file.kind == .audio {
             showPlayer(for: result, start: range.lowerBound)
+        } else if result.file.kind == .pdf {
+            showPDF(PDFMatchTarget(result: result), title: result.file.name)
         } else {
             NSWorkspace.shared.open(result.file.url)
         }
@@ -37,22 +45,59 @@ final class AppResultActions: ResultActions {
 
     func revealInFinder(_ results: [SearchResult]) {
         panel?.hide()
-        NSWorkspace.shared.activateFileViewerSelecting(results.map(\.file.url))
+        let files = results.filter { !PhotosLibraryPath.isAsset($0.file.path) }.map(\.file.url)
+        if !files.isEmpty { NSWorkspace.shared.activateFileViewerSelecting(files) }
+        if files.count < results.count, let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Photos") {
+            NSWorkspace.shared.openApplication(at: app, configuration: NSWorkspace.OpenConfiguration())
+        }
     }
 
     func quickLook(_ results: [SearchResult], selected: SearchResult?) {
-        let urls = results.filter { !$0.isLocked }.map(\.file.url)
-        guard !urls.isEmpty else { return }
-        let index = selected.flatMap { selected in urls.firstIndex(of: selected.file.url) } ?? 0
+        let candidates = results.filter { !$0.isLocked }
+        guard !candidates.isEmpty else { return }
         panel?.keepOpenOnResign = true
-        NSApp.activate()
-        quickLook.show(urls, selectedIndex: index)
+        Task {
+            let urls = await localURLs(for: candidates)
+            guard !urls.isEmpty else { return }
+            let selectedIndex = selected.flatMap { selected in candidates.firstIndex { $0.id == selected.id } } ?? 0
+            NSApp.activate()
+            quickLook.show(urls, selectedIndex: min(selectedIndex, urls.count - 1))
+        }
     }
 
     func copy(_ results: [SearchResult]) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.writeObjects(results.map { $0.file.url as NSURL })
+        Task {
+            let urls = await localURLs(for: results)
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.writeObjects(urls.map { $0 as NSURL })
+        }
+    }
+
+    /// File URLs for results; Photos assets are exported (without network access) to a cache.
+    private func localURLs(for results: [SearchResult]) async -> [URL] {
+        var urls: [URL] = []
+        for result in results {
+            guard let identifier = PhotosLibraryPath.assetIdentifier(fromPath: result.file.path) else {
+                urls.append(result.file.url)
+                continue
+            }
+            guard let photos else { continue }
+            let folder = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("Glint/PhotosExports", isDirectory: true)
+                .appendingPathComponent(identifier.replacingOccurrences(of: "/", with: "_"), isDirectory: true)
+            if let existing = try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil).first {
+                urls.append(existing)
+                continue
+            }
+            do {
+                try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                urls.append(try await photos.exportOriginal(assetIdentifier: identifier, to: folder))
+            } catch {
+                Log.app.notice("Could not export a Photos asset: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        return urls
     }
 
     func dismissPanel() {
@@ -143,6 +188,15 @@ final class AppResultActions: ResultActions {
         present(window)
     }
 
+    private func showPDF(_ target: PDFMatchTarget, title: String) {
+        let window = makeWindow(
+            title: title, root: PDFPageViewer(target: target), size: NSSize(width: 760, height: 900),
+            style: [.titled, .closable, .miniaturizable, .resizable]
+        )
+        pdfWindows.append(window)
+        present(window)
+    }
+
     private func showPlayer(for result: SearchResult, start: Double) {
         let window = makeWindow(
             title: result.file.name,
@@ -184,10 +238,11 @@ final class AppResultActions: ResultActions {
 
     private func windowClosed(_ window: NSWindow?) {
         playerWindows.removeAll { $0 === window }
+        pdfWindows.removeAll { $0 === window }
         if window === upgradeWindow { upgradeWindow = nil }
         let anyOpen =
             [mainWindow, onboardingWindow, upgradeWindow].contains { $0?.isVisible == true && $0 !== window }
-            || playerWindows.contains { $0.isVisible }
+            || playerWindows.contains { $0.isVisible } || pdfWindows.contains { $0.isVisible }
         if !anyOpen { NSApp.setActivationPolicy(.accessory) }
     }
 }

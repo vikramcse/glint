@@ -5,6 +5,40 @@ struct SourcesSettings: View {
     let services: GlintServices
     @State private var selection: SourceID?
     @State private var errorMessage: String?
+    @State private var isUpdatingPhotos = false
+
+    private var photosSource: SourceInfo? { services.status.sources.first(where: \.isPhotosLibrary) }
+
+    /// On adds the library (asking for Photos access the first time); off removes it.
+    private var photosBinding: Binding<Bool> {
+        Binding {
+            photosSource != nil
+        } set: { isOn in
+            guard isOn != (photosSource != nil) else { return }
+            guard !isOn || services.entitlements.allows(.photosLibrary) else {
+                services.actions?.showUpgrade(.feature)
+                return
+            }
+            isUpdatingPhotos = true
+            Task {
+                do {
+                    if isOn {
+                        try await services.indexing.addSource(PhotosLibraryPath.libraryURL)
+                    } else if let id = photosSource?.id {
+                        try await services.indexing.removeSource(id)
+                    }
+                    errorMessage = nil
+                } catch {
+                    errorMessage =
+                        isOn && error.glintCategory == .permissionDenied
+                        ? String(localized: "Glint needs access to Photos. Allow it in System Settings › Privacy & Security › Photos.")
+                        : ErrorPresenter.message(for: error)
+                }
+                await services.status.refreshSources()
+                isUpdatingPhotos = false
+            }
+        }
+    }
 
     var body: some View {
         Form {
@@ -12,12 +46,16 @@ struct SourcesSettings: View {
                 List(selection: $selection) {
                     ForEach(services.status.sources) { source in
                         HStack {
-                            Image(systemName: source.isExternalVolume ? "externaldrive" : "folder")
+                            Image(systemName: source.symbolName)
                                 .foregroundStyle(.tint)
                             VStack(alignment: .leading) {
                                 Text(source.displayName)
-                                Text(verbatim: (source.path as NSString).abbreviatingWithTildeInPath)
-                                    .font(.caption).foregroundStyle(.secondary)
+                                Text(
+                                    verbatim: source.isPhotosLibrary
+                                        ? String(localized: "Photos and videos stored on this Mac")
+                                        : (source.path as NSString).abbreviatingWithTildeInPath
+                                )
+                                .font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
                             SourceStatusView(source: source, phase: services.status.status.phase)
@@ -50,6 +88,19 @@ struct SourcesSettings: View {
                 }
             } header: {
                 Text("Folders and drives")
+            }
+
+            Section {
+                Toggle(isOn: photosBinding) {
+                    Label("Apple Photos Library", systemImage: "photo.on.rectangle.angled")
+                }
+                .disabled(isUpdatingPhotos)
+            } footer: {
+                Text(
+                    services.entitlements.allows(.photosLibrary)
+                        ? String(
+                            localized: "Searches photos and videos whose originals are on this Mac. Nothing is downloaded from iCloud.")
+                        : String(localized: "Searching your Photos library is part of Glint Pro."))
             }
 
             Section("Excluded folders") {

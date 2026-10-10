@@ -56,6 +56,9 @@
     "Anonymous statistics, if turned on" : {
 
     },
+    "Apple Photos Library" : {
+
+    },
     "Audio" : {
       "comment" : "Media kind\nResult section"
     },
@@ -72,6 +75,9 @@
 
     },
     "Cancelled." : {
+
+    },
+    "Can’t Open This PDF" : {
 
     },
     "Can’t read this folder" : {
@@ -264,6 +270,9 @@
     "Glint is still indexing %@ items. Results appear as soon as they’re ready." : {
 
     },
+    "Glint needs access to Photos. Allow it in System Settings › Privacy & Security › Photos." : {
+
+    },
     "Grid" : {
 
     },
@@ -444,6 +453,12 @@
     "Open in Default App" : {
 
     },
+    "Open in Preview" : {
+
+    },
+    "Open the PDF at this page" : {
+
+    },
     "Open video moments and audio matches with Pro." : {
 
     },
@@ -461,6 +476,16 @@
     },
     "Page %lld" : {
       "comment" : "PDF page number in a result"
+    },
+    "Page %lld of %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Page %1$lld of %2$lld"
+          }
+        }
+      }
     },
     "Past Month" : {
 
@@ -501,6 +526,12 @@
     },
     "Photos" : {
       "comment" : "Result section"
+    },
+    "Photos Library" : {
+
+    },
+    "Photos and videos stored on this Mac" : {
+
     },
     "Photos, moments in videos, things said in recordings, pages in PDFs. Glint searches them all at once, entirely on this Mac." : {
 
@@ -602,6 +633,15 @@
 
     },
     "Search these kinds by default" : {
+
+    },
+    "Searches photos and videos whose originals are on this Mac. Nothing is downloaded from iCloud." : {
+
+    },
+    "Searching your Photos library is part of Glint Pro." : {
+
+    },
+    "Searching your Photos library needs Glint Pro." : {
 
     },
     "Search…" : {

@@ -32,8 +32,10 @@ public struct SourceInfo: Sendable, Hashable, Identifiable, Codable {
         self.failed = failed
     }
 
-    public var url: URL { URL(fileURLWithPath: path, isDirectory: true) }
-    public var displayName: String { url.lastPathComponent }
+    public var url: URL { isPhotosLibrary ? PhotosLibraryPath.libraryURL : URL(fileURLWithPath: path, isDirectory: true) }
+    public var displayName: String { isPhotosLibrary ? String(localized: "Photos Library") : url.lastPathComponent }
+    /// The Apple Photos library rather than a folder.
+    public var isPhotosLibrary: Bool { PhotosLibraryPath.isLibrary(path) }
 
     /// Every file that can be indexed now has been.
     public var isComplete: Bool { pending == 0 }

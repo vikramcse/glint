@@ -25,6 +25,7 @@ public enum EntitlementError: GlintError, Equatable {
     case sourceLimitReached(limit: Int)
     case externalDrivesRequirePro
     case itemLimitReached(limit: Int)
+    case photosLibraryRequiresPro
 
     public var category: ErrorCategory { .licensing }
 
@@ -33,6 +34,7 @@ public enum EntitlementError: GlintError, Equatable {
         case .sourceLimitReached(let limit): "Source limit of \(limit) reached"
         case .externalDrivesRequirePro: "External drives need Pro"
         case .itemLimitReached(let limit): "Item limit of \(limit) reached"
+        case .photosLibraryRequiresPro: "The Photos library needs Pro"
         }
     }
 }

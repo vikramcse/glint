@@ -34,7 +34,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             presentLaunchFailure()
             return
         }
-        let actions = AppResultActions(services: environment.services, savedSearches: environment.savedSearches)
+        let actions = AppResultActions(
+            services: environment.services, savedSearches: environment.savedSearches, photos: environment.photos)
         let panel = SearchPanelController(services: environment.services)
         actions.panel = panel
         environment.services.actions = actions

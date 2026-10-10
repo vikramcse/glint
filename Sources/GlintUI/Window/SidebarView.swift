@@ -29,7 +29,7 @@ struct SidebarView: View {
             Section("Sources") {
                 ForEach(services.status.sources) { source in
                     HStack {
-                        Label(source.displayName, systemImage: source.isExternalVolume ? "externaldrive" : "folder")
+                        Label(source.displayName, systemImage: source.symbolName)
                         Spacer(minLength: 4)
                         SourceStatusBadge(source: source, phase: services.status.status.phase)
                     }

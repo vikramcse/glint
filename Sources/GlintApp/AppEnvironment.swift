@@ -30,6 +30,7 @@ final class AppEnvironment {
     let metricKit: MetricKitReporter
     let services: GlintServices
     let savedSearches: AppSavedSearches
+    let photos = PhotoKitLibrary()
 
     init(settings: AppSettings) throws {
         self.settings = settings
@@ -62,7 +63,8 @@ final class AppEnvironment {
         indexer = Indexer(
             writer: writer, extractors: registry.extractors, provider: provider, vectorIndex: vectorIndex,
             gate: priorityGate, thumbnails: thumbnails, features: features,
-            options: IndexerOptions(videoOnlyOnPower: settings.videoOnlyOnPower)
+            options: IndexerOptions(videoOnlyOnPower: settings.videoOnlyOnPower),
+            photos: photos
         )
 
         telemetrySender = QueuedTelemetryClient(

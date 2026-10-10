@@ -27,6 +27,8 @@ public actor Indexer: IndexingService {
     private var wakePending = false
     private var subscribers: [UUID: AsyncStream<IndexStatus>.Continuation] = [:]
     private var lastPublish: ContinuousClock.Instant?
+    private let photos: (any PhotoLibraryProviding)?
+    private var photosTask: Task<Void, Never>?
 
     private static let exclusionsKey = "exclusions"
 
@@ -40,8 +42,10 @@ public actor Indexer: IndexingService {
         features: FeatureGateBox,
         power: any PowerMonitoring = SystemPowerMonitor(),
         options: IndexerOptions = IndexerOptions(),
-        stats: IndexingStats? = nil
+        stats: IndexingStats? = nil,
+        photos: (any PhotoLibraryProviding)? = nil
     ) {
+        self.photos = photos
         self.writer = writer
         self.vectorIndex = vectorIndex
         self.thumbnails = thumbnails
@@ -53,6 +57,7 @@ public actor Indexer: IndexingService {
             writer: writer, extractors: extractors, provider: provider, vectorIndex: vectorIndex, gate: gate,
             thumbnails: thumbnails, features: features, options: options, stats: stats
         )
+        pipeline.photos = photos
     }
 
     // MARK: Lifecycle
@@ -72,12 +77,14 @@ public actor Indexer: IndexingService {
             for await change in changes { await self?.handle(change) }
         }
         loopTask = Task { [weak self] in await self?.runLoop() }
+        startObservingPhotos()
     }
 
     /// Stops indexing; in-flight files return to the queue.
     public func stop() {
         loopTask?.cancel()
         watchTask?.cancel()
+        photosTask?.cancel()
         watcher.stop()
         wake()
     }
@@ -91,6 +98,7 @@ public actor Indexer: IndexingService {
             vectorIndex: vectorIndex, gate: pipeline.gate, thumbnails: thumbnails, features: features, options: options,
             stats: pipeline.stats
         )
+        pipeline.photos = photos
         wake()
     }
 
@@ -135,7 +143,7 @@ public actor Indexer: IndexingService {
             let locked = source.pending.filter { !gate.allows($0.key) }.values.reduce(0, +)
             return SourceInfo(
                 id: record.id, path: record.path, isExternalVolume: Self.isExternal(URL(fileURLWithPath: record.path)),
-                isAccessible: FileManager.default.isReadableFile(atPath: record.path),
+                isAccessible: isAccessible(record.path),
                 itemCount: source.totalIndexed + source.totalPending + source.failed,
                 indexed: source.totalIndexed, pending: source.totalPending - locked, locked: locked, failed: source.failed
             )
@@ -144,6 +152,7 @@ public actor Indexer: IndexingService {
 
     @discardableResult
     public func addSource(_ url: URL) async throws -> SourceInfo {
+        if url.scheme == PhotosLibraryPath.scheme { return try await addPhotosLibrary() }
         let path = FileScanner.canonicalPath(url)
         let gate = features.current
         let existing = try await writer.sources()
@@ -314,6 +323,7 @@ public actor Indexer: IndexingService {
     /// readable; an unplugged drive must never look like "every file was deleted".
     @discardableResult
     private func rescan(sourceID: SourceID, root: String, scope: String? = nil) async -> Bool {
+        if PhotosLibraryPath.isLibrary(root) { return await rescanPhotos(sourceID: sourceID) }
         guard FileManager.default.isReadableFile(atPath: root) else { return false }
         let scanner = FileScanner(exclusions: rules)
         let target = URL(fileURLWithPath: scope ?? root)
@@ -324,7 +334,7 @@ public actor Indexer: IndexingService {
     }
 
     private func restartWatcher() async {
-        let paths = ((try? await writer.sources()) ?? []).map(\.path)
+        let paths = ((try? await writer.sources()) ?? []).map(\.path).filter { !PhotosLibraryPath.isLibrary($0) }
         watcher.watch(paths, latency: options.watcherLatency)
     }
 
@@ -401,5 +411,60 @@ public actor Indexer: IndexingService {
     private static func isExternal(_ url: URL) -> Bool {
         let values = try? url.resourceValues(forKeys: [.volumeIsInternalKey])
         return values?.volumeIsInternal == false
+    }
+
+    // MARK: Photos library
+
+    /// Adds the Photos library as a source (Pro). Asks for Photos access the first time.
+    private func addPhotosLibrary() async throws -> SourceInfo {
+        guard features.current.allows(.photosLibrary) else { throw EntitlementError.photosLibraryRequiresPro }
+        guard let photos else { throw IndexerError.sourceUnreadable }
+        var status = photos.authorizationStatus()
+        if status == .notDetermined { status = await photos.requestAuthorization() }
+        guard status == .authorized else { throw IndexerError.sourceUnreadable }
+
+        let id = try await writer.addSource(path: PhotosLibraryPath.library, bookmark: nil)
+        await rescanPhotos(sourceID: id)
+        startObservingPhotos()
+        wake()
+        return try await sources().first { $0.id == id }
+            ?? SourceInfo(id: id, path: PhotosLibraryPath.library, isExternalVolume: false, isAccessible: true, itemCount: 0)
+    }
+
+    /// Lists local assets and reconciles them like a folder scan. Returns false when Photos
+    /// access is unavailable; the existing rows are kept, never treated as deleted.
+    @discardableResult
+    private func rescanPhotos(sourceID: SourceID) async -> Bool {
+        guard let photos, photos.authorizationStatus() == .authorized,
+            let assets = try? await photos.localAssets()
+        else { return false }
+        let scanned = assets.map { asset in
+            ScannedFile(path: asset.path, kind: asset.kind, contentType: asset.contentType, size: asset.size, modified: asset.modified)
+        }
+        if let result = try? await writer.reconcile(sourceID: sourceID, scanned: scanned) { await apply(result) }
+        return true
+    }
+
+    /// Re-scans the library when Photos reports a change, while it is a source.
+    private func startObservingPhotos() {
+        guard photosTask == nil, let photos else { return }
+        // Subscribe before spawning the task so no change between now and its start is missed.
+        let changes = photos.changes()
+        photosTask = Task { [weak self] in
+            for await _ in changes {
+                guard let self else { return }
+                await self.rescanPhotosIfSource()
+            }
+        }
+    }
+
+    private func rescanPhotosIfSource() async {
+        guard let source = try? await writer.sources().first(where: { PhotosLibraryPath.isLibrary($0.path) }) else { return }
+        await rescanPhotos(sourceID: source.id)
+    }
+
+    private func isAccessible(_ path: String) -> Bool {
+        if PhotosLibraryPath.isLibrary(path) { return photos?.authorizationStatus() == .authorized }
+        return FileManager.default.isReadableFile(atPath: path)
     }
 }

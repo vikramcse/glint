@@ -23,6 +23,8 @@ public enum ErrorPresenter {
                 return String(localized: "External drives need Glint Pro.")
             case .itemLimitReached(let limit):
                 return String(localized: "Glint Free indexes up to \(limit) items. Upgrade to Pro to index everything.")
+            case .photosLibraryRequiresPro:
+                return String(localized: "Searching your Photos library needs Glint Pro.")
             }
         }
         switch error.glintCategory {

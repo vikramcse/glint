@@ -66,11 +66,17 @@ struct InspectorView: View {
                 .disabled(result.isLocked)
             }
         } else if let page = result.match.locator.pageIndex {
-            Label {
-                Text("Page \(page + 1)")
-            } icon: {
-                Image(systemName: "doc.text.magnifyingglass")
+            Button {
+                services.actions?.open(result)
+            } label: {
+                Label {
+                    Text("Page \(page + 1)")
+                } icon: {
+                    Image(systemName: "doc.text.magnifyingglass")
+                }
             }
+            .buttonStyle(.link)
+            .help(Text("Open the PDF at this page"))
         }
         if let snippet = result.match.snippet {
             SnippetText(snippet: snippet, lineLimit: 8)
