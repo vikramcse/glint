@@ -6,3 +6,4 @@ DerivedData/
 secrets/
 Evals/reports/
 .DS_Store
+.claude/worktrees/

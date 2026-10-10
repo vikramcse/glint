@@ -90,6 +90,7 @@ let package = Package(
         .testTarget(
             name: "GlintStoreTests",
             dependencies: ["GlintStore", "GlintTestSupport"],
+            resources: [.copy("Fixtures")],
             swiftSettings: strictSettings
         ),
         .testTarget(

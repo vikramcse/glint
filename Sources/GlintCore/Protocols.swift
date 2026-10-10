@@ -30,6 +30,12 @@ public protocol VectorIndex: Sendable {
     func search(_ query: Embedding, limit: Int, filter: SearchFilter) async throws -> [ScoredChunk]
 }
 
+/// Encodes text queries for the search path (warm, small, prioritized over indexing).
+public protocol QueryEncoding: Sendable {
+    var space: VectorSpace { get }
+    func encode(query: String) async throws -> Embedding
+}
+
 /// Embeds an example file for "find similar" when the file is not in the index yet.
 public protocol ExampleEncoder: Sendable {
     func embeddings(forFileAt url: URL) async throws -> [Embedding]
