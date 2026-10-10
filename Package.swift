@@ -22,12 +22,27 @@ let package = Package(
         .executable(name: "glint-mcp", targets: ["GlintMCPTool"]),
         .library(name: "GlintCore", targets: ["GlintCore"]),
     ],
+    dependencies: [
+        // On-device model runtime (Apple). See docs/adr/0006-mlx-and-embeddinggemma-2.md.
+        .package(url: "https://github.com/ml-explore/mlx-swift", .upToNextMinor(from: "0.32.3")),
+        // Hugging Face tokenizers (tokenizer.json), so token ids match the reference exactly.
+        .package(url: "https://github.com/huggingface/swift-transformers", .upToNextMinor(from: "1.3.5")),
+    ],
     targets: [
         // MARK: Libraries
 
         .target(name: "GlintCore", swiftSettings: strictSettings),
         .target(name: "GlintExtractors", dependencies: ["GlintCore"], swiftSettings: strictSettings),
-        .target(name: "GlintEmbedding", dependencies: ["GlintCore"], swiftSettings: strictSettings),
+        .target(
+            name: "GlintEmbedding",
+            dependencies: [
+                "GlintCore",
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXNN", package: "mlx-swift"),
+                .product(name: "Tokenizers", package: "swift-transformers"),
+            ],
+            swiftSettings: strictSettings
+        ),
         .target(
             name: "GlintStore",
             dependencies: ["GlintCore"],

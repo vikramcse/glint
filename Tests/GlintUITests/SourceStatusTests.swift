@@ -13,6 +13,7 @@ private func source(items: Int, indexed: Int = 0, pending: Int = 0, locked: Int 
     )
 }
 
+@MainActor
 @Suite("Folder indexing state")
 struct SourceIndexStateTests {
     @Test func mapsCountsAndPhaseToState() {
