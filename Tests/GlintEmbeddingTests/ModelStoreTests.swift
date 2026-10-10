@@ -46,6 +46,12 @@ final class StubProtocol: URLProtocol, @unchecked Sendable {
         client?.urlProtocolDidFinishLoading(self)
     }
 
+    private func respond(_ url: URL, status: Int) {
+        if let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: nil) {
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        }
+    }
+
     override func stopLoading() {}
 }
 
@@ -54,6 +60,7 @@ struct ModelStoreTests {
     static func sha(_ data: Data) -> String { SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() }
 
     func makeStore() throws -> (ModelStore, ModelArtifact, URL) {
+        let base = try #require(URL(string: "https://models.test/repo"))
         let weights = Data((0..<50_000).map { UInt8($0 % 251) })
         let config = Data("{\"text_config\":{}}".utf8)
         StubProtocol.bodies = ["model.safetensors": weights, "config.json": config]
@@ -63,7 +70,7 @@ struct ModelStoreTests {
         configuration.protocolClasses = [StubProtocol.self]
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("models-\(UUID().uuidString)")
         let artifact = ModelArtifact(
-            id: "test-model", displayName: "Test", baseURL: URL(string: "https://models.test/repo")!,
+            id: "test-model", displayName: "Test", baseURL: base,
             files: [
                 .init(path: "config.json", size: Int64(config.count), sha256: Self.sha(config)),
                 .init(path: "model.safetensors", size: Int64(weights.count), sha256: Self.sha(weights)),
