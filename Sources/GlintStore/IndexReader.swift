@@ -44,17 +44,34 @@ public actor IndexReader {
 
     // MARK: Keyword search
 
+    /// BM25 ranks at most this many of the newest matches, which bounds keystroke latency
+    /// when a short prefix matches most of the index. Everything still matches; only the
+    /// ranking window is capped, and the semantic phase merges in moments later.
+    public static let rankingWindow = 5_000
+
     /// Full-text matches in chunk text (documents, OCR, transcripts), best first.
     public func chunkMatches(_ match: String, limit: Int) throws -> [KeywordHit] {
         try db.query(
             """
-            SELECT c.id, c.file_id, bm25(chunks_fts), f.kind, f.modified, f.path
-            FROM chunks_fts JOIN chunks c ON c.id = chunks_fts.rowid JOIN files f ON f.id = c.file_id
-            WHERE chunks_fts MATCH ? ORDER BY bm25(chunks_fts) LIMIT ?
+            SELECT c.id, c.file_id, m.score, f.kind, f.modified, f.path
+            FROM (\(Self.rankedMatches("chunks_fts"))) m
+            JOIN chunks c ON c.id = m.rowid JOIN files f ON f.id = c.file_id
+            ORDER BY m.score
             """,
-            [.text(match), SQLValue(limit)],
+            [.text(match), SQLValue(limit), SQLValue(Self.rankingWindow)],
             map: Self.hit(chunkColumn: 0, fileColumn: 1)
         ).compactMap { $0 }
+    }
+
+    /// Ranks matches of `?1` within the newest `?3` matching rows, returning the best `?2`.
+    /// A rowid range keeps FTS5 on its fast path (an `IN` list does not).
+    private static func rankedMatches(_ table: String) -> String {
+        """
+        SELECT rowid, bm25(\(table)) AS score FROM \(table)
+        WHERE \(table) MATCH ?1 AND rowid >= coalesce(
+            (SELECT min(rowid) FROM (SELECT rowid FROM \(table) WHERE \(table) MATCH ?1 ORDER BY rowid DESC LIMIT ?3)), 0)
+        ORDER BY score LIMIT ?2
+        """
     }
 
     /// Full-text matches in file names, best first. Includes files not yet indexed, so the
@@ -62,11 +79,12 @@ public actor IndexReader {
     public func nameMatches(_ match: String, limit: Int) throws -> [KeywordHit] {
         try db.query(
             """
-            SELECT NULL, f.id, bm25(names_fts), f.kind, f.modified, f.path
-            FROM names_fts JOIN files f ON f.id = names_fts.rowid
-            WHERE names_fts MATCH ? ORDER BY bm25(names_fts) LIMIT ?
+            SELECT NULL, f.id, m.score, f.kind, f.modified, f.path
+            FROM (\(Self.rankedMatches("names_fts"))) m
+            JOIN files f ON f.id = m.rowid
+            ORDER BY m.score
             """,
-            [.text(match), SQLValue(limit)],
+            [.text(match), SQLValue(limit), SQLValue(Self.rankingWindow)],
             map: Self.hit(chunkColumn: nil, fileColumn: 1)
         ).compactMap { $0 }
     }

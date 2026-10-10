@@ -1,0 +1,102 @@
+import Foundation
+import GlintCore
+import GlintEmbedding
+import GlintExtractors
+import GlintIndexer
+import GlintSearch
+import GlintStore
+
+/// Indexes a corpus with a candidate build and scores every golden query.
+struct EvalRunner {
+    let corpus: URL
+    let queries: [EvalQuery]
+    let provider: any EmbeddingProvider
+
+    func run() async throws -> EvalReport {
+        let work = FileManager.default.temporaryDirectory.appendingPathComponent("glint-eval-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: work) }
+        let paths = AppPaths(root: work)
+        try paths.createDirectories()
+
+        let writer = try IndexWriter(url: paths.database)
+        let features = FeatureGateBox(.pro)
+        let gate = PriorityGate()
+        let vectorIndex = FlatVectorIndex(space: provider.descriptor.space)
+        let thumbnails = ThumbnailStore(directory: paths.thumbnails)
+        let indexer = Indexer(
+            writer: writer, extractors: ExtractorRegistry.standard(transcriber: nil).extractors, provider: provider,
+            vectorIndex: vectorIndex, gate: gate, thumbnails: thumbnails, features: features, power: FixedPowerMonitor()
+        )
+        let engine = SearchEngine(
+            reader: try IndexReader(url: paths.database), vectorIndex: vectorIndex,
+            encoder: GatedQueryEncoder(provider: provider, gate: gate), thumbnails: thumbnails, gate: features
+        )
+
+        let indexing = Stopwatch()
+        let root = FileScanner.canonicalPath(corpus)
+        try await indexer.addSource(corpus)
+        await indexer.drain()
+        let status = await indexer.currentStatus()
+        let indexingSeconds = indexing.milliseconds / 1_000
+        print(String(format: "Indexed %d files in %.1f s (%d failed)", status.totalIndexed, indexingSeconds, status.failed))
+
+        // Warm the query path once so the first query's latency is representative.
+        _ = try? await engine.mergedResults(for: SearchQuery(text: "warm up"))
+
+        var outcomes: [QueryOutcome] = []
+        for query in queries {
+            let stopwatch = Stopwatch()
+            let results = try await engine.mergedResults(for: SearchQuery(text: query.text))
+            let latency = stopwatch.milliseconds
+            let ranked = results.items.map { relativePath($0.file.path, root: root) }
+            outcomes.append(QueryOutcome(
+                id: query.id,
+                kind: kind(of: query),
+                recallAt10: RetrievalMetrics.recall(ranked: ranked, relevant: query.relevant),
+                reciprocalRank: RetrievalMetrics.reciprocalRank(ranked: ranked, relevant: query.relevant),
+                ndcgAt10: RetrievalMetrics.ndcg(ranked: ranked, relevant: query.relevant),
+                latencyMilliseconds: latency,
+                top: Array(ranked.prefix(5)),
+                mustPass: query.mustPass ?? false
+            ))
+        }
+
+        var perKind: [String: Scores] = [:]
+        for (kind, group) in Dictionary(grouping: outcomes, by: \.kind) { perKind[kind] = scores(group) }
+        let latencies = outcomes.map(\.latencyMilliseconds)
+        return EvalReport(
+            model: provider.descriptor.space.description,
+            date: Date(),
+            corpusFiles: status.totalIndexed,
+            indexingSeconds: indexingSeconds,
+            overall: scores(outcomes),
+            perKind: perKind,
+            latencyP50Milliseconds: RetrievalMetrics.percentile(latencies, 50),
+            latencyP95Milliseconds: RetrievalMetrics.percentile(latencies, 95),
+            outcomes: outcomes
+        )
+    }
+
+    private func scores(_ outcomes: [QueryOutcome]) -> Scores {
+        let count = Double(max(outcomes.count, 1))
+        return Scores(
+            queries: outcomes.count,
+            recallAt10: outcomes.map(\.recallAt10).reduce(0, +) / count,
+            mrr: outcomes.map(\.reciprocalRank).reduce(0, +) / count,
+            ndcgAt10: outcomes.map(\.ndcgAt10).reduce(0, +) / count
+        )
+    }
+
+    /// A query's media type is the kind of its best-graded relevant file.
+    private func kind(of query: EvalQuery) -> String {
+        guard let best = query.relevant.max(by: { $0.value < $1.value })?.key else { return "unknown" }
+        let url = corpus.appendingPathComponent(best)
+        let type = (try? url.resourceValues(forKeys: [.contentTypeKey]))?.contentType
+        return type.flatMap(MediaKind.init(contentType:))?.rawValue ?? "unknown"
+    }
+
+    private func relativePath(_ path: String, root: String) -> String {
+        let prefix = root.hasSuffix("/") ? root : root + "/"
+        return path.hasPrefix(prefix) ? String(path.dropFirst(prefix.count)) : path
+    }
+}
