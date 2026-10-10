@@ -36,8 +36,7 @@ public struct ImageExtractor: ContentExtractor {
         var text: String?
         if options.ocrEnabled {
             do {
-                let recognized = try TextRecognizer(level: options.ocrLevel).recognizeTextBlocking(in: image)
-                text = recognized.isEmpty ? nil : recognized
+                text = try recognizeText(file.url, preview: image, options: options)
             } catch {
                 Log.extractor.error("OCR failed: \(String(describing: error), privacy: .public)")
             }
@@ -49,5 +48,28 @@ public struct ImageExtractor: ContentExtractor {
             input: .image(image),
             preview: ChunkPreview(thumbnail: thumbnail, thumbnailKey: "i")
         )
+    }
+
+    /// OCR with `.automatic`: skip images without text, otherwise decode once more at
+    /// `ocrMaxPixel` (only when the source is larger than the preview) and pick the recognizer
+    /// by source. Explicit `.fast`/`.accurate` levels read the preview as before.
+    static func recognizeText(_ url: URL, preview: CGImage, options: ExtractionOptions) throws -> String? {
+        let recognizer = TextRecognizer(level: options.ocrLevel)
+        let recognized: String
+        if options.ocrLevel == .automatic {
+            let source: OCRSource = ImageProcessing.isCameraPhoto(at: url) ? .camera : .screen
+            // Only camera photos are pre-checked: most have no text, and the 1–3 ms check
+            // saves the recognizer. Screens nearly always have text, often too small for the
+            // detector at preview size, and fast recognition costs only ~30 ms.
+            if source == .camera, !TextRecognizer.containsText(preview) { return nil }
+            let longSide = ImageProcessing.pixelSize(at: url).map { max($0.width, $0.height) } ?? 0
+            let ocrImage =
+                source == .screen && longSide > max(preview.width, preview.height)
+                ? try ImageProcessing.downscaledImage(at: url, maxPixel: options.ocrMaxPixel) : preview
+            recognized = try recognizer.recognizeTextBlocking(in: ocrImage, source: source)
+        } else {
+            recognized = try recognizer.recognizeTextBlocking(in: preview)
+        }
+        return recognized.isEmpty ? nil : recognized
     }
 }

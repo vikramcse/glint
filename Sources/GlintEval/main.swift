@@ -1,5 +1,7 @@
 // glint-eval: retrieval eval harness.
 //
+//   glint-eval bench [--dir D] [--photos N --screenshots N --pdfs N --docs N --audio N --videos N]
+//                    [--model apple|hashing|pipeline] [--only kind,kind] [--out report.json]
 //   glint-eval sample <dir>                     write <dir>/corpus and <dir>/queries.json
 //   glint-eval run <dir> [--queries q.json] [--model apple|hashing]
 //                  [--baseline report.json] [--out report.json]
@@ -10,7 +12,9 @@
 import Foundation
 import GlintCore
 import GlintEmbedding
+import GlintIndexer
 import GlintSearch
+import GlintTestSupport
 
 func fail(_ message: String) -> Never {
     FileHandle.standardError.write(Data("error: \(message)\n".utf8))
@@ -52,6 +56,45 @@ case "sample":
     do {
         try SampleCorpus.write(to: URL(fileURLWithPath: arguments[1]))
         print("Wrote sample corpus to \(arguments[1])")
+    } catch {
+        fail(String(describing: error))
+    }
+
+case "bench":
+    var counts = BenchCounts()
+    for kind in BenchCounts.kinds {
+        guard let value = option("--\(kind)", in: arguments).flatMap(Int.init) else { continue }
+        switch kind {
+        case "photos": counts.photos = value
+        case "screenshots": counts.screenshots = value
+        case "pdfs": counts.pdfs = value
+        case "docs": counts.docs = value
+        case "audio": counts.audio = value
+        default: counts.videos = value
+        }
+    }
+    let benchDirectory = URL(
+        fileURLWithPath: option("--dir", in: arguments)
+            ?? FileManager.default.temporaryDirectory.appendingPathComponent("glint-bench-corpus").path, isDirectory: true)
+    let benchProvider: any EmbeddingProvider
+    switch option("--model", in: arguments) ?? "apple" {
+    case "hashing", "pipeline": benchProvider = PipelineEmbeddingProvider()
+    default:
+        guard let apple = try? AppleOnDeviceEmbeddingProvider() else { fail("on-device embedding unavailable") }
+        benchProvider = apple
+    }
+    let kinds = option("--only", in: arguments).map { $0.split(separator: ",").map(String.init) } ?? BenchCounts.kinds
+    do {
+        try await BenchCorpus.ensure(at: benchDirectory, counts: counts)
+        print("Corpus: \(benchDirectory.path)\nModel: \(benchProvider.descriptor.space)\n")
+        let runs = try await BenchRunner(corpus: benchDirectory, provider: benchProvider).run(kinds: kinds)
+        if let out = option("--out", in: arguments) {
+            let report = BenchReport(
+                model: benchProvider.descriptor.space.description, date: Date(),
+                machine: "\(ProcessInfo.processInfo.activeProcessorCount) cores, \(ProcessInfo.processInfo.physicalMemory >> 30) GB",
+                runs: runs)
+            try JSONEncoder.pretty.encode(report).write(to: URL(fileURLWithPath: out))
+        }
     } catch {
         fail(String(describing: error))
     }

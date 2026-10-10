@@ -68,7 +68,10 @@ actor PDFCursor {
         if text.filter({ !$0.isWhitespace }).count < PDFExtractor.minimumTextLayerCharacters,
             options.ocrEnabled, let render
         {
-            let recognized = (try? await TextRecognizer(level: options.ocrLevel).recognizeText(in: render)) ?? ""
+            // Scans are read at OCR resolution; the fast recognizer needs ~2048 px for body text.
+            let scan = options.ocrLevel == .automatic ? Self.render(page, maxPixel: options.ocrMaxPixel) ?? render : render
+            let recognized =
+                (try? await TextRecognizer(level: options.ocrLevel).recognizeText(in: scan, source: .document)) ?? ""
             if recognized.count > text.count { text = recognized }
         }
 

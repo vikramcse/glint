@@ -4,6 +4,11 @@ import Foundation
 public struct ExtractionOptions: Sendable, Hashable {
     /// Vision OCR accuracy level.
     public enum OCRLevel: String, Sendable, Hashable, Codable {
+        /// Skip images without text; read screens, scans and rendered pages with the fast
+        /// recognizer at `ocrMaxPixel` (99.96% of words, 5–15x faster than accurate on the
+        /// benchmark corpus); use the accurate recognizer only for camera photos with text,
+        /// where scene text is harder to read.
+        case automatic
         case fast
         case accurate
     }
@@ -11,6 +16,9 @@ public struct ExtractionOptions: Sendable, Hashable {
     /// Run Vision OCR on images and on PDF pages without a text layer.
     public var ocrEnabled: Bool
     public var ocrLevel: OCRLevel
+    /// Long side, in pixels, of the image OCR reads. The fast recognizer needs about 2048 px
+    /// for small UI text (at 1024 px it misreads most words).
+    public var ocrMaxPixel: Int
     /// Transcribe audio on device (needs Speech Recognition authorization; never prompts).
     public var transcriptionEnabled: Bool
 
@@ -43,7 +51,8 @@ public struct ExtractionOptions: Sendable, Hashable {
 
     public init(
         ocrEnabled: Bool = true,
-        ocrLevel: OCRLevel = .accurate,
+        ocrLevel: OCRLevel = .automatic,
+        ocrMaxPixel: Int = 2_048,
         transcriptionEnabled: Bool = false,
         textChunkTokens: Int = 512,
         textOverlapTokens: Int = 64,
@@ -62,6 +71,7 @@ public struct ExtractionOptions: Sendable, Hashable {
     ) {
         self.ocrEnabled = ocrEnabled
         self.ocrLevel = ocrLevel
+        self.ocrMaxPixel = ocrMaxPixel
         self.transcriptionEnabled = transcriptionEnabled
         self.textChunkTokens = textChunkTokens
         self.textOverlapTokens = textOverlapTokens

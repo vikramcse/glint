@@ -59,7 +59,9 @@ let package = Package(
         ),
         .executableTarget(
             name: "GlintEval",
-            dependencies: ["GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch", "GlintIndexer"],
+            dependencies: [
+                "GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch", "GlintIndexer", "GlintTestSupport",
+            ],
             swiftSettings: strictSettings
         ),
         .executableTarget(
