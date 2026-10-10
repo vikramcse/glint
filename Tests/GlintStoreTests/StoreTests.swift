@@ -167,11 +167,28 @@ struct IndexWriterTests {
                 ChunkWrite(ordinal: 0, locator: .whole, text: "pricing chart", thumbnail: nil, vector: [1, 0, 0, 0])
             ])
         let removed = try await writer.removeSource(source)
-        #expect(removed == [file.id])
+        #expect(removed.files == [file.id])
 
         let reader = try IndexReader(url: url)
         #expect(try await reader.vectors(in: space, after: nil, limit: 10).isEmpty)
         #expect(try await reader.chunkMatches("\"pricing\"", limit: 10).isEmpty)
+    }
+
+    @Test func removingSourceReportsOnlyUnsharedThumbnails() async throws {
+        let writer = try IndexWriter(url: try makeDatabaseURL())
+        let first = try await writer.addSource(path: "/a", bookmark: nil)
+        let second = try await writer.addSource(path: "/b", bookmark: nil)
+        _ = try await writer.reconcile(sourceID: first, scanned: [scanned("/a/x.txt"), scanned("/a/y.txt")])
+        _ = try await writer.reconcile(sourceID: second, scanned: [scanned("/b/x.txt")])
+        for file in try await writer.claimPending(limit: 10, kinds: [.document]) {
+            let thumb = file.path.hasSuffix("y.txt") ? "only.jpg" : "shared.jpg"
+            _ = try await writer.commit(
+                fileID: file.id, contentHash: file.path, space: space,
+                chunks: [ChunkWrite(ordinal: 0, locator: .whole, text: "t", thumbnail: thumb, vector: [1, 0, 0, 0])])
+        }
+        let removed = try await writer.removeSource(first)
+        #expect(removed.files.count == 2)
+        #expect(removed.orphanedThumbnails == ["only.jpg"])
     }
 
     @Test func savedSearchesAndSettingsRoundTrip() async throws {

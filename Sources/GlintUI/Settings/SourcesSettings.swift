@@ -6,8 +6,10 @@ struct SourcesSettings: View {
     @State private var selection: SourceID?
     @State private var errorMessage: String?
     @State private var isUpdatingPhotos = false
+    @State private var pendingRemoval: SourceInfo?
 
     private var photosSource: SourceInfo? { services.status.sources.first(where: \.isPhotosLibrary) }
+    private var selectedSource: SourceInfo? { services.status.sources.first { $0.id == selection } }
 
     /// On adds the library (asking for Photos access the first time); off removes it.
     private var photosBinding: Binding<Bool> {
@@ -69,14 +71,13 @@ struct SourcesSettings: View {
                     Button("Add Folder…") {
                         Task { errorMessage = await SourceAdder.pickAndAdd(services: services) }
                     }
-                    Button("Remove", role: .destructive) {
+                    Button("Re-index") {
                         guard let selection else { return }
-                        Task {
-                            try? await services.indexing.removeSource(selection)
-                            await services.status.refreshSources()
-                        }
+                        Task { errorMessage = await SourceActions.reindex(selection, services: services) }
                     }
                     .disabled(selection == nil)
+                    Button("Remove", role: .destructive) { pendingRemoval = selectedSource }
+                        .disabled(selection == nil)
                     Spacer()
                     if let limit = services.entitlements.snapshot.sourceLimit {
                         Text("\(services.status.sources.count) of \(limit) folders on Free")
@@ -147,6 +148,10 @@ struct SourcesSettings: View {
             }
         }
         .formStyle(.grouped)
+        .removeSourceConfirmation(for: $pendingRemoval) { source in
+            if selection == source.id { selection = nil }
+            errorMessage = await SourceActions.remove(source.id, services: services)
+        }
     }
 
     private func update(_ rules: ExclusionRules) {

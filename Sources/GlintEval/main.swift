@@ -1,7 +1,7 @@
 // glint-eval: retrieval eval harness.
 //
 //   glint-eval bench [--dir D] [--photos N --screenshots N --pdfs N --docs N --audio N --videos N]
-//                    [--model apple|hashing|pipeline] [--only kind,kind] [--out report.json]
+//                    [--model gemma|apple|pipeline] [--model-dir D] [--only kind,kind] [--out report.json]
 //   glint-eval sample <dir>                     write <dir>/corpus and <dir>/queries.json
 //   glint-eval run <dir> [--queries q.json] [--model gemma|apple|hashing] [--model-dir D] [--dimensions N]
 //                  [--baseline report.json] [--out report.json]
@@ -79,6 +79,13 @@ case "bench":
     let benchProvider: any EmbeddingProvider
     switch option("--model", in: arguments) ?? "apple" {
     case "hashing", "pipeline": benchProvider = PipelineEmbeddingProvider()
+    case "gemma":
+        guard let path = option("--model-dir", in: arguments) else { fail("--model gemma needs --model-dir <checkpoint>") }
+        do {
+            benchProvider = try await EmbeddingGemma2Provider(directory: URL(fileURLWithPath: path), towers: .text)
+        } catch {
+            fail("could not load EmbeddingGemma 2: \(error)")
+        }
     default:
         guard let apple = try? AppleOnDeviceEmbeddingProvider() else { fail("on-device embedding unavailable") }
         benchProvider = apple

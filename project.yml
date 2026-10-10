@@ -1,4 +1,4 @@
-# Generates Glint.xcodeproj: `xcodegen generate`. The Swift package (Package.swift) holds all
+# Generates Xcode/Glint.xcodeproj: `xcodegen generate --project Xcode`. The Swift package (Package.swift) holds all
 # modules and unit tests; this project adds the signed app bundle and the XCUITest suite.
 name: Glint
 options:

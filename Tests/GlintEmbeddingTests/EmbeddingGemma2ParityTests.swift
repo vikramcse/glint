@@ -187,6 +187,23 @@ struct EmbeddingGemma2ParityTests {
         #expect(Self.cosine(again, photo.embedding) >= Self.threshold)
     }
 
+    /// Mixed media in one batch must give the same vectors as one at a time.
+    @Test func batchedMediaMatchesReference() async throws {
+        let (runtime, _) = try await Self.load(.all)
+        let samples = try Self.wavSamples(Self.fixtures.appendingPathComponent("audio.wav"))
+        let inputs: [EmbeddingInput] = [
+            .image(try Self.image("photo.png")), .audio(AudioClip(samples: samples)), .image(try Self.image("document.png")),
+            .interleaved([.image(try Self.image("photo.png")), .text("mountain by the beach")]),
+        ]
+        let vectors = try await runtime.embed(inputs, purpose: .document)
+        let expected = try ["photo", "audio", "document", "photo_with_text"].map { try Self.media($0).embedding }
+        for (vector, reference) in zip(vectors, expected) {
+            let similarity = Self.cosine(vector, reference)
+            print("batched parity \(similarity)")
+            #expect(similarity >= Self.threshold)
+        }
+    }
+
     @Test func audioMatchesReference() async throws {
         let fixture = try Self.media("audio")
         let features = try #require(fixture.inputFeatures)

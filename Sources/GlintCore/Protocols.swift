@@ -57,7 +57,10 @@ public protocol IndexingService: Sendable {
     func sources() async throws -> [SourceInfo]
     @discardableResult
     func addSource(_ url: URL) async throws -> SourceInfo
+    /// Removes a source and everything Glint derived from its files.
     func removeSource(_ id: SourceID) async throws
+    /// Extracts and embeds every file in a source again, failed ones included.
+    func reindexSource(_ id: SourceID) async throws
     func setExclusions(_ rules: ExclusionRules) async throws
     func exclusions() async -> ExclusionRules
     func pause() async

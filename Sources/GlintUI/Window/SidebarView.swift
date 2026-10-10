@@ -5,6 +5,7 @@ struct SidebarView: View {
     @Binding var selection: SidebarItem?
     let library: LibraryModel
     let services: GlintServices
+    @State private var pendingRemoval: SourceInfo?
 
     var body: some View {
         List(selection: $selection) {
@@ -35,6 +36,11 @@ struct SidebarView: View {
                     }
                     .help(Text(verbatim: (source.path as NSString).abbreviatingWithTildeInPath))
                     .tag(SidebarItem.source(source.id))
+                    .contextMenu {
+                        Button("Re-index") { run { await SourceActions.reindex(source.id, services: services) } }
+                        Divider()
+                        Button("Remove…", role: .destructive) { pendingRemoval = source }
+                    }
                 }
                 Button {
                     SourceAdder.pickAndAddReportingErrors(services: services)
@@ -59,5 +65,17 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
+        .removeSourceConfirmation(for: $pendingRemoval) { source in
+            if selection == .source(source.id) { selection = .all }
+            if let message = await SourceActions.remove(source.id, services: services) {
+                services.actions?.presentError(message)
+            }
+        }
+    }
+
+    private func run(_ action: @escaping @MainActor () async -> String?) {
+        Task {
+            if let message = await action() { services.actions?.presentError(message) }
+        }
     }
 }

@@ -31,12 +31,36 @@ public actor IndexWriter {
     }
 
     /// Removes a source and every file under it. Returns the removed file ids.
-    public func removeSource(_ id: SourceID) throws -> [FileID] {
+    /// What removing a source deleted: its files (chunks, text and vectors cascade) and the
+    /// thumbnails no other file still uses.
+    public struct RemovedSource: Sendable, Hashable {
+        public var files: [FileID]
+        public var orphanedThumbnails: [String]
+    }
+
+    public func removeSource(_ id: SourceID) throws -> RemovedSource {
         try db.transaction {
             let ids = try db.query("SELECT id FROM files WHERE source_id = ?", [.int(id.rawValue)]) { FileID($0.int(0)) }
+            let thumbnails = try db.query(
+                "SELECT DISTINCT c.thumb FROM chunks c JOIN files f ON f.id = c.file_id WHERE f.source_id = ? AND c.thumb IS NOT NULL",
+                [.int(id.rawValue)]
+            ) { $0.text(0) }.compactMap { $0 }
             try db.run("DELETE FROM sources WHERE id = ?", [.int(id.rawValue)])
-            return ids
+            // Thumbnails are keyed by content hash, so copies in other sources may share them.
+            let orphaned = try thumbnails.filter { thumb in
+                try db.scalarInt("SELECT 1 FROM chunks WHERE thumb = ? LIMIT 1", [.text(thumb)]) == nil
+            }
+            return RemovedSource(files: ids, orphanedThumbnails: orphaned)
         }
+    }
+
+    /// Sends every file of a source back to the queue, failed ones included, so it is extracted
+    /// and embedded again. Existing chunks stay searchable until each file is re-committed.
+    /// Returns how many files were queued.
+    public func requeueSource(_ id: SourceID) throws -> Int {
+        try db.run(
+            "UPDATE files SET status = 0, attempts = 0, error = NULL WHERE source_id = ?", [.int(id.rawValue)])
+        return db.changes
     }
 
     public func sources() throws -> [SourceRecord] { try db.sources() }

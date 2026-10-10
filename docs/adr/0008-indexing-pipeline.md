@@ -59,3 +59,20 @@ How to read the table:
 
 - A batched GPU model (EmbeddingGemma 2 on MLX) gets full cross-file batches. Tune `embeddingBatchSize` and `embeddingLanes` for it with `glint-eval bench --model …`.
 - Text in camera photos is found only when the 1024 px text check sees it, so very small scene text can be missed.
+
+## With EmbeddingGemma 2 (M5, Release, load average ~8 from other work)
+
+| Kind | Items/min |
+| --- | --- |
+| Photos / screenshots | 312 / 297 |
+| PDFs (text + visual page per page) | 27 |
+| Docs | 1,119 |
+| Audio (10 s windows) | 63 |
+| Video (5 s clips, 1 fps) | 13 |
+| Mixed 222-file corpus | 185 |
+
+Glint's own stages (hash, extract, commit) are now noise; the model is the cost. Images are
+compute-bound in the vision tower (~190 ms for 2,520 patches); batching four media inputs per
+call helped audio 2× and images ~7%. The next lever is the image token budget (the model
+supports 70–1,120 soft tokens; we use the guide's 280): 140 would roughly double photo and PDF
+throughput at some recall cost, to be decided on the persona eval corpus, not the sample.

@@ -27,6 +27,7 @@ private actor FakeIndexing: IndexingService {
         return SourceInfo(id: SourceID(Int64(added.count)), path: url.path, isExternalVolume: false, isAccessible: true, itemCount: 0)
     }
     func removeSource(_ id: SourceID) async throws {}
+    func reindexSource(_ id: SourceID) async throws {}
     func setExclusions(_ rules: ExclusionRules) async throws {}
     func exclusions() async -> ExclusionRules { .default }
     func pause() async {}

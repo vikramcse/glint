@@ -16,17 +16,17 @@ xcodebuild -downloadComponent MetalToolchain   # MLX's GPU kernels need it
 Then:
 
 ```sh
-scripts/build_app.sh debug        # generates Glint.xcodeproj, builds, signs ad hoc → build/Glint.app
+scripts/build_app.sh debug        # generates Xcode/Glint.xcodeproj, builds, signs ad hoc → build/Glint.app
 open build/Glint.app              # onboarding offers the EmbeddingGemma 2 download (1.5 GB)
 ```
 
-- **Xcode:** run `xcodegen generate`, then open `Glint.xcodeproj` (app, `glint-mcp`, UI tests). The modules and unit tests live in `Package.swift`.
+- **Xcode:** run `mkdir -p Xcode && xcodegen generate --project Xcode`, then open `Xcode/Glint.xcodeproj` (app, `glint-mcp`, UI tests). The modules and unit tests live in `Package.swift`.
 - **Why `xcodebuild`:** MLX's Metal kernels can't be built by `swift build`. Plain `swift build`/`swift test` still compile everything and run every test that doesn't execute the model.
 
 | Task | Command |
 | --- | --- |
 | Unit, integration, UI-model and snapshot tests | `swift test` |
-| UI tests (XCUITest, real app, isolated data) | `xcodebuild test -project Glint.xcodeproj -scheme Glint -destination 'platform=macOS,arch=arm64' ARCHS=arm64` |
+| UI tests (XCUITest, real app, isolated data) | `xcodebuild test -project Xcode/Glint.xcodeproj -scheme Glint -destination 'platform=macOS,arch=arm64' ARCHS=arm64` |
 | EmbeddingGemma 2 parity gate | see `Tests/GlintEmbeddingTests/EmbeddingGemma2ParityTests.swift` (needs the checkpoint and `scripts/model/make_parity_fixtures.py`) |
 | Performance budgets (100k chunks) | `GLINT_PERF=1 swift test -c release --filter GlintPerformanceTests` |
 | Retrieval evals | `glint-eval sample /tmp/eval && glint-eval run /tmp/eval --model gemma --model-dir <checkpoint> --baseline Evals/baseline-embeddinggemma2.json` |

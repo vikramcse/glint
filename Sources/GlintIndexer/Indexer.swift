@@ -221,8 +221,19 @@ public actor Indexer: IndexingService {
 
     public func removeSource(_ id: SourceID) async throws {
         let removed = try await writer.removeSource(id)
-        for fileID in removed { try await vectorIndex.remove(fileID: fileID) }
+        for fileID in removed.files { try await vectorIndex.remove(fileID: fileID) }
+        thumbnails.delete(relativePaths: removed.orphanedThumbnails)
         await restartWatcher()
+        await publishStatus(force: true)
+    }
+
+    public func reindexSource(_ id: SourceID) async throws {
+        guard let source = try await writer.sources().first(where: { $0.id == id }) else { return }
+        let requeued = try await writer.requeueSource(id)
+        Log.indexer.info("Re-indexing \(requeued, privacy: .public) files in a source")
+        // Picks up files added or removed while the watcher missed them.
+        await rescan(sourceID: id, root: source.path)
+        wake()
         await publishStatus(force: true)
     }
 

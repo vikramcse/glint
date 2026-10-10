@@ -20,12 +20,13 @@ DERIVED="$BUILD/DerivedData"
 PRODUCTS="$DERIVED/Build/Products/$CONFIG"
 
 cd "$ROOT"
-echo "▸ Generating Glint.xcodeproj"
-xcodegen generate --quiet
+echo "▸ Generating Xcode/Glint.xcodeproj"
+mkdir -p Xcode
+xcodegen generate --quiet --project Xcode
 
 echo "▸ Building ($CONFIG, Apple silicon)"
 # ARCHS on the command line also reaches the Swift package targets (Float16 and MLX: arm64 only).
-xcodebuild build -project Glint.xcodeproj -scheme Glint -configuration "$CONFIG" \
+xcodebuild build -project Xcode/Glint.xcodeproj -scheme Glint -configuration "$CONFIG" \
   -destination 'platform=macOS,arch=arm64' -derivedDataPath "$DERIVED" \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGN_IDENTITY=- -quiet 2>&1 \
   | grep -vE "iOSSimulator|DVTErrorPresenter|CoreSimulator|^(Domain|Code|Failure Reason|Recovery Suggestion):|^--$|^$" || true

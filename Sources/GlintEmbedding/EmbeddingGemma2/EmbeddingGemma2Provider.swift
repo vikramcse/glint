@@ -57,6 +57,8 @@ actor EG2Runtime {
     private let directory: URL
     /// Text sequences are batched together; media inputs run one at a time to bound memory.
     private let textBatchSize = 16
+    /// Images, frames and audio embedded per model call.
+    private let mediaBatchSize = 4
     /// Media towers unload after this long without media input.
     private let idleUnload: Duration = .seconds(120)
     private var lastMediaUse = ContinuousClock.now
@@ -131,12 +133,16 @@ actor EG2Runtime {
         try prepareTowers(for: inputs)
         var results = [[Float]?](repeating: nil, count: inputs.count)
         var textIndices: [Int] = []
+        var mediaIndices: [Int] = []
         for (index, input) in inputs.enumerated() {
-            if case .text = input {
-                textIndices.append(index)
-            } else {
-                results[index] = try run([processor.prepare(input, purpose: purpose)]).first
-            }
+            if case .text = input { textIndices.append(index) } else { mediaIndices.append(index) }
+        }
+        // Media runs in small batches: the GPU is underused one image at a time, while large
+        // batches of 2,520-patch images cost a lot of memory.
+        for start in stride(from: 0, to: mediaIndices.count, by: mediaBatchSize) {
+            let indices = Array(mediaIndices[start..<min(start + mediaBatchSize, mediaIndices.count)])
+            let items = try indices.map { try processor.prepare(inputs[$0], purpose: purpose) }
+            for (index, vector) in zip(indices, try run(items)) { results[index] = vector }
         }
         for start in stride(from: 0, to: textIndices.count, by: textBatchSize) {
             let indices = Array(textIndices[start..<min(start + textBatchSize, textIndices.count)])

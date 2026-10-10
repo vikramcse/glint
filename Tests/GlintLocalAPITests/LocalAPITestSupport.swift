@@ -27,6 +27,7 @@ actor FakeIndexing: IndexingService {
     func sources() async throws -> [SourceInfo] { folders }
     func addSource(_ url: URL) async throws -> SourceInfo { throw CocoaError(.featureUnsupported) }
     func removeSource(_ id: SourceID) async throws {}
+    func reindexSource(_ id: SourceID) async throws {}
     func setExclusions(_ rules: ExclusionRules) async throws {}
     func exclusions() async -> ExclusionRules { .default }
     func pause() async {}

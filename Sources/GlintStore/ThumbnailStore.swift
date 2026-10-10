@@ -48,6 +48,11 @@ public struct ThumbnailStore: Sendable {
         return CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCacheImmediately: true] as CFDictionary)
     }
 
+    /// Deletes stored thumbnails by relative path; missing files are ignored.
+    public func delete(relativePaths: [String]) {
+        for path in relativePaths { try? FileManager.default.removeItem(at: url(forRelativePath: path)) }
+    }
+
     public func deleteAll() throws {
         if FileManager.default.fileExists(atPath: directory.path) {
             try FileManager.default.removeItem(at: directory)

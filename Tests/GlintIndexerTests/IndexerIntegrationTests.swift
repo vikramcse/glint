@@ -272,6 +272,47 @@ struct IndexerIntegrationTests {
         #expect(try await harness.names(for: "secret").isEmpty)
     }
 
+    @Test func reindexSourceReembedsEveryFileAndRetriesFailures() async throws {
+        let harness = try Harness()
+        try harness.write("a.txt", "alpha")
+        try harness.write("bad.txt", "CRASH")
+        let source = try await harness.indexer.addSource(harness.library)
+        await harness.indexer.drain()
+        let initialEmbeds = harness.provider.count
+
+        try await harness.indexer.reindexSource(source.id)
+        let queued = try #require(try await harness.indexer.sources().first)
+        #expect(queued.pending == 2)
+        #expect(queued.failed == 0)
+        // Still searchable while it waits to be re-indexed.
+        #expect(try await harness.names(for: "alpha").first == "a.txt")
+
+        await harness.indexer.drain()
+        #expect(harness.provider.count > initialEmbeds)
+        let done = try #require(try await harness.indexer.sources().first)
+        #expect(done.indexed == 1)
+        #expect(done.failed == 1)
+        #expect(try await harness.names(for: "alpha").first == "a.txt")
+    }
+
+    @Test func removeSourceDeletesOnlyItsIndex() async throws {
+        let harness = try Harness()
+        let other = harness.root.appendingPathComponent("Other", isDirectory: true)
+        try FileManager.default.createDirectory(at: other, withIntermediateDirectories: true)
+        try "kept note".write(to: other.appendingPathComponent("kept.txt"), atomically: true, encoding: .utf8)
+        try harness.write("gone.txt", "removed note")
+        let removed = try await harness.indexer.addSource(harness.library)
+        try await harness.indexer.addSource(other)
+        await harness.indexer.drain()
+
+        try await harness.indexer.removeSource(removed.id)
+        #expect(try await harness.indexer.sources().map(\.path) == [FileScanner.canonicalPath(other)])
+        #expect(await harness.engine.vectorIndex.count == 1)
+        #expect(!(try await harness.names(for: "removed note")).contains("gone.txt"))
+        #expect(try await harness.names(for: "kept note").first == "kept.txt")
+        #expect(await harness.indexer.currentStatus().totalIndexed == 1)
+    }
+
     @Test func deleteIndexRemovesDerivedDataAndRescans() async throws {
         let harness = try Harness()
         try harness.write("a.txt", "alpha")
