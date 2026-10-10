@@ -87,7 +87,11 @@ case "bench":
     do {
         try await BenchCorpus.ensure(at: benchDirectory, counts: counts)
         print("Corpus: \(benchDirectory.path)\nModel: \(benchProvider.descriptor.space)\n")
-        let runs = try await BenchRunner(corpus: benchDirectory, provider: benchProvider).run(kinds: kinds)
+        var runner = BenchRunner(corpus: benchDirectory, provider: benchProvider)
+        if let lanes = option("--lanes", in: arguments).flatMap(Int.init) { runner.options.embeddingLanes = lanes }
+        if let batch = option("--batch", in: arguments).flatMap(Int.init) { runner.options.embeddingBatchSize = batch }
+        if let workers = option("--workers", in: arguments).flatMap(Int.init) { runner.options.concurrentFiles = workers }
+        let runs = try await runner.run(kinds: kinds)
         if let out = option("--out", in: arguments) {
             let report = BenchReport(
                 model: benchProvider.descriptor.space.description, date: Date(),

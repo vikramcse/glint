@@ -24,10 +24,25 @@ public enum IndexerError: GlintError, Equatable {
 
 /// Tunables for the indexing pipeline.
 public struct IndexerOptions: Sendable, Hashable {
-    /// Files extracted at the same time (CPU stage).
+    /// Files in flight at once: each worker hashes, decodes and extracts one file (CPU stage).
     public var concurrentFiles: Int
-    /// Inputs per embedding call when the user is not typing.
+    /// Maximum inputs per embedding call when the user is not typing; windows from several
+    /// files are packed together up to this size.
     public var embeddingBatchSize: Int
+    /// How long the embedding lane waits for other files to fill a batch.
+    public var embeddingBatchWait: Duration
+    /// Embedding calls in flight at once. One keeps a batched GPU model's batches full;
+    /// providers that work input by input (the built-in model) gain from a few.
+    public var embeddingLanes: Int
+    /// Embedding windows one file may have in flight while it keeps extracting; bounds memory
+    /// for long videos and PDFs.
+    public var embeddingWindowsInFlight: Int
+    /// Most files committed in one group transaction.
+    public var commitBatchSize: Int
+    /// Concurrent Vision text recognitions (the Neural Engine saturates at about two).
+    public var ocrLaneWidth: Int
+    /// Fraction of `concurrentFiles` and OCR lanes used on battery or when the Mac is warm.
+    public var constrainedWidthFactor: Double
     /// Chunks kept per file; protects the index from pathological files.
     public var maxChunksPerFile: Int
     /// Index video only on AC power.
@@ -39,8 +54,14 @@ public struct IndexerOptions: Sendable, Hashable {
     public var watcherLatency: TimeInterval
 
     public init(
-        concurrentFiles: Int = max(2, ProcessInfo.processInfo.activeProcessorCount / 2),
-        embeddingBatchSize: Int = 16,
+        concurrentFiles: Int = max(2, ProcessInfo.processInfo.activeProcessorCount),
+        embeddingBatchSize: Int = 32,
+        embeddingBatchWait: Duration = .milliseconds(4),
+        embeddingLanes: Int = 2,
+        embeddingWindowsInFlight: Int = 2,
+        commitBatchSize: Int = 64,
+        ocrLaneWidth: Int = 2,
+        constrainedWidthFactor: Double = 0.5,
         maxChunksPerFile: Int = 4_000,
         videoOnlyOnPower: Bool = false,
         fuseTextIntoMedia: Bool = true,
@@ -48,10 +69,26 @@ public struct IndexerOptions: Sendable, Hashable {
     ) {
         self.concurrentFiles = concurrentFiles
         self.embeddingBatchSize = embeddingBatchSize
+        self.embeddingBatchWait = embeddingBatchWait
+        self.embeddingLanes = embeddingLanes
+        self.embeddingWindowsInFlight = embeddingWindowsInFlight
+        self.commitBatchSize = commitBatchSize
+        self.ocrLaneWidth = ocrLaneWidth
+        self.constrainedWidthFactor = constrainedWidthFactor
         self.maxChunksPerFile = maxChunksPerFile
         self.videoOnlyOnPower = videoOnlyOnPower
         self.fuseTextIntoMedia = fuseTextIntoMedia
         self.watcherLatency = watcherLatency
+    }
+
+    /// Workers to run given the power state.
+    func workers(constrained: Bool) -> Int {
+        constrained ? max(1, Int((Double(concurrentFiles) * constrainedWidthFactor).rounded())) : max(1, concurrentFiles)
+    }
+
+    /// OCR lanes to allow given the power state.
+    func ocrLanes(constrained: Bool) -> Int {
+        constrained ? max(1, Int((Double(ocrLaneWidth) * constrainedWidthFactor).rounded(.down))) : max(1, ocrLaneWidth)
     }
 }
 
@@ -89,8 +126,14 @@ public enum ContentHasher {
     }
 }
 
-/// Decides when indexing should pause to protect battery and thermals.
+/// Decides when indexing should pause, or slow down, to protect battery and thermals.
 public protocol PowerMonitoring: Sendable {
     func pauseReason() -> PauseReason?
     var isOnBattery: Bool { get }
+    /// On battery or warm: run narrower lanes instead of pausing.
+    var isConstrained: Bool { get }
+}
+
+extension PowerMonitoring {
+    public var isConstrained: Bool { isOnBattery }
 }

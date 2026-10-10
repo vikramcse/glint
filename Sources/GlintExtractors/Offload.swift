@@ -51,7 +51,7 @@ public final class Lane: @unchecked Sendable {
     }
 
     /// Blocks the calling (GCD) thread until a slot is free, runs `work`, then frees the slot.
-    func run<T>(_ work: () throws -> T) rethrows -> T {
+    public func run<T>(_ work: () throws -> T) rethrows -> T {
         condition.lock()
         while active >= width { condition.wait() }
         active += 1

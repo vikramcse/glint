@@ -55,10 +55,12 @@ enum BenchCorpus {
                 case "pdfs": try writePDF(index: index, text: lorem, to: folder.appendingPathComponent("Report \(index).pdf"))
                 case "docs":
                     let body = (0..<(4 + index % 12)).map { "## Section \($0)\n\n\(lorem)\n" }.joined(separator: "\n")
-                    try "# Notes \(index)\n\n\(body)".write(to: folder.appendingPathComponent("notes-\(index).md"), atomically: true, encoding: .utf8)
+                    try "# Notes \(index)\n\n\(body)".write(
+                        to: folder.appendingPathComponent("notes-\(index).md"), atomically: true, encoding: .utf8)
                 case "audio":
                     try Fixtures.writeToneWAV(
-                        duration: Double(60 + (index % 3) * 60), frequency: 220 + Double(index * 40), named: "memo-\(index).wav", in: folder)
+                        duration: Double(60 + (index % 3) * 60), frequency: 220 + Double(index * 40), named: "memo-\(index).wav", in: folder
+                    )
                 default:
                     try await Fixtures.writeVideo(
                         duration: Double(30 + (index % 2) * 30), named: "clip-\(index).mp4", in: folder,
@@ -69,10 +71,11 @@ enum BenchCorpus {
     }
 
     private static func context(width: Int, height: Int) throws -> CGContext {
-        guard let context = CGContext(
-            data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
-            space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        guard
+            let context = CGContext(
+                data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
         else { throw CocoaError(.fileWriteUnknown) }
         return context
     }

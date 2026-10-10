@@ -1,6 +1,7 @@
 import Foundation
 import GlintCore
 import GlintEmbedding
+import GlintExtractors
 import GlintStore
 
 /// The background indexer: scans sources, watches them for changes, and works through the
@@ -27,6 +28,14 @@ public actor Indexer: IndexingService {
     private var wakePending = false
     private var subscribers: [UUID: AsyncStream<IndexStatus>.Continuation] = [:]
     private var lastPublish: ContinuousClock.Instant?
+    /// Claimed files waiting for a worker, in queue order.
+    private var prefetched: [FileRecord] = []
+    /// Claimed files not yet finished (prefetched or being processed); excluded from claims.
+    private var inFlight: Set<FileID> = []
+    private var refill: Task<Void, Never>?
+    private var queueExhausted = false
+    /// Pools running right now (the queue loop and `drain()` may overlap).
+    private var activePools = 0
 
     private static let exclusionsKey = "exclusions"
 
@@ -51,7 +60,12 @@ public actor Indexer: IndexingService {
         lastSnapshot = features.current
         pipeline = FilePipeline(
             writer: writer, extractors: extractors, provider: provider, vectorIndex: vectorIndex, gate: gate,
-            thumbnails: thumbnails, features: features, options: options, stats: stats
+            thumbnails: thumbnails, features: features, options: options,
+            embedder: EmbeddingBatcher(
+                provider: provider, gate: gate, maxBatch: options.embeddingBatchSize, maxWait: options.embeddingBatchWait,
+                lanes: options.embeddingLanes),
+            committer: CommitBatcher(writer: writer, maxFiles: options.commitBatchSize),
+            stats: stats
         )
     }
 
@@ -89,6 +103,10 @@ public actor Indexer: IndexingService {
         pipeline = FilePipeline(
             writer: writer, extractors: extractors ?? pipeline.extractors, provider: pipeline.provider,
             vectorIndex: vectorIndex, gate: pipeline.gate, thumbnails: thumbnails, features: features, options: options,
+            embedder: EmbeddingBatcher(
+                provider: pipeline.provider, gate: pipeline.gate, maxBatch: options.embeddingBatchSize,
+                maxWait: options.embeddingBatchWait, lanes: options.embeddingLanes),
+            committer: CommitBatcher(writer: writer, maxFiles: options.commitBatchSize),
             stats: pipeline.stats
         )
         wake()
@@ -96,11 +114,13 @@ public actor Indexer: IndexingService {
 
     /// Indexes everything pending and returns when the queue is empty (used by tests and the eval harness).
     public func drain() async {
-        while true {
-            let batch = await nextBatch()
-            if batch.isEmpty { break }
-            await process(batch)
+        await runPool()
+        // Files another pool (the queue loop) claimed are still in flight; wait for them, then
+        // sweep once more for anything they left behind.
+        while !inFlight.isEmpty, !Task.isCancelled {
+            try? await Task.sleep(for: .milliseconds(5))
         }
+        await runPool()
         _ = try? await writer.failExhausted()
         await publishStatus(force: true)
     }
@@ -227,49 +247,93 @@ public actor Indexer: IndexingService {
                 await waitForWake(timeout: .seconds(30))
                 continue
             }
-            let batch = await nextBatch()
-            if batch.isEmpty {
-                _ = try? await writer.failExhausted()
-                if case .paused(.itemLimitReached) = phase {} else { setPhase(.idle) }
-                await publishStatus(force: true)
-                await waitForWake(timeout: .seconds(300))
-                continue
-            }
             setPhase(.indexing)
-            await process(batch)
-            await publishStatus()
+            await runPool()
+            if userPaused || power.pauseReason() != nil { continue }
+            _ = try? await writer.failExhausted()
+            if case .paused(.itemLimitReached) = phase {} else { setPhase(.idle) }
+            await publishStatus(force: true)
+            await waitForWake(timeout: .seconds(300))
         }
     }
 
-    private func nextBatch() async -> [FileRecord] {
+    /// Runs a pool of workers until the queue is empty, indexing pauses, or the task is
+    /// cancelled. Each worker takes the next file as soon as it finishes one, so a long video
+    /// never holds up the files behind it. On battery or when warm, fewer workers and OCR
+    /// lanes run instead of pausing.
+    private func runPool() async {
+        let constrained = power.isConstrained
+        let workers = options.workers(constrained: constrained)
+        ExtractionLanes.ocr.setWidth(options.ocrLanes(constrained: constrained))
+        queueExhausted = false
+        activePools += 1
+        await withTaskGroup(of: Void.self) { group in
+            for _ in 0..<workers {
+                group.addTask { [weak self] in
+                    while let self, !Task.isCancelled, let record = await self.claimNext() {
+                        _ = await self.pipelineSnapshot().process(record)
+                        await self.finished(record.id)
+                    }
+                }
+            }
+        }
+        activePools -= 1
+        guard activePools == 0 else { return }
+        // Return anything prefetched but not started (pause or cancel) to the queue.
+        let unstarted = prefetched
+        prefetched.removeAll()
+        for record in unstarted {
+            inFlight.remove(record.id)
+            try? await writer.release(record.id)
+        }
+    }
+
+    private func pipelineSnapshot() -> FilePipeline { pipeline }
+
+    private func finished(_ id: FileID) async {
+        inFlight.remove(id)
+        await publishStatus()
+    }
+
+    /// The next file for a worker, or `nil` when the worker should stop (queue empty, paused,
+    /// item limit reached).
+    private func claimNext() async -> FileRecord? {
+        while true {
+            if Task.isCancelled || userPaused || power.pauseReason() != nil { return nil }
+            if !prefetched.isEmpty { return prefetched.removeFirst() }
+            if queueExhausted { return nil }
+            // One refill at a time; it clears `refill` itself before finishing, so waiters never
+            // spin on a completed task.
+            let task = refill ?? Task { await self.refillQueue() }
+            refill = task
+            await task.value
+        }
+    }
+
+    /// Claims the next few files in queue order, skipping files already in flight.
+    private func refillQueue() async {
+        defer { refill = nil }
         let gate = features.current
-        var limit = options.concurrentFiles * 2
+        var limit = max(2, options.concurrentFiles * 2)
         if let itemLimit = gate.itemLimit {
             let indexed = (try? await writer.counts().totalIndexed) ?? 0
-            if indexed >= itemLimit {
-                setPhase(.paused(.itemLimitReached))
-                return []
+            let remaining = itemLimit - indexed - inFlight.count
+            if remaining <= 0 {
+                if indexed >= itemLimit { setPhase(.paused(.itemLimitReached)) }
+                queueExhausted = true
+                return
             }
-            limit = min(limit, itemLimit - indexed)
+            limit = min(limit, remaining)
         }
         var kinds = Set(MediaKind.allCases.filter { gate.allows($0) })
         if options.videoOnlyOnPower, power.isOnBattery { kinds.remove(.video) }
-        return (try? await writer.claimPending(limit: limit, kinds: kinds)) ?? []
-    }
-
-    private func process(_ batch: [FileRecord]) async {
-        let pipeline = pipeline
-        let width = max(1, options.concurrentFiles)
-        await withTaskGroup(of: FileOutcome.self) { group in
-            var iterator = batch.makeIterator()
-            for _ in 0..<width {
-                guard let record = iterator.next() else { break }
-                group.addTask { await pipeline.process(record) }
-            }
-            while await group.next() != nil {
-                if let record = iterator.next() { group.addTask { await pipeline.process(record) } }
-            }
+        let claimed = (try? await writer.claimPending(limit: limit, kinds: kinds, excluding: inFlight)) ?? []
+        if claimed.isEmpty {
+            queueExhausted = true
+            return
         }
+        for record in claimed { inFlight.insert(record.id) }
+        prefetched.append(contentsOf: claimed)
     }
 
     private func waitForWake(timeout: Duration? = nil) async {

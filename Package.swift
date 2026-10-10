@@ -116,7 +116,9 @@ let package = Package(
         ),
         .testTarget(
             name: "GlintPerformanceTests",
-            dependencies: ["GlintSearch", "GlintStore", "GlintEmbedding", "GlintTestSupport"],
+            dependencies: [
+                "GlintSearch", "GlintStore", "GlintEmbedding", "GlintTestSupport", "GlintIndexer", "GlintExtractors",
+            ],
             swiftSettings: strictSettings
         ),
     ]

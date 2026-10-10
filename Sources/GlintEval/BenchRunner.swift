@@ -86,7 +86,8 @@ struct BenchRunner {
     }
 
     static func line(_ run: BenchRun) -> String {
-        var text = run.name.padding(toLength: 12, withPad: " ", startingAt: 0)
+        var text =
+            run.name.padding(toLength: 12, withPad: " ", startingAt: 0)
             + String(
                 format: "%5d files  %7.1f s  %8.0f items/min  text✓ %d", run.files, run.wallSeconds, run.itemsPerMinute,
                 run.filesWithKeyword)

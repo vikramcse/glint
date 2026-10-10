@@ -30,17 +30,8 @@ public struct ImageExtractor: ContentExtractor {
         try ExtractionError.checkReadable(file.url)
         guard ExtractionError.fileSize(file.url) > 0 else { throw ExtractionError.empty }
 
-        let image = try ImageProcessing.downscaledImage(at: file.url, maxPixel: options.embeddingImageMaxPixel)
+        let (image, text) = try decodeAndRead(file.url, options: options)
         let thumbnail = ImageProcessing.scaled(image, maxPixel: options.thumbnailMaxPixel)
-
-        var text: String?
-        if options.ocrEnabled {
-            do {
-                text = try recognizeText(file.url, preview: image, options: options)
-            } catch {
-                Log.extractor.error("OCR failed: \(String(describing: error), privacy: .public)")
-            }
-        }
         return Chunk(
             ordinal: 0,
             locator: .whole,
@@ -50,26 +41,44 @@ public struct ImageExtractor: ContentExtractor {
         )
     }
 
-    /// OCR with `.automatic`: skip images without text, otherwise decode once more at
-    /// `ocrMaxPixel` (only when the source is larger than the preview) and pick the recognizer
-    /// by source. Explicit `.fast`/`.accurate` levels read the preview as before.
-    static func recognizeText(_ url: URL, preview: CGImage, options: ExtractionOptions) throws -> String? {
-        let recognizer = TextRecognizer(level: options.ocrLevel)
-        let recognized: String
-        if options.ocrLevel == .automatic {
-            let source: OCRSource = ImageProcessing.isCameraPhoto(at: url) ? .camera : .screen
-            // Only camera photos are pre-checked: most have no text, and the 1–3 ms check
-            // saves the recognizer. Screens nearly always have text, often too small for the
-            // detector at preview size, and fast recognition costs only ~30 ms.
-            if source == .camera, !TextRecognizer.containsText(preview) { return nil }
-            let longSide = ImageProcessing.pixelSize(at: url).map { max($0.width, $0.height) } ?? 0
-            let ocrImage =
-                source == .screen && longSide > max(preview.width, preview.height)
-                ? try ImageProcessing.downscaledImage(at: url, maxPixel: options.ocrMaxPixel) : preview
-            recognized = try recognizer.recognizeTextBlocking(in: ocrImage, source: source)
-        } else {
-            recognized = try recognizer.recognizeTextBlocking(in: preview)
+    /// Decodes the image once and reads its text.
+    ///
+    /// With `.automatic` OCR:
+    /// - Camera photos are decoded at preview size, pre-checked for text (1–3 ms), and read
+    ///   with the accurate recognizer only when text is present.
+    /// - Other images larger than the preview are decoded once at `ocrMaxPixel`; the preview
+    ///   and thumbnail are scaled from that, and the fast recognizer runs only when the text
+    ///   detector (reliable at this size, unlike at preview size) finds text.
+    /// Explicit `.fast`/`.accurate` levels read the preview, as before.
+    static func decodeAndRead(_ url: URL, options: ExtractionOptions) throws -> (image: CGImage, text: String?) {
+        let previewSize = options.embeddingImageMaxPixel
+        guard options.ocrEnabled else {
+            return (try ImageProcessing.downscaledImage(at: url, maxPixel: previewSize), nil)
         }
-        return recognized.isEmpty ? nil : recognized
+        let recognizer = TextRecognizer(level: options.ocrLevel)
+        func read(_ image: CGImage, _ source: OCRSource) -> String? {
+            do {
+                let text = try recognizer.recognizeTextBlocking(in: image, source: source)
+                return text.isEmpty ? nil : text
+            } catch {
+                Log.extractor.error("OCR failed: \(String(describing: error), privacy: .public)")
+                return nil
+            }
+        }
+        guard options.ocrLevel == .automatic else {
+            let preview = try ImageProcessing.downscaledImage(at: url, maxPixel: previewSize)
+            return (preview, read(preview, .screen))
+        }
+        let longSide = ImageProcessing.pixelSize(at: url).map { max($0.width, $0.height) } ?? 0
+        if ImageProcessing.isCameraPhoto(at: url) || longSide <= previewSize {
+            let preview = try ImageProcessing.downscaledImage(at: url, maxPixel: previewSize)
+            let source: OCRSource = ImageProcessing.isCameraPhoto(at: url) ? .camera : .screen
+            guard source == .screen || TextRecognizer.containsText(preview) else { return (preview, nil) }
+            return (preview, read(preview, source))
+        }
+        let large = try ImageProcessing.downscaledImage(at: url, maxPixel: options.ocrMaxPixel)
+        let preview = ImageProcessing.scaled(large, maxPixel: previewSize)
+        guard TextRecognizer.containsText(large) else { return (preview, nil) }
+        return (preview, read(large, .screen))
     }
 }

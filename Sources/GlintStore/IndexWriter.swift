@@ -209,17 +209,23 @@ public actor IndexWriter {
     /// Claims up to `limit` pending files of the allowed kinds, highest priority first
     /// (documents and images, then audio, then video; newest first within a priority).
     /// Each claim counts as an attempt, so a file that crashes the app is not retried forever.
-    public func claimPending(limit: Int, kinds: Set<MediaKind>) throws -> [FileRecord] {
+    /// - Parameter excluding: files already claimed and still in flight, so concurrent workers
+    ///   never receive the same file twice.
+    public func claimPending(limit: Int, kinds: Set<MediaKind>, excluding: Set<FileID> = []) throws -> [FileRecord] {
         guard !kinds.isEmpty, limit > 0 else { return [] }
         return try db.transaction {
             let placeholders = Array(repeating: "?", count: kinds.count).joined(separator: ",")
+            let excluded =
+                excluding.isEmpty
+                ? "" : " AND id NOT IN (" + Array(repeating: "?", count: excluding.count).joined(separator: ",") + ")"
             let records = try db.query(
                 """
                 SELECT \(SQLiteConnection.fileColumns) FROM files
-                WHERE status = 0 AND attempts < ? AND kind IN (\(placeholders))
+                WHERE status = 0 AND attempts < ? AND kind IN (\(placeholders))\(excluded)
                 ORDER BY priority, modified DESC LIMIT ?
                 """,
-                [SQLValue(Self.maxAttempts)] + kinds.sorted().map { .text($0.rawValue) } + [SQLValue(limit)],
+                [SQLValue(Self.maxAttempts)] + kinds.sorted().map { .text($0.rawValue) }
+                    + excluding.map { .int($0.rawValue) } + [SQLValue(limit)],
                 map: SQLiteConnection.fileRecord
             ).compactMap { $0 }
             for record in records {
@@ -273,41 +279,58 @@ public actor IndexWriter {
         chunks: [ChunkWrite],
         media: FileMedia = FileMedia()
     ) throws -> [CommittedVector] {
-        try db.transaction {
-            guard try db.scalarInt("SELECT 1 FROM files WHERE id = ?", [.int(fileID.rawValue)]) != nil else { return [] }
-            try db.run("DELETE FROM chunks WHERE file_id = ?", [.int(fileID.rawValue)])
-            var committed: [CommittedVector] = []
-            for chunk in chunks {
-                try db.run(
-                    "INSERT INTO chunks(file_id, ordinal, locator, text, thumb) VALUES (?, ?, ?, ?, ?)",
-                    [
-                        .int(fileID.rawValue), SQLValue(chunk.ordinal), .text(chunk.locator.json),
-                        SQLValue(chunk.text), SQLValue(chunk.thumbnail),
-                    ]
-                )
-                let chunkID = ChunkID(db.lastInsertRowID)
-                if let vector = chunk.vector {
-                    try db.run(
-                        "INSERT INTO vectors(chunk_id, file_id, space, data) VALUES (?, ?, ?, ?)",
-                        [.int(chunkID.rawValue), .int(fileID.rawValue), .text(space.description), .blob(VectorCodec.encode(vector))]
-                    )
-                    committed.append(CommittedVector(chunkID: chunkID, values: vector))
-                }
-            }
+        let file = FileCommit(fileID: fileID, contentHash: contentHash, space: space, chunks: chunks, media: media)
+        return try db.transaction { try write(file) }
+    }
+
+    /// Commits several files in one transaction (group commit). Each file is written whole, so
+    /// the guarantee is unchanged: a file is either fully indexed or still pending. Returns the
+    /// committed vectors per file (empty for files that vanished meanwhile).
+    public func commitMany(_ files: [FileCommit]) throws -> [FileID: [CommittedVector]] {
+        guard !files.isEmpty else { return [:] }
+        return try db.transaction {
+            var result: [FileID: [CommittedVector]] = [:]
+            for file in files { result[file.fileID] = try write(file) }
+            return result
+        }
+    }
+
+    /// Writes one file's rows. Must run inside a transaction.
+    private func write(_ file: FileCommit) throws -> [CommittedVector] {
+        let fileID = file.fileID
+        guard try db.scalarInt("SELECT 1 FROM files WHERE id = ?", [.int(fileID.rawValue)]) != nil else { return [] }
+        try db.run("DELETE FROM chunks WHERE file_id = ?", [.int(fileID.rawValue)])
+        var committed: [CommittedVector] = []
+        for chunk in file.chunks {
             try db.run(
-                """
-                UPDATE files SET status = 1, content_hash = ?, error = NULL, indexed_at = ?, space = ?,
-                duration = ?, waveform = ? WHERE id = ?
-                """,
+                "INSERT INTO chunks(file_id, ordinal, locator, text, thumb) VALUES (?, ?, ?, ?, ?)",
                 [
-                    .text(contentHash), SQLValue(now()), .text(space.description),
-                    media.duration.map(SQLValue.double) ?? .null,
-                    media.waveform.map { .blob(VectorCodec.encodeWaveform($0)) } ?? .null,
-                    .int(fileID.rawValue),
+                    .int(fileID.rawValue), SQLValue(chunk.ordinal), .text(chunk.locator.json),
+                    SQLValue(chunk.text), SQLValue(chunk.thumbnail),
                 ]
             )
-            return committed
+            let chunkID = ChunkID(db.lastInsertRowID)
+            if let vector = chunk.vector {
+                try db.run(
+                    "INSERT INTO vectors(chunk_id, file_id, space, data) VALUES (?, ?, ?, ?)",
+                    [.int(chunkID.rawValue), .int(fileID.rawValue), .text(file.space.description), .blob(VectorCodec.encode(vector))]
+                )
+                committed.append(CommittedVector(chunkID: chunkID, values: vector))
+            }
         }
+        try db.run(
+            """
+            UPDATE files SET status = 1, content_hash = ?, error = NULL, indexed_at = ?, space = ?,
+            duration = ?, waveform = ? WHERE id = ?
+            """,
+            [
+                .text(file.contentHash), SQLValue(now()), .text(file.space.description),
+                file.media.duration.map(SQLValue.double) ?? .null,
+                file.media.waveform.map { .blob(VectorCodec.encodeWaveform($0)) } ?? .null,
+                .int(fileID.rawValue),
+            ]
+        )
+        return committed
     }
 
     /// An indexed file with the same content in the same space, so a copy or move reuses its vectors.

@@ -13,9 +13,10 @@ public enum FileOutcome: Sendable, Hashable {
     case cancelled
 }
 
-/// Indexes one file: hash, reuse vectors of an identical file, extract chunks and display
-/// data, embed through the priority gate, then commit everything in one transaction.
-/// Stateless and `Sendable`, so several files can run through it concurrently.
+/// Indexes one file: hash, reuse vectors of an identical file, stream chunks out of the
+/// extractor while earlier windows are already being embedded in the shared embedding lane,
+/// then commit the whole file through the group-commit lane. Stateless and `Sendable`, so many
+/// files run through it concurrently.
 struct FilePipeline: Sendable {
     let writer: IndexWriter
     let extractors: [any ContentExtractor]
@@ -25,6 +26,8 @@ struct FilePipeline: Sendable {
     let thumbnails: ThumbnailStore
     let features: FeatureGateBox
     let options: IndexerOptions
+    let embedder: EmbeddingBatcher
+    let committer: CommitBatcher
     var stats: IndexingStats?
 
     var space: VectorSpace { provider.descriptor.space }
@@ -37,8 +40,9 @@ struct FilePipeline: Sendable {
                 return .vanished
             }
             var clock = Stopwatch()
-            let hash = try ContentHasher.hash(of: record.url)
-            await time(.hash, record, &clock)
+            let url = record.url
+            let hash = try await BlockingIO.run { try ContentHasher.hash(of: url) }
+            await time(.hash, record, seconds: clock.seconds)
             try Task.checkCancellation()
 
             if let duplicate = try await writer.indexedDuplicate(contentHash: hash, space: space, excluding: record.id) {
@@ -52,23 +56,20 @@ struct FilePipeline: Sendable {
                 return .failed(.unsupported)
             }
             let extractState = Signposts.indexing.beginInterval(Signposts.Name.extractFile)
-            let chunks = try await collect(extractor.chunks(of: record.fileRef))
+            let streamed = try await extractAndEmbed(extractor.chunks(of: record.fileRef), record: record, contentHash: hash)
             Signposts.indexing.endInterval(Signposts.Name.extractFile, extractState)
-            await time(.extract, record, &clock)
+            await time(.extract, record, seconds: streamed.extractSeconds)
+            await time(.embed, record, seconds: streamed.embedWaitSeconds)
 
-            let writes = try await embed(chunks, contentHash: hash)
-            await time(.embed, record, &clock)
-            let first = chunks.first?.preview
+            clock = Stopwatch()
             let commitState = Signposts.indexing.beginInterval(Signposts.Name.commitFile)
-            let vectors = try await writer.commit(
-                fileID: record.id, contentHash: hash, space: space, chunks: writes,
-                media: FileMedia(duration: first?.duration, waveform: first?.waveform)
-            )
+            let vectors = try await committer.commit(
+                FileCommit(fileID: record.id, contentHash: hash, space: space, chunks: streamed.writes, media: streamed.media))
             Signposts.indexing.endInterval(Signposts.Name.commitFile, commitState)
             try await publish(vectors, for: record)
-            await time(.commit, record, &clock)
-            await stats?.finish(record.kind, bytes: record.size, chunks: writes.count, vectors: vectors.count)
-            return .indexed(chunks: writes.count, vectors: vectors.count)
+            await time(.commit, record, seconds: clock.seconds)
+            await stats?.finish(record.kind, bytes: record.size, chunks: streamed.writes.count, vectors: vectors.count)
+            return .indexed(chunks: streamed.writes.count, vectors: vectors.count)
         } catch is CancellationError {
             try? await writer.release(record.id)
             return .cancelled
@@ -84,64 +85,101 @@ struct FilePipeline: Sendable {
         }
     }
 
-    private func time(_ stage: IndexingStage, _ record: FileRecord, _ clock: inout Stopwatch) async {
-        guard let stats else { return }
-        await stats.record(record.kind, stage: stage, seconds: clock.milliseconds / 1_000)
-        clock = Stopwatch()
+    private func time(_ stage: IndexingStage, _ record: FileRecord, seconds: Double) async {
+        await stats?.record(record.kind, stage: stage, seconds: seconds)
     }
 
-    private func collect(_ stream: AsyncThrowingStream<Chunk, any Error>) async throws -> [Chunk] {
-        var chunks: [Chunk] = []
-        let gate = features.current
-        for try await chunk in stream {
-            try Task.checkCancellation()
-            var chunk = chunk
-            if let required = chunk.requiredFeature, !gate.allows(required) {
-                chunk.input = nil
-                // A gated chunk with nothing to keyword-index is dropped entirely.
-                if chunk.text?.isEmpty ?? true, chunk.preview.thumbnail == nil { continue }
-            }
-            chunks.append(chunk)
-            if chunks.count >= options.maxChunksPerFile { break }
-        }
-        // Extractor streams finish quietly when the consuming task is cancelled; never commit a
-        // half-read file as done.
-        try Task.checkCancellation()
-        return chunks
-    }
+    // MARK: Streaming extraction and embedding
 
-    /// Saves thumbnails and embeds inputs in batches, yielding to search between batches.
-    private func embed(_ chunks: [Chunk], contentHash: String) async throws -> [ChunkWrite] {
+    private struct Streamed {
         var writes: [ChunkWrite] = []
-        var pending: [(index: Int, input: EmbeddingInput)] = []
-        for chunk in chunks {
-            var thumbnail: String?
-            let key = chunk.preview.thumbnailKey ?? "c\(chunk.ordinal)"
-            if let image = chunk.preview.thumbnail {
-                thumbnail = try? thumbnails.save(image, contentHash: contentHash, key: key)
-            } else if chunk.preview.thumbnailKey != nil {
-                let path = thumbnails.relativePath(contentHash: contentHash, key: key)
-                if FileManager.default.fileExists(atPath: thumbnails.url(forRelativePath: path).path) { thumbnail = path }
-            }
-            if let input = composedInput(for: chunk) { pending.append((writes.count, input)) }
-            writes.append(ChunkWrite(ordinal: chunk.ordinal, locator: chunk.locator, text: chunk.text, thumbnail: thumbnail, vector: nil))
+        var media = FileMedia()
+        /// Time spent waiting on the extractor.
+        var extractSeconds = 0.0
+        /// Time spent waiting on embeddings after extraction could not run ahead any further.
+        var embedWaitSeconds = 0.0
+    }
+
+    private typealias Window = Task<[(index: Int, values: [Float]?)], any Error>
+
+    /// Pulls chunks from the extractor and hands them to the embedding lane in windows, so
+    /// extraction of later chunks overlaps embedding of earlier ones, and at most
+    /// `embeddingWindowsInFlight` windows of media are alive at once.
+    private func extractAndEmbed(
+        _ stream: AsyncThrowingStream<Chunk, any Error>, record: FileRecord, contentHash: String
+    ) async throws -> Streamed {
+        var result = Streamed()
+        let snapshot = features.current
+        let windowSize = max(1, options.embeddingBatchSize)
+        var window: [(index: Int, input: EmbeddingInput)] = []
+        var inFlight: [Window] = []
+        var iterator = stream.makeAsyncIterator()
+
+        func submit() {
+            guard !window.isEmpty else { return }
+            let items = window
+            window = []
+            let embedder = embedder
+            inFlight.append(
+                Task {
+                    let embeddings = try await embedder.embed(items.map(\.input))
+                    return zip(items, embeddings).map { item, embedding in
+                        (item.index, embedding.values.contains { $0 != 0 } ? embedding.values : nil)
+                    }
+                })
+        }
+        func settle(_ task: Window) async throws {
+            let clock = Stopwatch()
+            for (index, values) in try await task.value { result.writes[index].vector = values }
+            result.embedWaitSeconds += clock.seconds
         }
 
-        var start = 0
-        while start < pending.count {
-            try Task.checkCancellation()
-            await gate.waitForIndexingTurn()
-            let size = await gate.recommendedBatchSize(options.embeddingBatchSize)
-            let batch = pending[start..<min(start + size, pending.count)]
-            let state = Signposts.indexing.beginInterval(Signposts.Name.embedBatch)
-            let embeddings = try await provider.embed(batch.map(\.input), purpose: .document)
-            Signposts.indexing.endInterval(Signposts.Name.embedBatch, state)
-            for (item, embedding) in zip(batch, embeddings) where embedding.values.contains(where: { $0 != 0 }) {
-                writes[item.index].vector = embedding.values
+        do {
+            while true {
+                let clock = Stopwatch()
+                let next = try await iterator.next()
+                result.extractSeconds += clock.seconds
+                guard var chunk = next else { break }
+                try Task.checkCancellation()
+                if let required = chunk.requiredFeature, !snapshot.allows(required) {
+                    chunk.input = nil
+                    // A gated chunk with nothing to keyword-index is dropped entirely.
+                    if chunk.text?.isEmpty ?? true, chunk.preview.thumbnail == nil { continue }
+                }
+                if result.writes.isEmpty {
+                    result.media = FileMedia(duration: chunk.preview.duration, waveform: chunk.preview.waveform)
+                }
+                if let input = composedInput(for: chunk) { window.append((result.writes.count, input)) }
+                result.writes.append(
+                    ChunkWrite(
+                        ordinal: chunk.ordinal, locator: chunk.locator, text: chunk.text,
+                        thumbnail: saveThumbnail(chunk, contentHash: contentHash), vector: nil))
+                if window.count >= windowSize {
+                    submit()
+                    if inFlight.count > max(1, options.embeddingWindowsInFlight) { try await settle(inFlight.removeFirst()) }
+                }
+                if result.writes.count >= options.maxChunksPerFile { break }
             }
-            start += batch.count
+            // Extractor streams finish quietly when the consuming task is cancelled; never commit
+            // a half-read file as done.
+            try Task.checkCancellation()
+            submit()
+            for task in inFlight { try await settle(task) }
+        } catch {
+            for task in inFlight { task.cancel() }
+            throw error
         }
-        return writes
+        return result
+    }
+
+    private func saveThumbnail(_ chunk: Chunk, contentHash: String) -> String? {
+        let key = chunk.preview.thumbnailKey ?? "c\(chunk.ordinal)"
+        if let image = chunk.preview.thumbnail {
+            return try? thumbnails.save(image, contentHash: contentHash, key: key)
+        }
+        guard chunk.preview.thumbnailKey != nil else { return nil }
+        let path = thumbnails.relativePath(contentHash: contentHash, key: key)
+        return FileManager.default.fileExists(atPath: thumbnails.url(forRelativePath: path).path) ? path : nil
     }
 
     private func composedInput(for chunk: Chunk) -> EmbeddingInput? {
@@ -162,4 +200,8 @@ struct FilePipeline: Sendable {
                 StoredVector(chunkID: $0.chunkID, fileID: record.id, values: $0.values, attributes: attributes)
             })
     }
+}
+
+extension Stopwatch {
+    var seconds: Double { milliseconds / 1_000 }
 }
