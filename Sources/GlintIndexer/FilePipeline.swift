@@ -25,6 +25,7 @@ struct FilePipeline: Sendable {
     let thumbnails: ThumbnailStore
     let features: FeatureGateBox
     let options: IndexerOptions
+    var stats: IndexingStats?
 
     var space: VectorSpace { provider.descriptor.space }
 
@@ -35,7 +36,9 @@ struct FilePipeline: Sendable {
                 for id in removed { try await vectorIndex.remove(fileID: id) }
                 return .vanished
             }
+            var clock = Stopwatch()
             let hash = try ContentHasher.hash(of: record.url)
+            await time(.hash, record, &clock)
             try Task.checkCancellation()
 
             if let duplicate = try await writer.indexedDuplicate(contentHash: hash, space: space, excluding: record.id) {
@@ -51,8 +54,10 @@ struct FilePipeline: Sendable {
             let extractState = Signposts.indexing.beginInterval(Signposts.Name.extractFile)
             let chunks = try await collect(extractor.chunks(of: record.fileRef))
             Signposts.indexing.endInterval(Signposts.Name.extractFile, extractState)
+            await time(.extract, record, &clock)
 
             let writes = try await embed(chunks, contentHash: hash)
+            await time(.embed, record, &clock)
             let first = chunks.first?.preview
             let commitState = Signposts.indexing.beginInterval(Signposts.Name.commitFile)
             let vectors = try await writer.commit(
@@ -61,6 +66,8 @@ struct FilePipeline: Sendable {
             )
             Signposts.indexing.endInterval(Signposts.Name.commitFile, commitState)
             try await publish(vectors, for: record)
+            await time(.commit, record, &clock)
+            await stats?.finish(record.kind, bytes: record.size, chunks: writes.count, vectors: vectors.count)
             return .indexed(chunks: writes.count, vectors: vectors.count)
         } catch is CancellationError {
             try? await writer.release(record.id)
@@ -75,6 +82,12 @@ struct FilePipeline: Sendable {
             try? await writer.markFailed(record.id, category: category)
             return .failed(category)
         }
+    }
+
+    private func time(_ stage: IndexingStage, _ record: FileRecord, _ clock: inout Stopwatch) async {
+        guard let stats else { return }
+        await stats.record(record.kind, stage: stage, seconds: clock.milliseconds / 1_000)
+        clock = Stopwatch()
     }
 
     private func collect(_ stream: AsyncThrowingStream<Chunk, any Error>) async throws -> [Chunk] {
@@ -111,10 +124,7 @@ struct FilePipeline: Sendable {
                 if FileManager.default.fileExists(atPath: thumbnails.url(forRelativePath: path).path) { thumbnail = path }
             }
             if let input = composedInput(for: chunk) { pending.append((writes.count, input)) }
-            writes.append(
-                ChunkWrite(
-                    ordinal: chunk.ordinal, locator: chunk.locator, text: chunk.text, thumbnail: thumbnail, vector: nil,
-                    tags: chunk.tags))
+            writes.append(ChunkWrite(ordinal: chunk.ordinal, locator: chunk.locator, text: chunk.text, thumbnail: thumbnail, vector: nil))
         }
 
         var start = 0
@@ -136,13 +146,9 @@ struct FilePipeline: Sendable {
 
     private func composedInput(for chunk: Chunk) -> EmbeddingInput? {
         guard let input = chunk.input else { return nil }
-        guard options.fuseTextIntoMedia else { return input }
-        // What the photo shows (tags) first, then what it says (OCR), so the description a
-        // model sees leads with the visual subject.
-        let words = (chunk.tags + [chunk.text ?? ""]).filter { !$0.isEmpty }.joined(separator: ". ")
-        guard !words.isEmpty else { return input }
+        guard options.fuseTextIntoMedia, let text = chunk.text, !text.isEmpty else { return input }
         switch input {
-        case .image, .video: return .interleaved([input, .text(String(words.prefix(600)))])
+        case .image, .video: return .interleaved([input, .text(String(text.prefix(600)))])
         case .text, .audio, .interleaved: return input
         }
     }

@@ -39,7 +39,8 @@ public actor Indexer: IndexingService {
         thumbnails: ThumbnailStore,
         features: FeatureGateBox,
         power: any PowerMonitoring = SystemPowerMonitor(),
-        options: IndexerOptions = IndexerOptions()
+        options: IndexerOptions = IndexerOptions(),
+        stats: IndexingStats? = nil
     ) {
         self.writer = writer
         self.vectorIndex = vectorIndex
@@ -50,7 +51,7 @@ public actor Indexer: IndexingService {
         lastSnapshot = features.current
         pipeline = FilePipeline(
             writer: writer, extractors: extractors, provider: provider, vectorIndex: vectorIndex, gate: gate,
-            thumbnails: thumbnails, features: features, options: options
+            thumbnails: thumbnails, features: features, options: options, stats: stats
         )
     }
 
@@ -87,7 +88,8 @@ public actor Indexer: IndexingService {
         if let newOptions { options = newOptions }
         pipeline = FilePipeline(
             writer: writer, extractors: extractors ?? pipeline.extractors, provider: pipeline.provider,
-            vectorIndex: vectorIndex, gate: pipeline.gate, thumbnails: thumbnails, features: features, options: options
+            vectorIndex: vectorIndex, gate: pipeline.gate, thumbnails: thumbnails, features: features, options: options,
+            stats: pipeline.stats
         )
         wake()
     }
