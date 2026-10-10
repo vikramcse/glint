@@ -42,73 +42,141 @@ public actor IndexWriter {
     public func sources() throws -> [SourceRecord] { try db.sources() }
     public func sourceItemCounts() throws -> [SourceID: Int] { try db.sourceItemCounts() }
 
-    // MARK: Scanning
+    // MARK: Scanning and file-system changes
 
-    /// Result of reconciling a scan with the stored file list.
+    /// A file that moved or was renamed; its chunks and vectors were kept.
+    public struct MovedFile: Sendable, Hashable {
+        public var id: FileID
+        public var attributes: FileAttributes
+    }
+
+    /// Result of applying a scan or a batch of file-system changes.
     public struct ReconcileResult: Sendable, Hashable {
         public var added = 0
         public var changed = 0
+        public var moved: [MovedFile] = []
         public var removed: [FileID] = []
+
+        public var isEmpty: Bool { added == 0 && changed == 0 && moved.isEmpty && removed.isEmpty }
     }
 
     /// Makes the stored files under `scope` (or the whole source) match `scanned`: new files are
-    /// added as pending, changed files go back to pending, and files no longer present are deleted.
+    /// added as pending, changed files go back to pending, moved files keep their vectors, and
+    /// files no longer present are deleted.
     public func reconcile(sourceID: SourceID, scanned: [ScannedFile], scope: String? = nil) throws -> ReconcileResult {
         try db.transaction {
-            var existing: [String: (id: Int64, size: Int64, modified: Double)] = [:]
-            let sql: String
-            var arguments: [SQLValue] = [.int(sourceID.rawValue)]
+            var stale: [String: StoredFile] = [:]
             if let scope {
-                let prefix = scope.hasSuffix("/") ? scope : scope + "/"
-                sql = "SELECT id, path, size, modified FROM files WHERE source_id = ? AND (path = ? OR substr(path, 1, ?) = ?)"
-                arguments += [.text(scope), .int(Int64(prefix.count)), .text(prefix)]
+                for file in try storedFiles(atOrBelow: scope) where file.sourceID == sourceID { stale[file.path] = file }
             } else {
-                sql = "SELECT id, path, size, modified FROM files WHERE source_id = ?"
+                let rows = try db.query("SELECT id, source_id, path, size, modified FROM files WHERE source_id = ?", [.int(sourceID.rawValue)], map: StoredFile.init)
+                for file in rows.compactMap({ $0 }) { stale[file.path] = file }
             }
-            _ = try db.query(sql, arguments) { row in
-                if let path = row.text(1) { existing[path] = (row.int(0), row.int(2), row.double(3)) }
-            }
-
-            var result = ReconcileResult()
-            for file in scanned {
-                let modified = file.modified.timeIntervalSince1970
-                if let stored = existing.removeValue(forKey: file.path) {
-                    guard stored.size != file.size || abs(stored.modified - modified) > 0.001 else { continue }
-                    try db.run(
-                        "UPDATE files SET size = ?, modified = ?, kind = ?, uti = ?, priority = ?, status = 0, attempts = 0, error = NULL WHERE id = ?",
-                        [.int(file.size), .double(modified), .text(file.kind.rawValue), .text(file.contentType.identifier),
-                         SQLValue(file.kind.indexingPriority), .int(stored.id)]
-                    )
-                    result.changed += 1
-                } else {
-                    try insert(file, sourceID: sourceID)
-                    result.added += 1
-                }
-            }
-            for stale in existing.values {
-                try db.run("DELETE FROM files WHERE id = ?", [.int(stale.id)])
-                result.removed.append(FileID(stale.id))
-            }
-            return result
+            return try apply(upserts: scanned.map { (sourceID, $0) }, stale: &stale, removeStale: true)
         }
     }
 
-    /// Adds or refreshes one file (used by the file-system watcher).
-    public func upsert(_ file: ScannedFile, sourceID: SourceID) throws -> ReconcileResult {
-        try reconcile(sourceID: sourceID, scanned: [file], scope: file.path)
+    /// Applies a batch of watcher events: paths that exist are upserted, vanished paths (and
+    /// everything below them) are removed, and a vanished file matched by a new path with the
+    /// same size, modification date and extension is treated as a move.
+    public func applyChanges(upserts: [(SourceID, ScannedFile)], removedPaths: [String]) throws -> ReconcileResult {
+        try db.transaction {
+            var stale: [String: StoredFile] = [:]
+            for path in removedPaths {
+                for file in try storedFiles(atOrBelow: path) { stale[file.path] = file }
+            }
+            return try apply(upserts: upserts, stale: &stale, removeStale: true)
+        }
     }
 
     /// Deletes files at `path` or anywhere below it. Returns the removed ids.
     public func removeFiles(atOrBelow path: String) throws -> [FileID] {
         try db.transaction {
-            let prefix = path.hasSuffix("/") ? path : path + "/"
-            let ids = try db.query(
-                "SELECT id FROM files WHERE path = ? OR substr(path, 1, ?) = ?",
-                [.text(path), .int(Int64(prefix.count)), .text(prefix)]
-            ) { FileID($0.int(0)) }
+            let ids = try storedFiles(atOrBelow: path).map(\.id)
             for id in ids { try db.run("DELETE FROM files WHERE id = ?", [.int(id.rawValue)]) }
             return ids
         }
+    }
+
+    struct StoredFile {
+        var id: FileID
+        var sourceID: SourceID
+        var path: String
+        var size: Int64
+        var modified: Double
+
+        init?(_ row: Row) {
+            guard let path = row.text(2) else { return nil }
+            id = FileID(row.int(0))
+            sourceID = SourceID(row.int(1))
+            self.path = path
+            size = row.int(3)
+            modified = row.double(4)
+        }
+
+        var moveKey: String { "\(size)|\(Int64(modified * 1_000))|\(URL(fileURLWithPath: path).pathExtension.lowercased())" }
+    }
+
+    private func storedFiles(atOrBelow path: String) throws -> [StoredFile] {
+        let prefix = path.hasSuffix("/") ? path : path + "/"
+        return try db.query(
+            "SELECT id, source_id, path, size, modified FROM files WHERE path = ? OR substr(path, 1, ?) = ?",
+            [.text(path), .int(Int64(prefix.count)), .text(prefix)],
+            map: StoredFile.init
+        ).compactMap { $0 }
+    }
+
+    /// Core of reconcile and applyChanges. Must run inside a transaction.
+    private func apply(upserts: [(SourceID, ScannedFile)], stale: inout [String: StoredFile], removeStale: Bool) throws -> ReconcileResult {
+        var result = ReconcileResult()
+        var additions: [(SourceID, ScannedFile)] = []
+        for (sourceID, file) in upserts {
+            let modified = file.modified.timeIntervalSince1970
+            var stored = stale.removeValue(forKey: file.path)
+            if stored == nil {
+                stored = try db.query(
+                    "SELECT id, source_id, path, size, modified FROM files WHERE path = ?", [.text(file.path)], map: StoredFile.init
+                ).first ?? nil
+            }
+            if let stored {
+                guard stored.size != file.size || abs(stored.modified - modified) > 0.001 else { continue }
+                try db.run(
+                    "UPDATE files SET size = ?, modified = ?, kind = ?, uti = ?, priority = ?, status = 0, attempts = 0, error = NULL WHERE id = ?",
+                    [.int(file.size), .double(modified), .text(file.kind.rawValue), .text(file.contentType.identifier),
+                     SQLValue(file.kind.indexingPriority), .int(stored.id.rawValue)]
+                )
+                result.changed += 1
+            } else {
+                additions.append((sourceID, file))
+            }
+        }
+
+        // Pair vanished files with new paths to detect moves and renames.
+        var vanishedByKey: [String: [StoredFile]] = [:]
+        for file in stale.values { vanishedByKey[file.moveKey, default: []].append(file) }
+        for (sourceID, file) in additions {
+            let key = "\(file.size)|\(Int64(file.modified.timeIntervalSince1970 * 1_000))|\(URL(fileURLWithPath: file.path).pathExtension.lowercased())"
+            if var candidates = vanishedByKey[key], let match = candidates.popLast() {
+                vanishedByKey[key] = candidates
+                stale[match.path] = nil
+                try db.run(
+                    "UPDATE files SET path = ?, name = ?, source_id = ? WHERE id = ?",
+                    [.text(file.path), .text(URL(fileURLWithPath: file.path).lastPathComponent), .int(sourceID.rawValue), .int(match.id.rawValue)]
+                )
+                result.moved.append(MovedFile(id: match.id, attributes: FileAttributes(kind: file.kind, modified: file.modified, path: file.path)))
+            } else {
+                try insert(file, sourceID: sourceID)
+                result.added += 1
+            }
+        }
+
+        if removeStale {
+            for file in stale.values {
+                try db.run("DELETE FROM files WHERE id = ?", [.int(file.id.rawValue)])
+                result.removed.append(file.id)
+            }
+        }
+        return result
     }
 
     private func insert(_ file: ScannedFile, sourceID: SourceID) throws {

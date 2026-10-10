@@ -119,6 +119,7 @@ struct ExclusionRulesTests {
         #expect(rules.excludes(path: "/Users/a/.config/file.txt"))
         #expect(rules.excludes(path: "/Users/a/project/node_modules/x/readme.md"))
         #expect(!rules.excludes(path: "/Users/a/Documents/notes.md"))
+        #expect(rules.excludes(path: "/Users/a/Library/Application Support/Glint/Thumbnails/ab/x.jpg"))
     }
 
     @Test func honorsUserRules() {

@@ -37,6 +37,11 @@ public struct ExclusionRules: Sendable, Hashable, Codable {
         "node_modules", ".git", ".svn", ".hg", "DerivedData", ".build", "Pods", "__pycache__", ".Trash", "Caches",
     ]
 
+    /// Path fragments always skipped: Glint's own derived data and system caches.
+    public static let builtInPathFragments: [String] = [
+        "/Library/Application Support/Glint/", "/Library/Caches/", "/Library/Containers/", "/Library/Group Containers/",
+    ]
+
     public static let `default` = ExclusionRules()
 
     public func excludes(path: String) -> Bool {
@@ -46,6 +51,7 @@ public struct ExclusionRules: Sendable, Hashable, Codable {
             return true
         }
         if url.pathComponents.contains(where: ExclusionRules.builtInFolderNames.contains) { return true }
+        if ExclusionRules.builtInPathFragments.contains(where: { path.contains($0) }) { return true }
         return folders.contains { folder in
             let prefix = folder.hasSuffix("/") ? folder : folder + "/"
             return path == folder || path.hasPrefix(prefix)

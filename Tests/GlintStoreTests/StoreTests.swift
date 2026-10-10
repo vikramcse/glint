@@ -46,6 +46,42 @@ struct IndexWriterTests {
         #expect(try await writer.counts().totalPending == 1)
     }
 
+    @Test func renamesAndFolderMovesKeepVectors() async throws {
+        let url = try makeDatabaseURL()
+        let writer = try IndexWriter(url: url)
+        let source = try await writer.addSource(path: "/s", bookmark: nil)
+        _ = try await writer.reconcile(sourceID: source, scanned: [scanned("/s/a/report.txt", size: 42)])
+        let file = try #require(try await writer.claimPending(limit: 1, kinds: [.document]).first)
+        _ = try await writer.commit(fileID: file.id, contentHash: "h", space: space, chunks: [
+            ChunkWrite(ordinal: 0, locator: .whole, text: "t", thumbnail: nil, vector: [1, 0, 0, 0]),
+        ])
+
+        // Watcher: the folder was renamed.
+        let watched = try await writer.applyChanges(upserts: [(source, scanned("/s/b/report.txt", size: 42))], removedPaths: ["/s/a"])
+        #expect(watched.moved.map(\.id) == [file.id])
+        #expect(watched.removed.isEmpty)
+        #expect(watched.added == 0)
+
+        // Launch-time rescan: renamed while the app was closed.
+        let rescanned = try await writer.reconcile(sourceID: source, scanned: [scanned("/s/b/final report.txt", size: 42)])
+        #expect(rescanned.moved.map(\.attributes.path) == ["/s/b/final report.txt"])
+
+        let reader = try IndexReader(url: url)
+        #expect(try await reader.counts().indexed[.document] == 1)
+        #expect(try await reader.vectors(in: space, after: nil, limit: 10).first?.attributes.path == "/s/b/final report.txt")
+        #expect(try await reader.nameMatches(try #require(FTSQuery("final").all), limit: 5).count == 1)
+    }
+
+    @Test func overlappingSourcesDoNotDuplicateRows() async throws {
+        let writer = try IndexWriter(url: try makeDatabaseURL())
+        let parent = try await writer.addSource(path: "/s", bookmark: nil)
+        let child = try await writer.addSource(path: "/s/sub", bookmark: nil)
+        _ = try await writer.reconcile(sourceID: parent, scanned: [scanned("/s/sub/a.txt")])
+        let result = try await writer.reconcile(sourceID: child, scanned: [scanned("/s/sub/a.txt")])
+        #expect(result.added == 0)
+        #expect(try await writer.counts().totalPending == 1)
+    }
+
     @Test func claimOrdersByPriorityThenRecency() async throws {
         let writer = try IndexWriter(url: try makeDatabaseURL())
         let source = try await writer.addSource(path: "/s", bookmark: nil)

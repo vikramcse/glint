@@ -27,6 +27,9 @@ extension ContentExtractor {
 public protocol VectorIndex: Sendable {
     func upsert(_ vectors: [StoredVector]) async throws
     func remove(fileID: FileID) async throws
+    func removeAll() async throws
+    /// Updates the cached attributes of a file that moved or was renamed.
+    func updateAttributes(_ attributes: FileAttributes, for fileID: FileID) async
     func search(_ query: Embedding, limit: Int, filter: SearchFilter) async throws -> [ScoredChunk]
 }
 
