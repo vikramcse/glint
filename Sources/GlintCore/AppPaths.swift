@@ -19,6 +19,11 @@ public struct AppPaths: Sendable, Hashable {
     public var models: URL { root.appendingPathComponent("Models", isDirectory: true) }
     public var telemetryQueue: URL { root.appendingPathComponent("telemetry-queue.json") }
     public var diagnostics: URL { root.appendingPathComponent("Diagnostics", isDirectory: true) }
+    /// Port and bearer token of the local API while it runs (owner-only permissions).
+    /// `glint-mcp` and other local clients read this to find the app.
+    public var apiDiscovery: URL { root.appendingPathComponent("api.json") }
+    /// The local API's persistent bearer token (owner-only permissions).
+    public var apiToken: URL { root.appendingPathComponent("api-token") }
 
     public func createDirectories() throws {
         for directory in [root, thumbnails, models, diagnostics] {

@@ -140,6 +140,9 @@ struct PrivacySettings: View {
                     }
                 }
             }
+            if let control = services.localAPI {
+                LocalAPISection(services: services, control: control)
+            }
             Section("Network activity") {
                 Label("One-time model download", systemImage: "arrow.down.circle")
                 Label("Update checks", systemImage: "arrow.triangle.2.circlepath")

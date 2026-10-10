@@ -15,6 +15,9 @@ allowed() {
     GlintLicensing)   echo "GlintCore" ;;
     GlintTelemetry)   echo "GlintCore" ;;
     GlintUI)          echo "GlintCore GlintSearch GlintLicensing" ;;
+    GlintLocalAPI)    echo "GlintCore GlintSearch" ;;
+    GlintMCP)         echo "" ;;
+    GlintMCPTool)     echo "GlintMCP" ;;
     GlintLicenseTool) echo "GlintCore GlintLicensing" ;;
     GlintEval)        echo "GlintCore GlintExtractors GlintEmbedding GlintStore GlintSearch GlintIndexer" ;;
     GlintApp)         echo "*" ;;
