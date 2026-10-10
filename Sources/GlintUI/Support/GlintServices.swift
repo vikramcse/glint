@@ -57,6 +57,8 @@ public final class GlintServices {
     /// The pending analytics payload, shown verbatim in Settings > Privacy.
     public let analyticsPreview: @Sendable () async -> String
     public let modelDescription: ModelDescription
+    /// State of the local API for Settings › Privacy; `nil` hides the section. Set by the app.
+    public var localAPI: LocalAPIControl?
 
     public init(
         engine: SearchEngine,

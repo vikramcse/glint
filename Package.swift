@@ -19,6 +19,7 @@ let package = Package(
         .executable(name: "Glint", targets: ["GlintApp"]),
         .executable(name: "glint-eval", targets: ["GlintEval"]),
         .executable(name: "glint-license", targets: ["GlintLicenseTool"]),
+        .executable(name: "glint-mcp", targets: ["GlintMCPTool"]),
         .library(name: "GlintCore", targets: ["GlintCore"]),
     ],
     targets: [
@@ -41,6 +42,9 @@ let package = Package(
         ),
         .target(name: "GlintLicensing", dependencies: ["GlintCore"], swiftSettings: strictSettings),
         .target(name: "GlintTelemetry", dependencies: ["GlintCore"], swiftSettings: strictSettings),
+        .target(name: "GlintLocalAPI", dependencies: ["GlintCore", "GlintSearch"], swiftSettings: strictSettings),
+        // Self-contained: speaks HTTP to the app, so the glint-mcp binary stays small.
+        .target(name: "GlintMCP", swiftSettings: strictSettings),
         .target(
             name: "GlintUI",
             dependencies: ["GlintCore", "GlintSearch", "GlintLicensing"],
@@ -62,6 +66,7 @@ let package = Package(
             dependencies: ["GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch", "GlintIndexer"],
             swiftSettings: strictSettings
         ),
+        .executableTarget(name: "GlintMCPTool", dependencies: ["GlintMCP"], swiftSettings: strictSettings),
         .executableTarget(
             name: "GlintLicenseTool",
             dependencies: ["GlintCore", "GlintLicensing"],
@@ -105,6 +110,12 @@ let package = Package(
             ],
             swiftSettings: strictSettings
         ),
+        .testTarget(
+            name: "GlintLocalAPITests",
+            dependencies: ["GlintLocalAPI", "GlintMCP", "GlintSearch", "GlintStore", "GlintTestSupport"],
+            swiftSettings: strictSettings
+        ),
+        .testTarget(name: "GlintMCPTests", dependencies: ["GlintMCP"], swiftSettings: strictSettings),
         .testTarget(name: "GlintLicensingTests", dependencies: ["GlintLicensing"], swiftSettings: strictSettings),
         .testTarget(name: "GlintTelemetryTests", dependencies: ["GlintTelemetry"], swiftSettings: strictSettings),
         .testTarget(
