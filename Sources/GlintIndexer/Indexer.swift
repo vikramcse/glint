@@ -9,7 +9,7 @@ import GlintStore
 public actor Indexer: IndexingService {
     private let writer: IndexWriter
     private var pipeline: FilePipeline
-    private let vectorIndex: any VectorIndex
+    private var vectorIndex: any VectorIndex
     private let thumbnails: ThumbnailStore
     private let features: FeatureGateBox
     private let power: any PowerMonitoring
@@ -100,6 +100,24 @@ public actor Indexer: IndexingService {
         )
         pipeline.photos = photos
         wake()
+    }
+
+    /// Switches to another embedding model: new vectors go into `vectorIndex`, and every file
+    /// embedded in a different space goes back to the queue to be re-embedded in the background.
+    /// Returns how many files were re-queued.
+    @discardableResult
+    public func switchModel(to provider: any EmbeddingProvider, vectorIndex newIndex: any VectorIndex) async -> Int {
+        vectorIndex = newIndex
+        pipeline = FilePipeline(
+            writer: writer, extractors: pipeline.extractors, provider: provider, vectorIndex: newIndex, gate: pipeline.gate,
+            thumbnails: thumbnails, features: features, options: options, stats: pipeline.stats
+        )
+        pipeline.photos = photos
+        let requeued = (try? await writer.requeueFiles(notIn: provider.descriptor.space)) ?? 0
+        Log.indexer.info("Switched model; re-embedding \(requeued, privacy: .public) files")
+        wake()
+        await publishStatus(force: true)
+        return requeued
     }
 
     /// Indexes everything pending and returns when the queue is empty (used by tests and the eval harness).

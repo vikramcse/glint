@@ -31,6 +31,7 @@ final class AppEnvironment {
     let services: GlintServices
     let savedSearches: AppSavedSearches
     let photos = PhotoKitLibrary()
+    let models: ModelController
 
     init(settings: AppSettings) throws {
         self.settings = settings
@@ -95,11 +96,22 @@ final class AppEnvironment {
             },
             analyticsPreview: { await telemetry.pendingPayloadPreview() }
         )
+
+        let modelBase = (Bundle.main.object(forInfoDictionaryKey: "GlintModelBaseURL") as? String).flatMap(URL.init(string:))
+        let options = Self.extractionOptions(settings)
+        models = ModelController(
+            store: ModelStore(directory: paths.models), artifact: .embeddingGemma2(baseURL: modelBase), settings: settings,
+            engine: engine, indexer: indexer, gate: priorityGate, fallback: provider,
+            registry: { ExtractorRegistry.standard(options: options) }
+        )
+        services.models = models
     }
 
     /// Loads vectors into the resident index, then starts the indexer.
     func start() async {
         let stopwatch = Stopwatch()
+        // Activate EmbeddingGemma 2 first (when downloaded) so indexing starts in its space.
+        await models.activateIfInstalled()
         _ = try? await engine.loadVectors()
         Log.app.info("Search ready in \(Int(stopwatch.milliseconds), privacy: .public) ms")
         await indexer.start()

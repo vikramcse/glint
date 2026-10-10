@@ -1,0 +1,84 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:glint}",
+            "name": "Debug Glint",
+            "target": "Glint",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug Glint"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:glint}",
+            "name": "Release Glint",
+            "target": "Glint",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release Glint"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:glint}",
+            "name": "Debug glint-eval",
+            "target": "glint-eval",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug glint-eval"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:glint}",
+            "name": "Release glint-eval",
+            "target": "glint-eval",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release glint-eval"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:glint}",
+            "name": "Debug glint-license",
+            "target": "glint-license",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug glint-license"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:glint}",
+            "name": "Release glint-license",
+            "target": "glint-license",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release glint-license"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:glint}",
+            "name": "Debug glint-mcp",
+            "target": "glint-mcp",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug glint-mcp"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:glint}",
+            "name": "Release glint-mcp",
+            "target": "glint-mcp",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release glint-mcp"
+        }
+    ]
+}

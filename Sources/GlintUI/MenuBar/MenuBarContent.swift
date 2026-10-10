@@ -20,6 +20,9 @@ public struct MenuBarContent: View {
         if status.status.locked > 0 {
             Text("\(status.status.locked.formatted()) video and audio files need Pro")
         }
+        if let models = services.models, models.state.isBusy {
+            Text(models.state.summary)
+        }
         Divider()
         Button("Search…", action: showSearch)
         Button("Open Glint") { services.actions?.showMainWindow() }

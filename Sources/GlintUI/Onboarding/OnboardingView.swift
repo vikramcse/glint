@@ -10,6 +10,7 @@ public struct OnboardingView: View {
     @State private var extraFolders: [URL] = []
     @State private var isFinishing = false
     @State private var startedAt = Date()
+    @State private var downloadModel = true
 
     public init(services: GlintServices, onFinish: @escaping () -> Void) {
         self.services = services
@@ -111,6 +112,18 @@ public struct OnboardingView: View {
                 HotKeyRecorder(combo: $settings.hotKey)
                 Text("to open Glint in any app.")
             }
+            if let models = services.models, case .notInstalled(let bytes) = models.state {
+                Divider()
+                Toggle(isOn: $downloadModel) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Download EmbeddingGemma 2 (\(bytes.formatted(.byteCount(style: .file))))")
+                        Text(
+                            "Finds photos, video moments and audio by what's in them. Downloads once, then works offline. Search works by name and text meanwhile."
+                        )
+                        .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+            }
             Divider()
             Toggle(isOn: $settings.analyticsEnabled) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -132,6 +145,7 @@ public struct OnboardingView: View {
     private func finish() {
         isFinishing = true
         let folders = selectedFolders
+        if downloadModel { services.models?.download() }
         Task {
             let failures = await SourceAdder.add(folders, services: services)
             let added = services.status.sources.count

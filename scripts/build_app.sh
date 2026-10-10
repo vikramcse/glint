@@ -1,33 +1,52 @@
 #!/usr/bin/env bash
-# Builds Glint.app: compiles, syncs and compiles the String Catalog, generates the icon,
-# assembles the bundle and signs it (ad hoc unless SIGN_IDENTITY is set).
+# Builds Glint.app with xcodebuild (MLX's Metal kernels can't be built by `swift build`),
+# syncs and compiles the String Catalog, generates the icon, embeds glint-mcp and the
+# resource bundles (MLX's default.metallib among them), and signs the bundle — ad hoc unless
+# SIGN_IDENTITY is set.
 #
 #   scripts/build_app.sh [debug|release]
 #   SIGN_IDENTITY="Developer ID Application: …" scripts/build_app.sh release
+#
+# One-time setup: xcodebuild -downloadComponent MetalToolchain
 set -euo pipefail
 
-CONFIG="${1:-release}"
+case "${1:-release}" in
+  debug) CONFIG=Debug ;;
+  *) CONFIG=Release ;;
+esac
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD="$ROOT/build"
 APP="$BUILD/Glint.app"
-STRINGS="$BUILD/stringsdata"
+DERIVED="$BUILD/DerivedData"
+PRODUCTS="$DERIVED/Build/Products/$CONFIG"
 
 cd "$ROOT"
-rm -rf "$STRINGS" && mkdir -p "$STRINGS"
-
-echo "▸ Compiling ($CONFIG)"
-swift build -c "$CONFIG" --product Glint \
-  -Xswiftc -emit-localized-strings -Xswiftc -emit-localized-strings-path -Xswiftc "$STRINGS"
-BIN="$(swift build -c "$CONFIG" --show-bin-path)/Glint"
+for scheme in Glint glint-mcp; do
+  echo "▸ Building $scheme ($CONFIG)"
+  xcodebuild build -scheme "$scheme" -configuration "$CONFIG" -destination 'platform=macOS' \
+    -derivedDataPath "$DERIVED" -quiet 2>&1 | grep -vE "iOSSimulator|DVTErrorPresenter|^$" || true
+  test -x "$PRODUCTS/$scheme" || { echo "✗ $scheme did not build"; exit 1; }
+done
 
 echo "▸ Assembling bundle"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$BIN" "$APP/Contents/MacOS/Glint"
+cp "$PRODUCTS/Glint" "$APP/Contents/MacOS/Glint"
+cp "$PRODUCTS/glint-mcp" "$APP/Contents/MacOS/glint-mcp"
 cp App/Info.plist "$APP/Contents/Info.plist"
+for bundle in "$PRODUCTS"/*.bundle; do
+  cp -R "$bundle" "$APP/Contents/Resources/"
+done
+test -f "$APP/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib" \
+  || { echo "✗ MLX metallib missing — run: xcodebuild -downloadComponent MetalToolchain"; exit 1; }
 
 echo "▸ String Catalog"
-xcrun xcstringstool sync App/Localizable.xcstrings --stringsdata "$STRINGS"/*.stringsdata
+STRINGS=$(find "$DERIVED/Build/Intermediates.noindex" -path "*$CONFIG*" -name "*.stringsdata" \
+  \( -path "*GlintUI.build*" -o -path "*GlintApp.build*" -o -path "*Glint.build*" \) | sort -u)
+if [[ -n "$STRINGS" ]]; then
+  # shellcheck disable=SC2086
+  xcrun xcstringstool sync App/Localizable.xcstrings --stringsdata $STRINGS
+fi
 xcrun xcstringstool compile App/Localizable.xcstrings --output-directory "$APP/Contents/Resources"
 
 echo "▸ Icon"
@@ -39,9 +58,9 @@ fi
 cp "$BUILD/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 
 echo "▸ Signing"
-codesign --force --options runtime --timestamp=none \
-  --entitlements App/Glint.entitlements \
-  --sign "${SIGN_IDENTITY:--}" "$APP"
+IDENTITY="${SIGN_IDENTITY:--}"
+codesign --force --options runtime --timestamp=none --sign "$IDENTITY" "$APP/Contents/MacOS/glint-mcp"
+codesign --force --options runtime --timestamp=none --entitlements App/Glint.entitlements --sign "$IDENTITY" "$APP"
 codesign --verify --strict "$APP"
 
 echo "✓ $APP"

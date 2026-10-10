@@ -121,15 +121,59 @@ final class EG2Model: Module {
 
     // MARK: Loading
 
+    /// Attaches and loads the vision and/or audio towers after creation (indexing needs them;
+    /// search does not).
+    func attach(_ towers: EG2Towers, from directory: URL) throws {
+        var prefixes: [String] = []
+        if towers.contains(.vision), visionTower == nil, let vision = config.visionConfig {
+            visionTower = EG2VisionModel(vision)
+            embedVision = EG2MultimodalEmbedder(
+                inputDimension: vision.hiddenSize, outputDimension: config.textConfig.hiddenSize, eps: vision.rmsNormEps)
+            prefixes += ["vision_tower.", "embed_vision."]
+        }
+        if towers.contains(.audio), audioTower == nil, let audio = config.audioConfig {
+            audioTower = EG2AudioEncoder(audio)
+            embedAudio = EG2MultimodalEmbedder(
+                inputDimension: audio.outputProjDims ?? audio.hiddenSize, outputDimension: config.textConfig.hiddenSize,
+                eps: audio.rmsNormEps)
+            prefixes += ["audio_tower.", "embed_audio."]
+        }
+        guard !prefixes.isEmpty else { return }
+        try loadWeights(from: directory) { key in prefixes.contains { key.hasPrefix($0) } }
+    }
+
+    /// Drops the vision and/or audio towers and their GPU memory.
+    func detach(_ towers: EG2Towers) {
+        if towers.contains(.vision) {
+            visionTower = nil
+            embedVision = nil
+        }
+        if towers.contains(.audio) {
+            audioTower = nil
+            embedAudio = nil
+        }
+        Memory.clearCache()
+    }
+
+    var loadedTowers: EG2Towers {
+        var towers: EG2Towers = .text
+        if visionTower != nil { towers.insert(.vision) }
+        if audioTower != nil { towers.insert(.audio) }
+        return towers
+    }
+
     /// Loads weights for the configured towers from `model*.safetensors` in `directory`.
-    func loadWeights(from directory: URL) throws {
+    /// `including` limits loading to some keys (attaching a tower later).
+    func loadWeights(from directory: URL, including: ((String) -> Bool)? = nil) throws {
         let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "safetensors" }
         guard !files.isEmpty else { throw EG2Error.missingWeights }
         var weights: [String: MLXArray] = [:]
         for file in files {
             for (key, value) in try loadArrays(url: file) {
-                if let kept = sanitize(key: key, value: value) { weights[kept.0] = kept.1 }
+                guard let kept = sanitize(key: key, value: value) else { continue }
+                if let including, !including(kept.0) { continue }
+                weights[kept.0] = kept.1
             }
         }
         try update(parameters: ModuleParameters.unflattened(weights), verify: [.noUnusedKeys])

@@ -8,7 +8,7 @@ public enum ModelCatalog {
     public static let appleOnDevice = ModelDescriptor(
         id: "apple.on-device-descriptors",
         version: "1",
-        displayName: "Apple On-Device (interim)",
+        displayName: "Built-in (basic)",
         dimensions: 512,
         supportedDimensions: [512],
         modalities: [.text, .image, .audio, .video],
@@ -43,7 +43,7 @@ public enum ModelCatalog {
 
     /// Models shown in Settings > Models, with whether they can run on this build.
     public static let all: [(descriptor: ModelDescriptor, isAvailable: Bool)] = [
+        (embeddingGemma2, true),
         (appleOnDevice, true),
-        (embeddingGemma2, false),
     ]
 }

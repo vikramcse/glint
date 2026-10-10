@@ -59,6 +59,8 @@ public final class GlintServices {
     public let modelDescription: ModelDescription
     /// State of the local API for Settings › Privacy; `nil` hides the section. Set by the app.
     public var localAPI: LocalAPIControl?
+    /// The search model's download and presets; `nil` in tests and previews.
+    public var models: (any ModelControlling)?
 
     public init(
         engine: SearchEngine,

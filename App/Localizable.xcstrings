@@ -38,16 +38,25 @@
     "Add Folder…" : {
 
     },
+    "Add Glint to Claude Code:" : {
+
+    },
     "Add a folder and Glint will start indexing it right away." : {
 
     },
     "Add unlimited folders and external drives with Pro." : {
 
     },
+    "Agents on this Mac can search your index through Glint’s local API. It listens only on this Mac, needs a private access token, and never sends anything off the device." : {
+
+    },
     "All Items" : {
 
     },
     "Allow access in System Settings › Privacy & Security. Full Disk Access is optional and lets Glint index any folder you add." : {
+
+    },
+    "Allow apps and agents to search Glint" : {
 
     },
     "Already have a key?" : {
@@ -59,10 +68,19 @@
     "Apple Photos Library" : {
 
     },
+    "Apps and agents" : {
+
+    },
     "Audio" : {
       "comment" : "Media kind\nResult section"
     },
     "Back" : {
+
+    },
+    "Balanced (512)" : {
+
+    },
+    "Best (768)" : {
 
     },
     "Buy Glint Pro — $49" : {
@@ -98,16 +116,16 @@
     "Choose what to search" : {
 
     },
-    "Choosing a model and quality preset is part of Glint Pro." : {
-
-    },
     "Click, then press the new key combination" : {
 
     },
-    "Coming soon" : {
+    "Compact (256)" : {
 
     },
     "Continue" : {
+
+    },
+    "Copied" : {
 
     },
     "Copy" : {
@@ -143,10 +161,32 @@
     "Documents" : {
       "comment" : "Result section"
     },
+    "Download" : {
+
+    },
+    "Download EmbeddingGemma 2 (%@)" : {
+
+    },
+    "Download EmbeddingGemma 2 (%@) for the best search" : {
+
+    },
+    "Downloading search model… %@ of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Downloading search model… %1$@ of %2$@"
+          }
+        }
+      }
+    },
     "Downloads" : {
 
     },
     "Duration" : {
+
+    },
+    "EmbeddingGemma 2 is active" : {
 
     },
     "Ends %@" : {
@@ -177,6 +217,12 @@
 
     },
     "Find similar photos, clips and documents with Glint Pro." : {
+
+    },
+    "Finds photos, video moments and audio by meaning, in any language. Runs entirely on this Mac." : {
+
+    },
+    "Finds photos, video moments and audio by what's in them. Downloads once, then works offline. Search works by name and text meanwhile." : {
 
     },
     "Folder" : {
@@ -285,10 +331,10 @@
     "Hide menu bar item when idle" : {
 
     },
-    "IMG_2041.HEIC" : {
+    "Higher quality uses more disk and memory. Changing it updates the index in the background." : {
 
     },
-    "In use" : {
+    "IMG_2041.HEIC" : {
 
     },
     "Included in Free" : {
@@ -338,6 +384,9 @@
     "Inspector" : {
 
     },
+    "Issue a new access token; connected agents must reconnect." : {
+
+    },
     "Kind" : {
 
     },
@@ -379,6 +428,9 @@
 
     },
     "Model" : {
+
+    },
+    "Model download failed: %@" : {
 
     },
     "Models" : {
@@ -427,6 +479,12 @@
 
     },
     "Nothing about your files ever leaves this Mac." : {
+
+    },
+    "Off" : {
+
+    },
+    "On · 127.0.0.1:%@ · this Mac only" : {
 
     },
     "One-time model download" : {
@@ -557,6 +615,12 @@
     "Pro trial: %lld days left" : {
 
     },
+    "Quality" : {
+
+    },
+    "Quality presets are part of Glint Pro." : {
+
+    },
     "Quick Look" : {
 
     },
@@ -569,6 +633,12 @@
     "Remove" : {
 
     },
+    "Remove EmbeddingGemma 2?" : {
+
+    },
+    "Remove Model…" : {
+
+    },
     "Remove exclusion" : {
 
     },
@@ -579,6 +649,9 @@
 
     },
     "Requires Glint Pro" : {
+
+    },
+    "Reset Access…" : {
 
     },
     "Results" : {
@@ -620,7 +693,13 @@
     "Search everything you have, to the second." : {
 
     },
+    "Search falls back to the basic built-in model until you download it again." : {
+
+    },
     "Search from anywhere" : {
+
+    },
+    "Search model" : {
 
     },
     "Search results will be empty until Glint re-indexes your folders." : {
@@ -636,6 +715,9 @@
 
     },
     "Searches photos and videos whose originals are on this Mac. Nothing is downloaded from iCloud." : {
+
+    },
+    "Searching Glint from AI agents and scripts is part of Glint Pro." : {
 
     },
     "Searching your Photos library is part of Glint Pro." : {
@@ -678,6 +760,15 @@
 
     },
     "Start Searching" : {
+
+    },
+    "Starting search model…" : {
+
+    },
+    "Starting…" : {
+
+    },
+    "Status" : {
 
     },
     "Step %lld of %lld" : {
@@ -753,6 +844,9 @@
     "Transcripts are made on this Mac and make spoken words searchable by keyword." : {
 
     },
+    "Try Again" : {
+
+    },
     "Try different words, or check that the folder is one of your sources." : {
 
     },
@@ -774,10 +868,16 @@
     "Update checks" : {
 
     },
+    "Updating %@ items for the new model. Keyword search works meanwhile." : {
+
+    },
     "Upgrade to Pro…" : {
 
     },
     "Upgrade…" : {
+
+    },
+    "Verifying search model…" : {
 
     },
     "Video" : {

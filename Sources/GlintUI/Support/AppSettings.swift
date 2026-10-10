@@ -15,6 +15,8 @@ public final class AppSettings {
     public var groupResultsByKind: Bool { didSet { defaults.set(groupResultsByKind, forKey: Key.groupResults.rawValue) } }
     public var defaultKinds: Set<MediaKind> { didSet { save(defaultKinds, for: .defaultKinds) } }
     public var transcribeAudio: Bool { didSet { defaults.set(transcribeAudio, forKey: Key.transcribe.rawValue) } }
+    /// Matryoshka output size of the search model: 768, 512 (default) or 256.
+    public var modelDimensions: Int { didSet { defaults.set(modelDimensions, forKey: Key.modelDimensions.rawValue) } }
     public var videoOnlyOnPower: Bool { didSet { defaults.set(videoOnlyOnPower, forKey: Key.videoOnPower.rawValue) } }
     /// Allow apps and agents on this Mac to search Glint through the local API (Pro). Off by default.
     public var localAPIEnabled: Bool { didSet { defaults.set(localAPIEnabled, forKey: Key.localAPI.rawValue) } }
@@ -34,6 +36,8 @@ public final class AppSettings {
         groupResultsByKind = defaults.object(forKey: Key.groupResults.rawValue) as? Bool ?? true
         defaultKinds = Self.load(Set<MediaKind>.self, from: defaults, key: .defaultKinds) ?? []
         transcribeAudio = defaults.bool(forKey: Key.transcribe.rawValue)
+        let storedDimensions = defaults.integer(forKey: Key.modelDimensions.rawValue)
+        modelDimensions = [768, 512, 256].contains(storedDimensions) ? storedDimensions : 512
         videoOnlyOnPower = defaults.bool(forKey: Key.videoOnPower.rawValue)
         localAPIEnabled = defaults.bool(forKey: Key.localAPI.rawValue)
         hasCompletedOnboarding = defaults.bool(forKey: Key.onboarded.rawValue)
@@ -55,6 +59,7 @@ public final class AppSettings {
         case groupResults = "glint.groupResultsByKind"
         case defaultKinds = "glint.defaultKinds"
         case transcribe = "glint.transcribeAudio"
+        case modelDimensions = "glint.modelDimensions"
         case videoOnPower = "glint.videoOnlyOnPower"
         case localAPI = "glint.localAPIEnabled"
         case onboarded = "glint.hasCompletedOnboarding"

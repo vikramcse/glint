@@ -48,17 +48,62 @@ public final class EmbeddingGemma2Provider: EmbeddingProvider, @unchecked Sendab
 actor EG2Runtime {
     private let model: EG2Model
     private let processor: EG2Processor
+    private let directory: URL
     /// Text sequences are batched together; media inputs run one at a time to bound memory.
     private let textBatchSize = 16
+    /// Media towers unload after this long without media input.
+    private let idleUnload: Duration = .seconds(120)
+    private var lastMediaUse = ContinuousClock.now
+    private var unloadTask: Task<Void, Never>?
 
     init(directory: URL, config: EG2Configuration, tokenizer: any Tokenizer, towers: EG2Towers) throws {
         let model = EG2Model(config, towers: towers)
         try model.loadWeights(from: directory)
         self.model = model
+        self.directory = directory
         processor = EG2Processor(tokenizer: tokenizer, config: config)
     }
 
+    var loadedTowers: EG2Towers { model.loadedTowers }
+
+    /// Loads the towers `inputs` need and schedules unloading when media stops arriving.
+    private func prepareTowers(for inputs: [EmbeddingInput]) throws {
+        var needed: EG2Towers = []
+        for input in inputs {
+            let modalities = input.modalities
+            if modalities.contains(.image) || modalities.contains(.video) { needed.insert(.vision) }
+            if modalities.contains(.audio) { needed.insert(.audio) }
+        }
+        guard !needed.isEmpty else { return }
+        lastMediaUse = .now
+        let missing = needed.subtracting(model.loadedTowers)
+        if !missing.isEmpty {
+            try model.attach(missing, from: directory)
+            Log.embedding.info("Loaded media towers for indexing")
+        }
+        scheduleUnload()
+    }
+
+    private func scheduleUnload() {
+        guard unloadTask == nil else { return }
+        unloadTask = Task { [idleUnload] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: idleUnload)
+                if self.unloadIfIdle() { return }
+            }
+        }
+    }
+
+    private func unloadIfIdle() -> Bool {
+        guard ContinuousClock.now - lastMediaUse >= idleUnload else { return false }
+        model.detach([.vision, .audio])
+        unloadTask = nil
+        Log.embedding.info("Unloaded idle media towers")
+        return true
+    }
+
     func embed(_ inputs: [EmbeddingInput], purpose: EmbeddingPurpose) throws -> [[Float]] {
+        try prepareTowers(for: inputs)
         var results = [[Float]?](repeating: nil, count: inputs.count)
         var textIndices: [Int] = []
         for (index, input) in inputs.enumerated() {

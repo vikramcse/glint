@@ -30,10 +30,10 @@ public enum SearchError: GlintError, Equatable {
 /// Results come in two phases: `keywordResults` renders on the keystroke, and
 /// `mergedResults` fuses in semantic matches once the query embedding returns.
 public actor SearchEngine {
-    public let vectorIndex: FlatVectorIndex
+    public private(set) var vectorIndex: FlatVectorIndex
     private let reader: IndexReader
-    private let encoder: (any QueryEncoding)?
-    private let exampleEncoder: (any ExampleEncoder)?
+    private var encoder: (any QueryEncoding)?
+    private var exampleEncoder: (any ExampleEncoder)?
     private let thumbnails: ThumbnailStore
     private let gate: FeatureGateBox
     private let ranker: HybridRanker
@@ -63,6 +63,19 @@ public actor SearchEngine {
         self.ranker = ranker
         self.resultLimit = resultLimit
         self.now = now
+    }
+
+    /// Switches the semantic path to another model's space and loads the vectors already stored
+    /// in it. Files not yet re-embedded keep matching by keyword until the indexer reaches them.
+    public func switchModel(
+        encoder newEncoder: any QueryEncoding, exampleEncoder newExampleEncoder: (any ExampleEncoder)?,
+        vectorIndex newIndex: FlatVectorIndex
+    ) async throws {
+        encoder = newEncoder
+        exampleEncoder = newExampleEncoder
+        vectorIndex = newIndex
+        keywordCache = nil
+        try await loadVectors()
     }
 
     /// Loads every stored vector of the index's space into the resident matrix. Returns the count.

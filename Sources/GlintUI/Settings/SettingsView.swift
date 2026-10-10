@@ -78,24 +78,14 @@ struct ModelsSettings: View {
         @Bindable var settings = services.settings
         Form {
             Section("Model") {
-                ForEach(services.modelDescription.options) { option in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(option.name)
-                            Text(option.detail).font(.caption).foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        if option.isActive {
-                            Image(systemName: "checkmark").foregroundStyle(.tint)
-                                .accessibilityLabel(Text("In use"))
-                        } else if !option.isAvailable {
-                            Text("Coming soon").font(.caption).foregroundStyle(.secondary)
-                        }
+                if let models = services.models {
+                    ModelStatusView(models: models, canChoose: services.entitlements.allows(.modelChoice)) {
+                        services.actions?.showUpgrade(.feature)
                     }
-                }
-                if !services.entitlements.allows(.modelChoice) {
-                    Text("Choosing a model and quality preset is part of Glint Pro.")
-                        .font(.callout).foregroundStyle(.secondary)
+                } else {
+                    ForEach(services.modelDescription.options) { option in
+                        LabeledContent(option.name, value: option.detail)
+                    }
                 }
             }
             Section("Indexing") {
