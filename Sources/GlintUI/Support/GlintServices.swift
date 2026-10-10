@@ -34,6 +34,12 @@ public protocol ResultActions: AnyObject {
     /// Opens the purchase page in the browser.
     func openPurchasePage()
     func openFullDiskAccessSettings()
+    /// Shows the system folder picker and returns the chosen folders (empty when cancelled).
+    /// AppKit's `NSOpenPanel` is used because SwiftUI's `fileImporter` does not present from
+    /// AppKit-hosted windows or a menu bar agent.
+    func chooseFolders(message: String, allowsMultipleSelection: Bool) -> [URL]
+    /// Shows an alert with a user-facing message.
+    func presentError(_ message: String)
 }
 
 /// Everything the views need, created once by the app's composition root.

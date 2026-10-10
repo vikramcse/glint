@@ -39,7 +39,9 @@ struct SidebarView: View {
                     .help(Text(verbatim: (source.path as NSString).abbreviatingWithTildeInPath))
                     .tag(SidebarItem.source(source.id))
                 }
-                SettingsLink {
+                Button {
+                    SourceAdder.pickAndAddReportingErrors(services: services)
+                } label: {
                     Label("Add Folder…", systemImage: "plus")
                 }
                 .buttonStyle(.plain)

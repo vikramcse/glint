@@ -14,7 +14,7 @@ struct PanelEmptyState: View {
             } description: {
                 Text("Add a folder and Glint will start indexing it right away.")
             } actions: {
-                Button("Add Folders…") { services.actions?.showMainWindow() }
+                Button("Add Folders…") { SourceAdder.pickAndAddReportingErrors(services: services) }
             }
         case .start:
             ContentUnavailableView {

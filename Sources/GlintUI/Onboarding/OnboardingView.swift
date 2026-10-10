@@ -8,7 +8,6 @@ public struct OnboardingView: View {
     @State private var step = 0
     @State private var choices = SuggestedFolder.defaults()
     @State private var extraFolders: [URL] = []
-    @State private var importing = false
     @State private var isFinishing = false
     @State private var startedAt = Date()
 
@@ -45,9 +44,6 @@ public struct OnboardingView: View {
             .padding(16)
         }
         .frame(width: 620, height: 500)
-        .fileImporter(isPresented: $importing, allowedContentTypes: [.folder], allowsMultipleSelection: true) { result in
-            if case .success(let urls) = result { extraFolders.append(contentsOf: urls) }
-        }
     }
 
     // MARK: Steps
@@ -80,8 +76,13 @@ public struct OnboardingView: View {
                 ForEach(extraFolders, id: \.self) { url in
                     Label(url.lastPathComponent, systemImage: "folder")
                 }
-                Button("Add Another Folder…") { importing = true }
-                    .padding(.top, 4)
+                Button("Add Another Folder…") {
+                    let chosen =
+                        services.actions?.chooseFolders(
+                            message: String(localized: "Choose folders for Glint to search"), allowsMultipleSelection: true) ?? []
+                    extraFolders.append(contentsOf: chosen.filter { !extraFolders.contains($0) })
+                }
+                .padding(.top, 4)
             }
             GroupBox {
                 HStack(alignment: .top) {
@@ -132,19 +133,12 @@ public struct OnboardingView: View {
         isFinishing = true
         let folders = selectedFolders
         Task {
-            var added = 0
-            for url in folders {
-                do {
-                    try await services.indexing.addSource(url)
-                    added += 1
-                } catch {
-                    Log.ui.notice("Could not add a suggested folder: \(String(describing: error), privacy: .public)")
-                }
-            }
+            let failures = await SourceAdder.add(folders, services: services)
+            let added = services.status.sources.count
             services.report(.onboardingCompleted(sourceCount: added, duration: Date().timeIntervalSince(startedAt)))
             services.settings.hasCompletedOnboarding = true
-            await services.status.refreshSources()
             onFinish()
+            if let failures { services.actions?.presentError(failures) }
         }
     }
 }

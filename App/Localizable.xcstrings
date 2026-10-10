@@ -80,6 +80,15 @@
     "Change how results are shown" : {
 
     },
+    "Choose" : {
+
+    },
+    "Choose a folder Glint should skip" : {
+
+    },
+    "Choose folders for Glint to search" : {
+
+    },
     "Choose what to search" : {
 
     },
@@ -569,6 +578,9 @@
 
     },
     "Size" : {
+
+    },
+    "Some folders couldn’t be added" : {
 
     },
     "Something went wrong. Please try again." : {

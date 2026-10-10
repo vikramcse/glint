@@ -4,8 +4,6 @@ import SwiftUI
 struct SourcesSettings: View {
     let services: GlintServices
     @State private var selection: SourceID?
-    @State private var importing = false
-    @State private var importingExclusion = false
     @State private var errorMessage: String?
 
     var body: some View {
@@ -34,7 +32,9 @@ struct SourcesSettings: View {
                 }
                 .frame(minHeight: 120)
                 HStack {
-                    Button("Add Folder…") { importing = true }
+                    Button("Add Folder…") {
+                        Task { errorMessage = await SourceAdder.pickAndAdd(services: services) }
+                    }
                     Button("Remove", role: .destructive) {
                         guard let selection else { return }
                         Task {
@@ -72,7 +72,16 @@ struct SourcesSettings: View {
                         .accessibilityLabel(Text("Remove exclusion"))
                     }
                 }
-                Button("Exclude Folder…") { importingExclusion = true }
+                Button("Exclude Folder…") {
+                    guard
+                        let url = services.actions?.chooseFolders(
+                            message: String(localized: "Choose a folder Glint should skip"), allowsMultipleSelection: false
+                        ).first
+                    else { return }
+                    var rules = services.status.exclusions
+                    rules.folders.append(url.standardizedFileURL.path)
+                    update(rules)
+                }
                 Toggle(
                     "Index hidden files",
                     isOn: Binding {
@@ -91,34 +100,6 @@ struct SourcesSettings: View {
             }
         }
         .formStyle(.grouped)
-        .fileImporter(isPresented: $importing, allowedContentTypes: [.folder], allowsMultipleSelection: true) { result in
-            guard case .success(let urls) = result else { return }
-            add(urls)
-        }
-        .fileImporter(isPresented: $importingExclusion, allowedContentTypes: [.folder]) { result in
-            guard case .success(let url) = result else { return }
-            var rules = services.status.exclusions
-            rules.folders.append(url.standardizedFileURL.path)
-            update(rules)
-        }
-    }
-
-    private func add(_ urls: [URL]) {
-        errorMessage = nil
-        Task {
-            for url in urls {
-                do {
-                    try await services.indexing.addSource(url)
-                } catch let error as EntitlementError {
-                    errorMessage = ErrorPresenter.message(for: error)
-                    services.actions?.showUpgrade(.sourceLimit)
-                    break
-                } catch {
-                    errorMessage = ErrorPresenter.message(for: error)
-                }
-            }
-            await services.status.refreshSources()
-        }
     }
 
     private func update(_ rules: ExclusionRules) {

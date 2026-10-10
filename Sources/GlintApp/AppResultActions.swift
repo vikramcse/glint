@@ -95,6 +95,37 @@ final class AppResultActions: ResultActions {
         if let url = AppLinks.fullDiskAccessSettings { NSWorkspace.shared.open(url) }
     }
 
+    func chooseFolders(message: String, allowsMultipleSelection: Bool) -> [URL] {
+        // The floating panel hides when it loses focus; bring it back after the picker.
+        let reopenPanel = panel?.isVisible == true
+        panel?.hide()
+        NSApp.activate()
+        let picker = NSOpenPanel()
+        picker.canChooseDirectories = true
+        picker.canChooseFiles = false
+        picker.canCreateDirectories = false
+        picker.allowsMultipleSelection = allowsMultipleSelection
+        picker.message = message
+        picker.prompt = String(localized: "Choose")
+        picker.directoryURL = FileManager.default.homeDirectoryForCurrentUser
+        let response = picker.runModal()
+        if reopenPanel { panel?.show() }
+        return response == .OK ? picker.urls : []
+    }
+
+    func presentError(_ message: String) {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Some folders couldn’t be added")
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        NSApp.activate()
+        if let window = NSApp.keyWindow, window.isVisible, !(window is NSPanel) {
+            alert.beginSheetModal(for: window)
+        } else {
+            alert.runModal()
+        }
+    }
+
     // MARK: Onboarding and player
 
     func showOnboarding(onFinish: @escaping () -> Void) {

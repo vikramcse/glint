@@ -149,7 +149,7 @@ public actor Indexer: IndexingService {
         if let limit = gate.sourceLimit, existing.count >= limit { throw EntitlementError.sourceLimitReached(limit: limit) }
         let external = Self.isExternal(url)
         if external, !gate.allows(.externalDrives) { throw EntitlementError.externalDrivesRequirePro }
-        guard FileManager.default.isReadableFile(atPath: path) else { throw IndexerError.sourceUnreadable }
+        guard await Self.canList(path) else { throw IndexerError.sourceUnreadable }
 
         let bookmark = try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
         let id = try await writer.addSource(path: path, bookmark: bookmark)
@@ -378,6 +378,17 @@ public actor Indexer: IndexingService {
 
     private func removeSubscriber(_ id: UUID) {
         subscribers[id] = nil
+    }
+
+    /// Lists the folder once. For folders macOS protects (Desktop, Documents, Downloads,
+    /// removable drives) this is what shows the privacy prompt, and a denial surfaces here
+    /// instead of as an empty index. Runs off the cooperative pool because the prompt blocks.
+    private static func canList(_ path: String) async -> Bool {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                continuation.resume(returning: (try? FileManager.default.contentsOfDirectory(atPath: path)) != nil)
+            }
+        }
     }
 
     private static func isExternal(_ url: URL) -> Bool {
