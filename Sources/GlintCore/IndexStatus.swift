@@ -1,23 +1,48 @@
 import Foundation
 
-/// A folder or drive the user asked Glint to index.
+/// A folder or drive the user asked Glint to index, with its indexing progress.
 public struct SourceInfo: Sendable, Hashable, Identifiable, Codable {
     public var id: SourceID
     public var path: String
     public var isExternalVolume: Bool
     public var isAccessible: Bool
+    /// Indexable files found in the folder.
     public var itemCount: Int
+    /// Files whose content is searchable.
+    public var indexed: Int
+    /// Files waiting to be indexed that can be indexed now.
+    public var pending: Int
+    /// Files waiting for a Pro feature (video and audio on Free).
+    public var locked: Int
+    /// Files that could not be read.
+    public var failed: Int
 
-    public init(id: SourceID, path: String, isExternalVolume: Bool, isAccessible: Bool, itemCount: Int) {
+    public init(
+        id: SourceID, path: String, isExternalVolume: Bool, isAccessible: Bool, itemCount: Int,
+        indexed: Int = 0, pending: Int = 0, locked: Int = 0, failed: Int = 0
+    ) {
         self.id = id
         self.path = path
         self.isExternalVolume = isExternalVolume
         self.isAccessible = isAccessible
         self.itemCount = itemCount
+        self.indexed = indexed
+        self.pending = pending
+        self.locked = locked
+        self.failed = failed
     }
 
     public var url: URL { URL(fileURLWithPath: path, isDirectory: true) }
     public var displayName: String { url.lastPathComponent }
+
+    /// Every file that can be indexed now has been.
+    public var isComplete: Bool { pending == 0 }
+
+    /// Fraction of indexable-now files that are done (locked files excluded).
+    public var progress: Double {
+        let total = indexed + pending
+        return total == 0 ? 1 : Double(indexed) / Double(total)
+    }
 }
 
 /// Folders, extensions and hidden files the indexer must skip. Applied before extraction.

@@ -30,6 +30,11 @@ public struct MainWindowView: View {
                 .navigationSplitViewColumnWidth(min: 180, ideal: 210, max: 280)
         } detail: {
             ResultsArea(model: model, library: library, services: services, layout: layoutBinding)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if IndexingStatusBar.isVisible(services.status.status) {
+                        IndexingStatusBar(services: services)
+                    }
+                }
                 .navigationTitle(title)
                 .navigationSubtitle(services.status.summary)
         }

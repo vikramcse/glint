@@ -24,6 +24,12 @@ struct ResultRow: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .help(Text("Requires Glint Pro"))
+                    } else if !result.file.isIndexed {
+                        Label("Not indexed yet", systemImage: "clock")
+                            .labelStyle(.iconOnly)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .help(Text("Matched by name. Its contents become searchable once Glint indexes it."))
                     }
                 }
                 subtitle

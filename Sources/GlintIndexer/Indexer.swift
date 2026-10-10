@@ -126,11 +126,16 @@ public actor Indexer: IndexingService {
     }
 
     public func sources() async throws -> [SourceInfo] {
-        let counts = try await writer.sourceItemCounts()
+        let counts = try await writer.sourceCounts()
+        let gate = features.current
         return try await writer.sources().map { record in
-            SourceInfo(
+            let source = counts[record.id] ?? IndexCounts()
+            let locked = source.pending.filter { !gate.allows($0.key) }.values.reduce(0, +)
+            return SourceInfo(
                 id: record.id, path: record.path, isExternalVolume: Self.isExternal(URL(fileURLWithPath: record.path)),
-                isAccessible: FileManager.default.isReadableFile(atPath: record.path), itemCount: counts[record.id] ?? 0
+                isAccessible: FileManager.default.isReadableFile(atPath: record.path),
+                itemCount: source.totalIndexed + source.totalPending + source.failed,
+                indexed: source.totalIndexed, pending: source.totalPending - locked, locked: locked, failed: source.failed
             )
         }
     }
@@ -156,8 +161,8 @@ public actor Indexer: IndexingService {
         await rescan(sourceID: id, root: path)
         await restartWatcher()
         wake()
-        let count = try await writer.sourceItemCounts()[id] ?? 0
-        return SourceInfo(id: id, path: path, isExternalVolume: external, isAccessible: true, itemCount: count)
+        return try await sources().first { $0.id == id }
+            ?? SourceInfo(id: id, path: path, isExternalVolume: external, isAccessible: true, itemCount: 0)
     }
 
     public func removeSource(_ id: SourceID) async throws {

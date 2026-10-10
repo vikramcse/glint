@@ -20,17 +20,13 @@ struct SourcesSettings: View {
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
-                            if source.isAccessible {
-                                Text("\(source.itemCount.formatted()) items").font(.caption).foregroundStyle(.secondary)
-                            } else {
-                                Label("Can’t read", systemImage: "exclamationmark.triangle")
-                                    .font(.caption).foregroundStyle(.orange)
-                            }
+                            SourceStatusView(source: source, phase: services.status.status.phase)
                         }
+                        .padding(.vertical, 2)
                         .tag(source.id)
                     }
                 }
-                .frame(minHeight: 120)
+                .frame(minHeight: 140)
                 HStack {
                     Button("Add Folder…") {
                         Task { errorMessage = await SourceAdder.pickAndAdd(services: services) }

@@ -196,6 +196,28 @@ struct IndexerIntegrationTests {
         #expect(status.phase == .paused(.itemLimitReached))
     }
 
+    @Test func sourcesReportPerFolderProgress() async throws {
+        let harness = try Harness(gate: .free)
+        try harness.write("a.txt", "alpha")
+        try harness.write("b.txt", "beta")
+        try harness.write("memo.m4a", "audio")
+        try harness.write("bad.txt", "CRASH")
+        try await harness.indexer.addSource(harness.library)
+        var source = try #require(try await harness.indexer.sources().first)
+        #expect(source.itemCount == 4)
+        #expect(source.pending == 3)
+        #expect(source.locked == 1)
+        #expect(!source.isComplete)
+
+        await harness.indexer.drain()
+        source = try #require(try await harness.indexer.sources().first)
+        #expect(source.indexed == 2)
+        #expect(source.failed == 1)
+        #expect(source.locked == 1)
+        #expect(source.pending == 0)
+        #expect(source.isComplete)
+    }
+
     @Test func freeTierLeavesAudioLocked() async throws {
         let harness = try Harness(gate: .free)
         try harness.write("memo.m4a", "not really audio")

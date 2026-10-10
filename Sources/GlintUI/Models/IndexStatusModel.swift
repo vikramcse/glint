@@ -11,6 +11,7 @@ public final class IndexStatusModel {
     public private(set) var exclusions = ExclusionRules.default
     @ObservationIgnored private let indexing: any IndexingService
     @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private var lastSourceRefresh: ContinuousClock.Instant?
 
     public init(indexing: any IndexingService) {
         self.indexing = indexing
@@ -22,15 +23,21 @@ public final class IndexStatusModel {
         task = Task { [weak self, indexing] in
             for await status in await indexing.statusUpdates() {
                 guard let self else { return }
-                let sourcesChanged = status.sourceCount != self.status.sourceCount
+                let previous = self.status
                 self.status = status
-                if sourcesChanged || self.sources.isEmpty { await self.refreshSources() }
+                // Per-folder progress follows the overall status, at most once a second while
+                // indexing, and always when the phase or folder count changes so the final
+                // state (a checkmark) is never stale.
+                let structural = status.phase != previous.phase || status.sourceCount != previous.sourceCount
+                let due = self.lastSourceRefresh.map { ContinuousClock.now - $0 > .seconds(1) } ?? true
+                if structural || (due && status != previous) { await self.refreshSources() }
             }
         }
         Task { await refreshSources() }
     }
 
     public func refreshSources() async {
+        lastSourceRefresh = .now
         sources = (try? await indexing.sources()) ?? []
         exclusions = await indexing.exclusions()
     }

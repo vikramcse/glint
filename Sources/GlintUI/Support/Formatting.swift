@@ -93,6 +93,8 @@ public enum AccessibilityText {
         }
         if result.isLocked {
             parts.append(String(localized: "requires Glint Pro", comment: "VoiceOver: locked result"))
+        } else if !result.file.isIndexed {
+            parts.append(String(localized: "not indexed yet", comment: "VoiceOver: result matched by name only"))
         }
         return parts.joined(separator: ", ")
     }

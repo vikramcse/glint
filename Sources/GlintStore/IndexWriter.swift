@@ -41,6 +41,7 @@ public actor IndexWriter {
 
     public func sources() throws -> [SourceRecord] { try db.sources() }
     public func sourceItemCounts() throws -> [SourceID: Int] { try db.sourceItemCounts() }
+    public func sourceCounts() throws -> [SourceID: IndexCounts] { try db.sourceCounts() }
 
     // MARK: Scanning and file-system changes
 

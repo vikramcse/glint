@@ -28,13 +28,10 @@ struct SidebarView: View {
             }
             Section("Sources") {
                 ForEach(services.status.sources) { source in
-                    Label {
-                        Text(source.displayName)
-                    } icon: {
-                        Image(
-                            systemName: source.isAccessible
-                                ? (source.isExternalVolume ? "externaldrive" : "folder")
-                                : "exclamationmark.triangle")
+                    HStack {
+                        Label(source.displayName, systemImage: source.isExternalVolume ? "externaldrive" : "folder")
+                        Spacer(minLength: 4)
+                        SourceStatusBadge(source: source, phase: services.status.status.phase)
                     }
                     .help(Text(verbatim: (source.path as NSString).abbreviatingWithTildeInPath))
                     .tag(SidebarItem.source(source.id))

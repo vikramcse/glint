@@ -73,6 +73,24 @@ extension SQLiteConnection {
         return Dictionary(pairs, uniquingKeysWith: +)
     }
 
+    /// File counts per source, by kind and status.
+    func sourceCounts() throws -> [SourceID: IndexCounts] {
+        var result: [SourceID: IndexCounts] = [:]
+        _ = try query("SELECT source_id, kind, status, COUNT(*) FROM files GROUP BY source_id, kind, status") { row in
+            guard let kind = row.text(1).flatMap(MediaKind.init(rawValue:)),
+                let status = FileStatus(rawValue: Int(row.int(2)))
+            else { return }
+            let source = SourceID(row.int(0))
+            let count = Int(row.int(3))
+            switch status {
+            case .indexed: result[source, default: IndexCounts()].indexed[kind, default: 0] += count
+            case .pending: result[source, default: IndexCounts()].pending[kind, default: 0] += count
+            case .failed: result[source, default: IndexCounts()].failed += count
+            }
+        }
+        return result
+    }
+
     func files(_ ids: [FileID]) throws -> [FileID: FileRecord] {
         guard !ids.isEmpty else { return [:] }
         var result: [FileID: FileRecord] = [:]

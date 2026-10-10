@@ -1,7 +1,7 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "%@ items" : {
+    "%@ couldn’t be read" : {
 
     },
     "%@ items indexed" : {
@@ -74,7 +74,7 @@
     "Cancelled." : {
 
     },
-    "Can’t read" : {
+    "Can’t read this folder" : {
 
     },
     "Change how results are shown" : {
@@ -185,6 +185,16 @@
     "Free limit of 10,000 items reached" : {
 
     },
+    "Free limit reached · %@ of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Free limit reached · %1$@ of %2$@"
+          }
+        }
+      }
+    },
     "Frees this Mac’s seat so you can use your license on another Mac." : {
 
     },
@@ -287,8 +297,21 @@
     "Index video only when plugged in" : {
 
     },
+    "Indexed · %@ items" : {
+
+    },
     "Indexing" : {
 
+    },
+    "Indexing %@ of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Indexing %1$@ of %2$@"
+          }
+        }
+      }
     },
     "Indexing %@ of %@ items" : {
       "localizations" : {
@@ -343,6 +366,9 @@
     "Looking for files…" : {
 
     },
+    "Matched by name. Its contents become searchable once Glint indexes it." : {
+
+    },
     "Model" : {
 
     },
@@ -376,10 +402,16 @@
     "No folders added yet" : {
 
     },
+    "No searchable files" : {
+
+    },
     "Not Now" : {
 
     },
     "Not in Free" : {
+
+    },
+    "Not indexed yet" : {
 
     },
     "Nothing Here Yet" : {
@@ -439,6 +471,9 @@
     "Past Year" : {
 
     },
+    "Pause" : {
+
+    },
     "Pause Indexing" : {
 
     },
@@ -450,6 +485,16 @@
     },
     "Paused while your Mac cools down" : {
 
+    },
+    "Paused · %@ of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Paused · %1$@ of %2$@"
+          }
+        }
+      }
     },
     "Photo" : {
       "comment" : "Media kind"
@@ -507,6 +552,9 @@
     },
     "Results" : {
       "comment" : "Result section"
+    },
+    "Resume" : {
+
     },
     "Resume Indexing" : {
 
@@ -689,6 +737,9 @@
     "Upgrade to Pro…" : {
 
     },
+    "Upgrade…" : {
+
+    },
     "Video" : {
       "comment" : "Media kind"
     },
@@ -724,6 +775,9 @@
     },
     "moment at %@" : {
       "comment" : "VoiceOver: time of a matched moment"
+    },
+    "not indexed yet" : {
+      "comment" : "VoiceOver: result matched by name only"
     },
     "page %lld" : {
       "comment" : "VoiceOver: matched PDF page"
