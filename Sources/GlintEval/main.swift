@@ -1,7 +1,7 @@
 // glint-eval: retrieval eval harness.
 //
 //   glint-eval sample <dir>                     write <dir>/corpus and <dir>/queries.json
-//   glint-eval run <dir> [--queries q.json] [--model apple|hashing]
+//   glint-eval run <dir> [--queries q.json] [--model gemma|apple|hashing] [--model-dir D] [--dimensions N]
 //                  [--baseline report.json] [--out report.json]
 //
 // Exits non-zero when a gate fails: a metric drops more than 1 point overall or 2 points
@@ -67,6 +67,14 @@ case "run":
     let provider: any EmbeddingProvider
     switch option("--model", in: arguments) ?? "apple" {
     case "hashing": provider = HashingEmbeddingProvider()
+    case "gemma":
+        guard let path = option("--model-dir", in: arguments) else { fail("--model gemma needs --model-dir <checkpoint>") }
+        let dimensions = option("--dimensions", in: arguments).flatMap(Int.init) ?? 512
+        do {
+            provider = try await EmbeddingGemma2Provider(directory: URL(fileURLWithPath: path), dimensions: dimensions)
+        } catch {
+            fail("could not load EmbeddingGemma 2: \(error)")
+        }
     default:
         guard let apple = try? AppleOnDeviceEmbeddingProvider() else { fail("on-device embedding unavailable") }
         provider = apple
@@ -89,6 +97,8 @@ case "run":
     }
 
 default:
-    print("usage: glint-eval sample <dir> | run <dir> [--queries q.json] [--model apple|hashing] [--baseline r.json] [--out r.json]")
+    print(
+        "usage: glint-eval sample <dir> | run <dir> [--queries q.json] [--model gemma|apple|hashing] [--model-dir D] [--dimensions N] [--baseline r.json] [--out r.json]"
+    )
     exit(2)
 }

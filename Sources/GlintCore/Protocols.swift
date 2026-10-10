@@ -36,7 +36,13 @@ public protocol VectorIndex: Sendable {
 /// Encodes text queries for the search path (warm, small, prioritized over indexing).
 public protocol QueryEncoding: Sendable {
     var space: VectorSpace { get }
+    /// Cosine similarity below which semantic matches are dropped as noise.
+    var minimumSimilarity: Float { get }
     func encode(query: String) async throws -> Embedding
+}
+
+extension QueryEncoding {
+    public var minimumSimilarity: Float { 0.25 }
 }
 
 /// Embeds an example file for "find similar" when the file is not in the index yet.

@@ -17,30 +17,66 @@ public struct EG2Towers: OptionSet, Sendable, Hashable {
 
 /// EmbeddingGemma 2: text plus optional Gemma 4 vision and audio towers, mean-pooled and
 /// L2-normalized into one 768-d space. Port of mlx-vlm `embedding_gemma2.py` (MIT).
+/// The vision tower and its projection, loaded and released independently of the text tower.
+final class EG2VisionPart: Module {
+    @ModuleInfo(key: "vision_tower") var tower: EG2VisionModel
+    @ModuleInfo(key: "embed_vision") var embedder: EG2MultimodalEmbedder
+
+    init(_ config: EG2Configuration, _ vision: EG2VisionConfiguration) {
+        _tower.wrappedValue = EG2VisionModel(vision)
+        _embedder.wrappedValue = EG2MultimodalEmbedder(
+            inputDimension: vision.hiddenSize, outputDimension: config.textConfig.hiddenSize, eps: vision.rmsNormEps)
+        super.init()
+    }
+
+    static let prefixes = ["vision_tower.", "embed_vision."]
+}
+
+/// The audio tower and its projection, loaded and released independently of the text tower.
+final class EG2AudioPart: Module {
+    @ModuleInfo(key: "audio_tower") var tower: EG2AudioEncoder
+    @ModuleInfo(key: "embed_audio") var embedder: EG2MultimodalEmbedder
+
+    init(_ config: EG2Configuration, _ audio: EG2AudioConfiguration) {
+        _tower.wrappedValue = EG2AudioEncoder(audio)
+        _embedder.wrappedValue = EG2MultimodalEmbedder(
+            inputDimension: audio.outputProjDims ?? audio.hiddenSize, outputDimension: config.textConfig.hiddenSize,
+            eps: audio.rmsNormEps)
+        super.init()
+    }
+
+    static let prefixes = ["audio_tower.", "embed_audio."]
+}
+
+/// Holds the optional media parts outside the text model's parameter tree, so attaching or
+/// dropping one never changes the (compiled) text model.
+final class EG2MediaParts {
+    var vision: EG2VisionPart?
+    var audio: EG2AudioPart?
+}
+
+/// EmbeddingGemma 2: text plus optional Gemma 4 vision and audio towers, mean-pooled and
+/// L2-normalized into one 768-d space. Port of mlx-vlm `embedding_gemma2.py` (MIT).
 final class EG2Model: Module {
     let config: EG2Configuration
+    let media = EG2MediaParts()
 
     @ModuleInfo(key: "language_model") var languageModel: EG2TextModel
-    @ModuleInfo(key: "vision_tower") var visionTower: EG2VisionModel?
-    @ModuleInfo(key: "embed_vision") var embedVision: EG2MultimodalEmbedder?
-    @ModuleInfo(key: "audio_tower") var audioTower: EG2AudioEncoder?
-    @ModuleInfo(key: "embed_audio") var embedAudio: EG2MultimodalEmbedder?
 
     init(_ config: EG2Configuration, towers: EG2Towers) {
         self.config = config
         _languageModel.wrappedValue = EG2TextModel(config.textConfig)
-        if towers.contains(.vision), let vision = config.visionConfig {
-            _visionTower.wrappedValue = EG2VisionModel(vision)
-            _embedVision.wrappedValue = EG2MultimodalEmbedder(
-                inputDimension: vision.hiddenSize, outputDimension: config.textConfig.hiddenSize, eps: vision.rmsNormEps)
-        }
-        if towers.contains(.audio), let audio = config.audioConfig {
-            _audioTower.wrappedValue = EG2AudioEncoder(audio)
-            _embedAudio.wrappedValue = EG2MultimodalEmbedder(
-                inputDimension: audio.outputProjDims ?? audio.hiddenSize, outputDimension: config.textConfig.hiddenSize,
-                eps: audio.rmsNormEps)
-        }
         super.init()
+        createParts(towers)
+    }
+
+    private func createParts(_ towers: EG2Towers) {
+        if towers.contains(.vision), media.vision == nil, let vision = config.visionConfig {
+            media.vision = EG2VisionPart(config, vision)
+        }
+        if towers.contains(.audio), media.audio == nil, let audio = config.audioConfig {
+            media.audio = EG2AudioPart(config, audio)
+        }
     }
 
     /// Embeds a batch of token sequences in which media placeholders have been expanded.
@@ -80,14 +116,14 @@ final class EG2Model: Module {
     }
 
     func imageFeatures(_ pixels: MLXArray, _ positions: MLXArray) throws -> MLXArray {
-        guard let visionTower, let embedVision else { throw EmbeddingError.unsupportedModality(.image) }
-        return embedVision(visionTower(pixels, positions: positions))
+        guard let vision = media.vision else { throw EmbeddingError.unsupportedModality(.image) }
+        return vision.embedder(vision.tower(pixels, positions: positions))
     }
 
     func audioFeatures(_ features: MLXArray, mask: MLXArray) throws -> MLXArray {
-        guard let audioTower, let embedAudio else { throw EmbeddingError.unsupportedModality(.audio) }
-        let (encoded, invalid) = audioTower(features, invalid: logicalNot(mask.asType(.bool)))
-        let projected = embedAudio(encoded)
+        guard let audio = media.audio else { throw EmbeddingError.unsupportedModality(.audio) }
+        let (encoded, invalid) = audio.tower(features, invalid: logicalNot(mask.asType(.bool)))
+        let projected = audio.embedder(encoded)
         // Keep only valid frames of each item, concatenated in order.
         var pieces: [MLXArray] = []
         for item in 0..<projected.dim(0) {
@@ -121,71 +157,67 @@ final class EG2Model: Module {
 
     // MARK: Loading
 
-    /// Attaches and loads the vision and/or audio towers after creation (indexing needs them;
-    /// search does not).
+    /// Creates and loads the vision and/or audio parts (indexing needs them; search does not).
     func attach(_ towers: EG2Towers, from directory: URL) throws {
-        var prefixes: [String] = []
-        if towers.contains(.vision), visionTower == nil, let vision = config.visionConfig {
-            visionTower = EG2VisionModel(vision)
-            embedVision = EG2MultimodalEmbedder(
-                inputDimension: vision.hiddenSize, outputDimension: config.textConfig.hiddenSize, eps: vision.rmsNormEps)
-            prefixes += ["vision_tower.", "embed_vision."]
-        }
-        if towers.contains(.audio), audioTower == nil, let audio = config.audioConfig {
-            audioTower = EG2AudioEncoder(audio)
-            embedAudio = EG2MultimodalEmbedder(
-                inputDimension: audio.outputProjDims ?? audio.hiddenSize, outputDimension: config.textConfig.hiddenSize,
-                eps: audio.rmsNormEps)
-            prefixes += ["audio_tower.", "embed_audio."]
-        }
-        guard !prefixes.isEmpty else { return }
-        try loadWeights(from: directory) { key in prefixes.contains { key.hasPrefix($0) } }
+        let missing = towers.subtracting(loadedTowers)
+        guard !missing.isEmpty else { return }
+        createParts(missing)
+        try loadWeights(from: directory, towers: missing)
     }
 
-    /// Drops the vision and/or audio towers and their GPU memory.
+    /// Drops the vision and/or audio parts and frees their GPU memory.
     func detach(_ towers: EG2Towers) {
-        if towers.contains(.vision) {
-            visionTower = nil
-            embedVision = nil
-        }
-        if towers.contains(.audio) {
-            audioTower = nil
-            embedAudio = nil
-        }
+        if towers.contains(.vision) { media.vision = nil }
+        if towers.contains(.audio) { media.audio = nil }
         Memory.clearCache()
     }
 
     var loadedTowers: EG2Towers {
         var towers: EG2Towers = .text
-        if visionTower != nil { towers.insert(.vision) }
-        if audioTower != nil { towers.insert(.audio) }
+        if media.vision != nil { towers.insert(.vision) }
+        if media.audio != nil { towers.insert(.audio) }
         return towers
     }
 
-    /// Loads weights for the configured towers from `model*.safetensors` in `directory`.
-    /// `including` limits loading to some keys (attaching a tower later).
-    func loadWeights(from directory: URL, including: ((String) -> Bool)? = nil) throws {
+    /// Loads weights from `model*.safetensors` in `directory` into the text model and whichever
+    /// media parts exist, each verified on its own (`towers` limits which ones are loaded).
+    func loadWeights(from directory: URL, towers: EG2Towers = .all) throws {
         let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "safetensors" }
         guard !files.isEmpty else { throw EG2Error.missingWeights }
-        var weights: [String: MLXArray] = [:]
+        var text: [String: MLXArray] = [:]
+        var vision: [String: MLXArray] = [:]
+        var audio: [String: MLXArray] = [:]
         for file in files {
             for (key, value) in try loadArrays(url: file) {
-                guard let kept = sanitize(key: key, value: value) else { continue }
-                if let including, !including(kept.0) { continue }
-                weights[kept.0] = kept.1
+                guard let (name, array) = sanitize(key: key, value: value) else { continue }
+                if EG2VisionPart.prefixes.contains(where: name.hasPrefix) {
+                    vision[name] = array
+                } else if EG2AudioPart.prefixes.contains(where: name.hasPrefix) {
+                    audio[name] = array
+                } else {
+                    text[name] = array
+                }
             }
         }
-        try update(parameters: ModuleParameters.unflattened(weights), verify: [.noUnusedKeys])
-        eval(self)
+        if towers.contains(.text) {
+            try update(parameters: ModuleParameters.unflattened(text), verify: [.noUnusedKeys])
+            eval(self)
+        }
+        if towers.contains(.vision), let part = media.vision {
+            try part.update(parameters: ModuleParameters.unflattened(vision), verify: [.noUnusedKeys])
+            eval(part)
+        }
+        if towers.contains(.audio), let part = media.audio {
+            try part.update(parameters: ModuleParameters.unflattened(audio), verify: [.noUnusedKeys])
+            eval(part)
+        }
     }
 
     /// Mirrors the reference `sanitize`: drops unused towers and rotary caches, and converts
     /// PyTorch conv layouts to MLX's channels-last layout.
     private func sanitize(key rawKey: String, value: MLXArray) -> (String, MLXArray)? {
         let key = rawKey.hasPrefix("model.") ? String(rawKey.dropFirst("model.".count)) : rawKey
-        if visionTower == nil, key.hasPrefix("vision_tower.") || key.hasPrefix("embed_vision.") { return nil }
-        if audioTower == nil, key.hasPrefix("audio_tower.") || key.hasPrefix("embed_audio.") { return nil }
         if key.contains("rotary_emb.inv_freq") { return nil }
         var value = value
         if key.contains("subsample_conv_projection"), key.hasSuffix("conv.weight"), let audio = config.audioConfig {

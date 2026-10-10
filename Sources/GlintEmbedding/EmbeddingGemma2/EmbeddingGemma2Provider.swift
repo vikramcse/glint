@@ -26,6 +26,7 @@ public final class EmbeddingGemma2Provider: EmbeddingProvider, @unchecked Sendab
         descriptor.dimensions = dimensions
         self.descriptor = descriptor
         runtime = try EG2Runtime(directory: directory, config: config, tokenizer: tokenizer, towers: towers)
+        await runtime.warmUp()
     }
 
     public func embed(_ batch: [EmbeddingInput], purpose: EmbeddingPurpose) async throws -> [Embedding] {
@@ -92,6 +93,19 @@ actor EG2Runtime {
                 if self.unloadIfIdle() { return }
             }
         }
+    }
+
+    /// Compiles the text graph for the common query lengths so the first searches are fast.
+    func warmUp() {
+        for length in [16, 32, 48, 64] {
+            let ids = MLXArray([Int32](repeating: Int32(EG2Processor.eosToken), count: length), [1, length])
+            let mask = MLXArray.ones([1, length], type: Int32.self)
+            eval(model.compiledText(ids, mask))
+        }
+    }
+
+    func detachMediaForTesting() {
+        model.detach([.vision, .audio])
     }
 
     private func unloadIfIdle() -> Bool {

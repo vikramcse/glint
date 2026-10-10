@@ -81,7 +81,9 @@ struct FilePipeline: Sendable {
                 try? await writer.release(record.id)
                 return .cancelled
             }
-            Log.indexer.notice("Indexing failed (\(category.rawValue, privacy: .public)) for \(record.path, privacy: .private)")
+            Log.indexer.notice(
+                "Indexing failed (\(category.rawValue, privacy: .public), \(String(describing: type(of: error)), privacy: .public)) for \(record.path, privacy: .private)"
+            )
             try? await writer.markFailed(record.id, category: category)
             return .failed(category)
         }

@@ -18,6 +18,9 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
     public var downloadSize: Int64?
     /// SHA-256 of the weights archive, hex encoded.
     public var checksum: String?
+    /// Cosine similarity below which a semantic match is noise for this model. Models differ:
+    /// EmbeddingGemma 2 scores unrelated text around 0.5–0.65, the built-in model near 0.
+    public var minimumSimilarity: Float?
 
     public init(
         id: String,
@@ -29,7 +32,8 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
         license: String,
         allowsCommercialUse: Bool,
         downloadSize: Int64? = nil,
-        checksum: String? = nil
+        checksum: String? = nil,
+        minimumSimilarity: Float? = nil
     ) {
         self.id = id
         self.version = version
@@ -41,6 +45,7 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
         self.allowsCommercialUse = allowsCommercialUse
         self.downloadSize = downloadSize
         self.checksum = checksum
+        self.minimumSimilarity = minimumSimilarity
     }
 
     /// The vector space stored vectors are tagged with. Includes the version so a new model

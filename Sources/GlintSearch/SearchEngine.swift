@@ -36,7 +36,7 @@ public actor SearchEngine {
     private var exampleEncoder: (any ExampleEncoder)?
     private let thumbnails: ThumbnailStore
     private let gate: FeatureGateBox
-    private let ranker: HybridRanker
+    private var ranker: HybridRanker
     private let now: @Sendable () -> Date
     private var keywordCache: (query: SearchQuery, chunks: [KeywordHit], names: [KeywordHit])?
 
@@ -61,6 +61,7 @@ public actor SearchEngine {
         self.thumbnails = thumbnails
         self.gate = gate
         self.ranker = ranker
+        if let encoder { self.ranker.minimumSimilarity = encoder.minimumSimilarity }
         self.resultLimit = resultLimit
         self.now = now
     }
@@ -73,6 +74,7 @@ public actor SearchEngine {
     ) async throws {
         encoder = newEncoder
         exampleEncoder = newExampleEncoder
+        ranker.minimumSimilarity = newEncoder.minimumSimilarity
         vectorIndex = newIndex
         keywordCache = nil
         try await loadVectors()

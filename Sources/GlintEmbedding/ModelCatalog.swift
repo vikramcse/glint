@@ -26,7 +26,8 @@ public enum ModelCatalog {
         supportedDimensions: [768, 512, 256, 128],
         modalities: [.text, .image, .audio, .video],
         license: "Apache-2.0",
-        allowsCommercialUse: true
+        allowsCommercialUse: true,
+        minimumSimilarity: 0.60
     )
 
     /// Deterministic text-only hashing model for tests and the eval harness's smoke mode.

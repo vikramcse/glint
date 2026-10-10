@@ -144,6 +144,28 @@ struct EmbeddingGemma2ParityTests {
         #expect(similarity >= Self.threshold)
     }
 
+    /// The app keeps only the text tower resident and attaches media towers on demand.
+    @Test func mediaTowersAttachOnDemandAndMatchReference() async throws {
+        let photo = try Self.media("photo")
+        let audio = try Self.media("audio")
+        let (runtime, _) = try await Self.load(.text)
+        #expect(await runtime.loadedTowers == .text)
+
+        let image = try await runtime.embed([.image(try Self.image("photo.png"))], purpose: .document)[0]
+        #expect(Self.cosine(image, photo.embedding) >= Self.threshold)
+        #expect(await runtime.loadedTowers.contains(.vision))
+
+        let samples = try Self.wavSamples(Self.fixtures.appendingPathComponent("audio.wav"))
+        let sound = try await runtime.embed([.audio(AudioClip(samples: samples))], purpose: .document)[0]
+        #expect(Self.cosine(sound, audio.embedding) >= Self.threshold)
+        #expect(await runtime.loadedTowers == .all)
+
+        await runtime.detachMediaForTesting()
+        #expect(await runtime.loadedTowers == .text)
+        let again = try await runtime.embed([.image(try Self.image("photo.png"))], purpose: .document)[0]
+        #expect(Self.cosine(again, photo.embedding) >= Self.threshold)
+    }
+
     @Test func audioMatchesReference() async throws {
         let fixture = try Self.media("audio")
         let features = try #require(fixture.inputFeatures)
