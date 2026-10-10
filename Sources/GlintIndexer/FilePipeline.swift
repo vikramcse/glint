@@ -91,6 +91,9 @@ struct FilePipeline: Sendable {
             chunks.append(chunk)
             if chunks.count >= options.maxChunksPerFile { break }
         }
+        // Extractor streams finish quietly when the consuming task is cancelled; never commit a
+        // half-read file as done.
+        try Task.checkCancellation()
         return chunks
     }
 

@@ -8,12 +8,12 @@ import GlintStore
 /// Low Power Mode, heat, the Free item limit, or the user.
 public actor Indexer: IndexingService {
     private let writer: IndexWriter
-    private let pipeline: FilePipeline
+    private var pipeline: FilePipeline
     private let vectorIndex: any VectorIndex
     private let thumbnails: ThumbnailStore
     private let features: FeatureGateBox
     private let power: any PowerMonitoring
-    private let options: IndexerOptions
+    private var options: IndexerOptions
     private let watcher = FileSystemWatcher()
 
     private var rules = ExclusionRules.default
@@ -77,6 +77,17 @@ public actor Indexer: IndexingService {
         loopTask?.cancel()
         watchTask?.cancel()
         watcher.stop()
+        wake()
+    }
+
+    /// Applies new extractors (for example with transcription turned on) and options to files
+    /// indexed from now on.
+    public func reconfigure(extractors: [any ContentExtractor]? = nil, options newOptions: IndexerOptions? = nil) {
+        if let newOptions { options = newOptions }
+        pipeline = FilePipeline(
+            writer: writer, extractors: extractors ?? pipeline.extractors, provider: pipeline.provider,
+            vectorIndex: vectorIndex, gate: pipeline.gate, thumbnails: thumbnails, features: features, options: options
+        )
         wake()
     }
 

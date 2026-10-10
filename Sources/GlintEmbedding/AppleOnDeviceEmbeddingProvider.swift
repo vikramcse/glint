@@ -24,7 +24,9 @@ public struct AppleOnDeviceEmbeddingProvider: EmbeddingProvider {
         embeddings.reserveCapacity(batch.count)
         for input in batch {
             try Task.checkCancellation()
-            let text = describer.describe(input)
+            let describer = describer
+            // Vision and SoundAnalysis block their calling thread; keep them off the cooperative pool.
+            let text = await BlockingWork.run { describer.describe(input) }
             let values = await encoder.vector(for: text)
             embeddings.append(Embedding(normalizing: values, space: descriptor.space))
         }
@@ -70,4 +72,21 @@ actor SentenceEncoder {
     }
 
     private var zero: [Float] { [Float](repeating: 0, count: dimension) }
+}
+
+/// Runs blocking framework calls on a GCD queue instead of Swift's cooperative thread pool,
+/// where many synchronous Vision requests at once can starve the pool and deadlock.
+enum BlockingWork {
+    private static let queue = DispatchQueue(label: "app.glint.embedding.blocking", qos: .utility, attributes: .concurrent)
+    private static let slots = DispatchSemaphore(value: 2)
+
+    static func run<T: Sendable>(_ work: @escaping @Sendable () -> T) async -> T {
+        await withCheckedContinuation { continuation in
+            queue.async {
+                slots.wait()
+                defer { slots.signal() }
+                continuation.resume(returning: work())
+            }
+        }
+    }
 }

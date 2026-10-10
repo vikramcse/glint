@@ -34,7 +34,6 @@ public enum MediaKind: String, Sendable, Codable, CaseIterable, Hashable, Compar
             "org.openxmlformats.wordprocessingml.document",
             "com.microsoft.word.doc",
             "org.oasis-open.opendocument.text",
-            "com.apple.pages.pages",
         ] {
             if let type = UTType(identifier) { types.append(type) }
         }
