@@ -1,0 +1,119 @@
+import Foundation
+
+/// A folder or drive the user asked Glint to index.
+public struct SourceInfo: Sendable, Hashable, Identifiable, Codable {
+    public var id: SourceID
+    public var path: String
+    public var isExternalVolume: Bool
+    public var isAccessible: Bool
+    public var itemCount: Int
+
+    public init(id: SourceID, path: String, isExternalVolume: Bool, isAccessible: Bool, itemCount: Int) {
+        self.id = id
+        self.path = path
+        self.isExternalVolume = isExternalVolume
+        self.isAccessible = isAccessible
+        self.itemCount = itemCount
+    }
+
+    public var url: URL { URL(fileURLWithPath: path, isDirectory: true) }
+    public var displayName: String { url.lastPathComponent }
+}
+
+/// Folders, extensions and hidden files the indexer must skip. Applied before extraction.
+public struct ExclusionRules: Sendable, Hashable, Codable {
+    public var folders: [String]
+    public var fileExtensions: Set<String>
+    public var includeHiddenFiles: Bool
+
+    public init(folders: [String] = [], fileExtensions: Set<String> = [], includeHiddenFiles: Bool = false) {
+        self.folders = folders
+        self.fileExtensions = fileExtensions
+        self.includeHiddenFiles = includeHiddenFiles
+    }
+
+    /// Directory names never worth indexing.
+    public static let builtInFolderNames: Set<String> = [
+        "node_modules", ".git", ".svn", ".hg", "DerivedData", ".build", "Pods", "__pycache__", ".Trash", "Caches",
+    ]
+
+    public static let `default` = ExclusionRules()
+
+    public func excludes(path: String) -> Bool {
+        let url = URL(fileURLWithPath: path)
+        if fileExtensions.contains(url.pathExtension.lowercased()) { return true }
+        if !includeHiddenFiles, url.pathComponents.contains(where: { $0.hasPrefix(".") && $0.count > 1 }) {
+            return true
+        }
+        if url.pathComponents.contains(where: ExclusionRules.builtInFolderNames.contains) { return true }
+        return folders.contains { folder in
+            let prefix = folder.hasSuffix("/") ? folder : folder + "/"
+            return path == folder || path.hasPrefix(prefix)
+        }
+    }
+}
+
+/// Why indexing is not running.
+public enum PauseReason: String, Sendable, Hashable, Codable {
+    case user
+    case lowBattery
+    case lowPowerMode
+    case thermal
+    case itemLimitReached
+}
+
+/// Honest, user-facing state of the index.
+public struct IndexStatus: Sendable, Hashable {
+    public enum Phase: Sendable, Hashable {
+        case idle
+        case scanning
+        case indexing
+        case paused(PauseReason)
+    }
+
+    public var phase: Phase
+    /// Indexed files per kind.
+    public var indexed: [MediaKind: Int]
+    /// Files waiting to be indexed.
+    public var pending: Int
+    /// Files waiting for a Pro feature (video and audio on Free).
+    public var locked: Int
+    /// Files that could not be read.
+    public var failed: Int
+    /// Number of sources, and how many are currently unreadable (permission denied, unplugged).
+    public var sourceCount: Int
+    public var inaccessibleSources: Int
+
+    public init(
+        phase: Phase = .idle,
+        indexed: [MediaKind: Int] = [:],
+        pending: Int = 0,
+        locked: Int = 0,
+        failed: Int = 0,
+        sourceCount: Int = 0,
+        inaccessibleSources: Int = 0
+    ) {
+        self.phase = phase
+        self.indexed = indexed
+        self.pending = pending
+        self.locked = locked
+        self.failed = failed
+        self.sourceCount = sourceCount
+        self.inaccessibleSources = inaccessibleSources
+    }
+
+    public var totalIndexed: Int { indexed.values.reduce(0, +) }
+
+    /// Fraction done, counting only work that can run now (locked files excluded).
+    public var progress: Double {
+        let total = totalIndexed + pending
+        return total == 0 ? 1 : Double(totalIndexed) / Double(total)
+    }
+
+    public var isBusy: Bool {
+        switch phase {
+        case .scanning, .indexing: true
+        case .idle, .paused: false
+        }
+    }
+}
