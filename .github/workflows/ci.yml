@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 3 * * *"  # nightly: full performance suite and evals on the reference Macs
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Build, lint and test
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.app
+      - name: Module boundaries
+        run: scripts/check_imports.sh
+      - name: Format
+        run: xcrun swift-format lint --strict -r --configuration .swift-format Sources Tests
+      - name: SwiftLint
+        run: brew install swiftlint && swiftlint --strict
+      - name: Build (zero warnings)
+        run: swift build -Xswiftc -warnings-as-errors
+      - name: Unit, integration, UI model and snapshot tests
+        run: GLINT_SNAPSHOT_DIR="$RUNNER_TEMP/snapshots" swift test --parallel
+      - name: Upload snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshots
+          path: ${{ runner.temp }}/snapshots
+      - name: String Catalog is in sync
+        run: |
+          mkdir -p "$RUNNER_TEMP/strings"
+          swift build --product Glint -Xswiftc -emit-localized-strings -Xswiftc -emit-localized-strings-path -Xswiftc "$RUNNER_TEMP/strings"
+          xcrun xcstringstool sync App/Localizable.xcstrings --stringsdata "$RUNNER_TEMP"/strings/*.stringsdata
+          git diff --exit-code App/Localizable.xcstrings || (echo "::error::Run scripts/build_app.sh and commit App/Localizable.xcstrings" && exit 1)
+
+  evals:
+    name: Retrieval evals
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sample corpus eval against baseline
+        run: |
+          swift build -c release --product glint-eval
+          .build/release/glint-eval sample "$RUNNER_TEMP/eval"
+          .build/release/glint-eval run "$RUNNER_TEMP/eval" --baseline Evals/baseline.json --out "$RUNNER_TEMP/eval-report.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-report
+          path: ${{ runner.temp }}/eval-report.json
+
+  performance:
+    name: Performance budgets (M1 8 GB reference)
+    # The dedicated reference Macs register as self-hosted runners with these labels.
+    runs-on: [self-hosted, macOS, glint-perf-m1-8gb]
+    if: github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'perf')
+    steps:
+      - uses: actions/checkout@v4
+      - run: GLINT_PERF=1 swift test -c release --filter GlintPerformanceTests
+
+  app:
+    name: App bundle
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/build_app.sh release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Glint.app
+          path: build/Glint.app
