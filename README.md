@@ -2,28 +2,38 @@
 
 Glint is a native Mac app for on-device multimodal search. Press **⌥Space** and describe what you're looking for. Glint finds photos and screenshots, moments inside videos, things said in recordings, PDF pages and documents, and nothing leaves the Mac.
 
-This repository implements the [PRD](PRD.md) as a Swift 6 package: every module in the architecture, the app shell, and the tooling the PRD requires (tests, retrieval evals, performance budgets, license tooling).
+This repository implements the [PRD](PRD.md): a Swift 6 package with every module in the architecture, an Xcode app target generated from `project.yml`, the license server, and the tooling the PRD requires (tests, a model parity gate, retrieval evals, performance budgets, release scripts).
 
 ## Quick start
 
-Requires macOS 15+ on Apple silicon and Xcode 26.
+Requires macOS 15+ on Apple silicon and Xcode 26. One-time setup:
 
 ```sh
-scripts/build_app.sh debug        # builds, signs ad hoc → build/Glint.app
-open build/Glint.app              # onboarding appears on first launch
+brew install xcodegen
+xcodebuild -downloadComponent MetalToolchain   # MLX's GPU kernels need it
 ```
 
-- To work in Xcode, open `Package.swift`.
-- To run the app from the command line, run `swift run Glint`. That runs it without a bundle, so it has no Info.plist privacy strings.
+Then:
+
+```sh
+scripts/build_app.sh debug        # generates Glint.xcodeproj, builds, signs ad hoc → build/Glint.app
+open build/Glint.app              # onboarding offers the EmbeddingGemma 2 download (1.5 GB)
+```
+
+- **Xcode:** run `xcodegen generate`, then open `Glint.xcodeproj` (app, `glint-mcp`, UI tests). The modules and unit tests live in `Package.swift`.
+- **Why `xcodebuild`:** MLX's Metal kernels can't be built by `swift build`. Plain `swift build`/`swift test` still compile everything and run every test that doesn't execute the model.
 
 | Task | Command |
 | --- | --- |
-| All tests (unit, integration, UI models, snapshots) | `swift test` |
+| Unit, integration, UI-model and snapshot tests | `swift test` |
+| UI tests (XCUITest, real app, isolated data) | `xcodebuild test -project Glint.xcodeproj -scheme Glint -destination 'platform=macOS,arch=arm64' ARCHS=arm64` |
+| EmbeddingGemma 2 parity gate | see `Tests/GlintEmbeddingTests/EmbeddingGemma2ParityTests.swift` (needs the checkpoint and `scripts/model/make_parity_fixtures.py`) |
 | Performance budgets (100k chunks) | `GLINT_PERF=1 swift test -c release --filter GlintPerformanceTests` |
-| Retrieval evals | `swift run -c release glint-eval sample /tmp/eval && swift run -c release glint-eval run /tmp/eval --baseline Evals/baseline.json` |
+| Retrieval evals | `glint-eval sample /tmp/eval && glint-eval run /tmp/eval --model gemma --model-dir <checkpoint> --baseline Evals/baseline-embeddinggemma2.json` |
 | Module boundaries | `scripts/check_imports.sh` |
 | Format / lint | `xcrun swift-format lint --strict -r Sources Tests` · `swiftlint --strict` |
-| Snapshot PNGs for review | `GLINT_SNAPSHOT_DIR=/tmp/snaps swift test --filter Snapshots` |
+| Release (sign, notarize, DMG, appcast) | `scripts/release/release.sh` (see `scripts/release/README.md`) |
+| License server | `server/license/` (Cloudflare Worker; see its README) |
 
 ## Architecture
 
@@ -49,13 +59,14 @@ Glint runs as a single Swift process with no server. A background indexer and an
 | --- | --- |
 | `GlintCore` | Domain types, the four protocols (`EmbeddingProvider`, `ContentExtractor`, `VectorIndex`, `IndexingService`), `FeatureGateSnapshot`, errors, logging/signposts |
 | `GlintExtractors` | One extractor per type. <ul><li>Text: encoding detection, 512/64-token chunks</li><li>PDF: per-page text, OCR for scanned pages, page renders, visual chunks</li><li>Image: downscale and Vision OCR</li><li>Audio: 16 kHz mono windows, waveform, optional on-device transcript</li><li>Video: 5 s clips at 1 fps plus the audio track</li></ul> |
-| `GlintEmbedding` | <ul><li>`AppleOnDeviceEmbeddingProvider`, the interim provider (see ADR 0002)</li><li>`HashingEmbeddingProvider` for tests</li><li>`PriorityGate` and `GatedQueryEncoder`</li><li>`ModelCatalog`</li></ul> |
+| `GlintEmbedding` | <ul><li>`EmbeddingGemma2Provider`: EmbeddingGemma 2 ported to MLX-Swift (text, vision, audio towers; 8-bit resident text tower; media towers load on demand), with a parity gate against the Python reference (ADR 0006)</li><li>`ModelStore`: pinned, resumable, SHA-256-verified model download</li><li>`AppleOnDeviceEmbeddingProvider`: built-in fallback until the download finishes (ADR 0002)</li><li>`PriorityGate`, `GatedQueryEncoder`, `ModelCatalog`, `HashingEmbeddingProvider` for tests</li></ul> |
 | `GlintStore` | SQLite wrapper, migrations, `IndexWriter` (single writer, one transaction per file), `IndexReader` (separate WAL reader), FTS5 for chunk text and file names, thumbnails |
 | `GlintSearch` | <ul><li>`FlatVectorIndex`: a GPU-resident `Float16` matrix with a Metal kernel and an Accelerate fallback</li><li>`HybridRanker`: RRF, best chunk per file, recency boost</li><li>Two-phase `SearchEngine`, query tokens, snippets, retrieval metrics</li></ul> |
 | `GlintIndexer` | Scanner, FSEvents watcher, priority queue (documents and images, then audio, then video), battery/Low Power/thermal pauses, content-hash dedupe, move/rename detection, Free-tier gating |
 | `GlintLicensing` | Ed25519 offline-verified tokens, `Entitlements` (the one gating point), 14-day trial with clock-rollback protection, activation client, Keychain store |
 | `GlintTelemetry` | Opt-in, bucketed events only, 10% search sampling, daily batch, 90-day rotating anonymous id, MetricKit |
-| `GlintUI` | <ul><li>Search panel, main window (sidebar, grid/list, inspector)</li><li>Settings (six tabs), onboarding, upgrade sheet, menu bar content</li><li>View models</li></ul> |
+| `GlintUI` | <ul><li>Search panel, main window (sidebar, grid/list, inspector), PDF window at the matched page</li><li>Settings (six tabs, model download and presets), onboarding, upgrade sheet, menu bar content</li><li>View models</li></ul> |
+| `GlintLocalAPI` · `glint-mcp` | Loopback JSON API with bearer token (Pro) and an MCP server over stdio for agents ([docs/local-api.md](docs/local-api.md)) |
 
 ### How search stays instant
 
@@ -79,7 +90,14 @@ Measured on an M5 in release (`GLINT_PERF=1`), against PRD budgets set for an M1
 - No metric may drop more than 1 point overall, or more than 2 points for any media type.
 - No must-pass query may leave the top 10.
 
-The synthetic sample corpus (`glint-eval sample`) currently scores Recall@10 **0.96** overall, and 1.00 on images and PDFs, with a p50 query time of 2.7 ms. The 3,000-file persona corpus described in the PRD lives outside the repo.
+On the synthetic sample corpus (`glint-eval sample`), M5, Release:
+
+| Model | Recall@10 | MRR | nDCG@10 | Search p50 / p95 |
+| --- | --- | --- | --- | --- |
+| EmbeddingGemma 2 (default, 512 d, 8-bit text tower) | 1.000 | 1.000 | 0.997 | 8.1 / 11.6 ms |
+| Built-in fallback | 0.962 | 0.949 | 0.948 | 2.7 / 3.1 ms |
+
+The 3,000-file persona corpus described in the PRD lives outside the repo.
 
 ## Licensing during development
 
@@ -90,35 +108,39 @@ open "glint://activate?key=GLINT1-…"                      # or paste it in Set
 ```
 
 - **Signing keys:** the public key is compiled into `LicensePublicKey.swift`. The development private key is `secrets/license-dev-private.key`, which is git-ignored. Rotate both before release.
-- **Activation:** until the M3 license server exists, a validly signed key activates offline (ADR 0005).
+- **Activation:** with `GlintLicenseServerURL` empty, a validly signed key activates offline (ADR 0005); once the Worker in `server/license/` is deployed and the URL set, activation enforces two seats.
 - **Secret storage:** ad hoc development builds keep license state in `~/Library/Application Support/Glint/license-dev.json` instead of the Keychain.
 
 ## Status against the PRD
 
 **Done and tested**
-- **Search:** panel with full keyboard flow, drag out, and drop a file to find similar items. The main window has a sidebar, search tokens, saved searches, an inspector and similar items.
-- **Index:** five media types in one index. Free/Pro gating, with locked-but-visible results and an item limit that never deletes data.
-- **App surfaces:** onboarding, Settings, menu bar item, and moment playback at the matched timestamp.
-- **Licensing:** the license and trial lifecycle, with designed UI for all six license states.
-- **Privacy:** opt-in telemetry whose payload is visible in Settings; Delete Index.
-- **Platform:** String Catalog (231 keys), VoiceOver labels, light/dark mode, Liquid Glass on macOS 26.
+- **Model:** EmbeddingGemma 2 is the default: downloaded once (1.5 GB, verified), text/vision/audio towers matching the Python reference at cosine ≥ 0.9998, 8-bit resident text tower, quality presets (Pro). The built-in model covers the time before the download finishes.
+- **Search:** panel with full keyboard flow, drag out, and drop a file to find similar items. The main window has a sidebar, search tokens, saved searches, an inspector and similar items. PDFs open at the matched page with terms highlighted.
+- **Index:** five media types in one index, plus the Apple Photos library (Pro). Free/Pro gating, with locked-but-visible results and an item limit that never deletes data.
+- **App surfaces:** onboarding, Settings, menu bar item, moment playback at the matched timestamp, per-folder indexing status.
+- **Licensing and distribution:** license and trial lifecycle with designed UI for all six states; Cloudflare Worker license server with Lemon Squeezy webhooks; Sparkle updates; sign/notarize/DMG/appcast scripts.
+- **Agents:** local API and `glint-mcp` (Pro, opt-in).
+- **Quality gates:** unit, integration, UI-model, snapshot and XCUITest suites; model parity gate; retrieval evals; performance budgets.
+- **Platform:** String Catalog, VoiceOver labels, light/dark mode, Liquid Glass on macOS 26.
 
-**Not built yet (owner milestone)**
-- EmbeddingGemma 2 provider via MLX-Swift and its parity gate (M0). The interim provider is behind the same protocol, and vectors re-embed automatically when the model changes.
-- Model download from the CDN, plus model and quality-preset switching. Settings lists the models, but choosing one isn't wired up.
-- Apple Photos library source via PhotoKit (Pro).
-- License server and checkout (Paddle or Lemon Squeezy, M3). The purchase URL and telemetry endpoint are placeholders in `AppLinks`.
-- Sparkle updates and notarization (M4).
-- XCUITest suite. That needs an Xcode app target; UI behaviour is covered by view-model and snapshot tests for now.
-- Shot-boundary detection, the quantized coarse scan for very large libraries, opening a PDF at the matched page, and the nightly fuzz corpus.
-- Local API and MCP server (post-1.0 in the PRD).
+**Needs your accounts before release**
+- Apple Developer ID and notary credentials; Sparkle EdDSA keys and an appcast host.
+- Cloudflare account (D1 + Worker secrets) and a Lemon Squeezy store; then set `GlintPurchaseURL` and `GlintLicenseServerURL` in `App/Info.plist`.
+- Optionally a CDN mirror of the model (`GlintModelBaseURL`); downloads come from the pinned Hugging Face revision until then.
+
+**Open items**
+- Idle memory is 550 MB on an M5 against the 500 MB budget; the tokenizer's in-memory vocabulary is the next thing to measure.
+- Video parity is covered through the shared image path; a decoded-video fixture is a follow-up. Shot-boundary detection, the quantized coarse scan for very large libraries and the nightly fuzz corpus are not built.
+- Dragging a Photos-library result out of Glint hands over a path that doesn't exist yet (the original should be exported first).
 
 ## Decisions
 
 Decisions are recorded as ADRs in [`docs/adr`](docs/adr):
 
 1. SwiftPM and direct distribution
-2. Interim embedding provider
+2. Interim embedding provider (now the fallback)
 3. System SQLite instead of GRDB
 4. Search path performance
 5. License secrets in development
+6. EmbeddingGemma 2 on MLX-Swift, built with Xcode
+7. Sparkle for in-app updates

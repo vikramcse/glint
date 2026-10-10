@@ -38,7 +38,7 @@ jobs:
       - name: String Catalog is in sync
         run: |
           mkdir -p "$RUNNER_TEMP/strings"
-          swift build --product Glint -Xswiftc -emit-localized-strings -Xswiftc -emit-localized-strings-path -Xswiftc "$RUNNER_TEMP/strings"
+          swift build --product glint-app -Xswiftc -emit-localized-strings -Xswiftc -emit-localized-strings-path -Xswiftc "$RUNNER_TEMP/strings"
           xcrun xcstringstool sync App/Localizable.xcstrings --stringsdata "$RUNNER_TEMP"/strings/*.stringsdata
           git diff --exit-code App/Localizable.xcstrings || (echo "::error::Run scripts/build_app.sh and commit App/Localizable.xcstrings" && exit 1)
 
@@ -93,8 +93,49 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+      - name: Tooling
+        run: |
+          brew install xcodegen
+          xcodebuild -downloadComponent MetalToolchain
       - run: scripts/build_app.sh release
       - uses: actions/upload-artifact@v4
         with:
           name: Glint.app
           path: build/Glint.app
+
+  ui-tests:
+    name: UI tests (XCUITest)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tooling
+        run: |
+          brew install xcodegen
+          xcodebuild -downloadComponent MetalToolchain
+      - run: xcodegen generate
+      - run: >
+          xcodebuild test -project Glint.xcodeproj -scheme Glint
+          -destination 'platform=macOS,arch=arm64' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
+
+  model:
+    name: EmbeddingGemma 2 parity and evals (reference Mac)
+    # Needs the 1.5 GB checkpoint and the Python reference; runs on the self-hosted reference Macs.
+    runs-on: [self-hosted, macOS, glint-perf-m1-8gb]
+    if: github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'model')
+    env:
+      CHECKPOINT: ${{ vars.GLINT_EG2_DIR }}
+      REFERENCE_PYTHON: ${{ vars.GLINT_REFERENCE_PYTHON }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reference fixtures
+        run: $REFERENCE_PYTHON scripts/model/make_parity_fixtures.py "$CHECKPOINT" "$RUNNER_TEMP/fixtures"
+      - name: Parity gate (cosine >= 0.999, identical token ids)
+        run: >
+          TEST_RUNNER_GLINT_EG2_DIR="$CHECKPOINT" TEST_RUNNER_GLINT_EG2_FIXTURES="$RUNNER_TEMP/fixtures"
+          xcodebuild test -scheme Glint-Package -configuration Release ENABLE_TESTABILITY=YES
+          -destination 'platform=macOS,arch=arm64' ARCHS=arm64 -only-testing:GlintEmbeddingTests
+      - name: Retrieval evals with EmbeddingGemma 2
+        run: |
+          xcodebuild build -scheme glint-eval -configuration Release -destination 'platform=macOS,arch=arm64' ARCHS=arm64 -derivedDataPath build/eval
+          build/eval/Build/Products/Release/glint-eval sample "$RUNNER_TEMP/eval"
+          build/eval/Build/Products/Release/glint-eval run "$RUNNER_TEMP/eval" --model gemma --model-dir "$CHECKPOINT" --baseline Evals/baseline-embeddinggemma2.json

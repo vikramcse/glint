@@ -32,11 +32,13 @@ final class AppEnvironment {
     let savedSearches: AppSavedSearches
     let photos = PhotoKitLibrary()
     let models: ModelController
+    let isUITest: Bool
     let localAPI: LocalAPIController
 
-    init(settings: AppSettings) throws {
+    init(settings: AppSettings, launch: LaunchOptions = .current) throws {
         self.settings = settings
-        paths = try AppPaths.standard()
+        isUITest = launch.isUITest
+        paths = try launch.testRoot.map(AppPaths.init(root:)) ?? AppPaths.standard()
         try paths.createDirectories()
 
         writer = try Self.openWriter(at: paths.database)
@@ -46,7 +48,9 @@ final class AppEnvironment {
 
         license = LicenseManager(
             verifier: try LicenseVerifier.production(),
-            store: SecureStoreFactory.make(fallbackDirectory: paths.root),
+            store: launch.isUITest
+                ? FileSecureStore(url: paths.root.appendingPathComponent("license.json"))
+                : SecureStoreFactory.make(fallbackDirectory: paths.root),
             // Without GlintLicenseServerURL in Info.plist, signed keys activate offline (development).
             activationService: AppConfiguration.current.licenseServer.map { HTTPActivationService(baseURL: $0) }
         )
@@ -114,7 +118,8 @@ final class AppEnvironment {
     func start() async {
         let stopwatch = Stopwatch()
         // Activate EmbeddingGemma 2 first (when downloaded) so indexing starts in its space.
-        await models.activateIfInstalled()
+        // UI tests use the built-in model so they don't depend on a 1.5 GB download.
+        if !isUITest { await models.activateIfInstalled() }
         _ = try? await engine.loadVectors()
         Log.app.info("Search ready in \(Int(stopwatch.milliseconds), privacy: .public) ms")
         await indexer.start()

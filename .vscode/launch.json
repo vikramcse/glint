@@ -79,6 +79,26 @@
             "target": "glint-mcp",
             "configuration": "release",
             "preLaunchTask": "swift: Build Release glint-mcp"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:glint}",
+            "name": "Debug glint-app",
+            "target": "glint-app",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug glint-app"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:glint}",
+            "name": "Release glint-app",
+            "target": "glint-app",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release glint-app"
         }
     ]
 }

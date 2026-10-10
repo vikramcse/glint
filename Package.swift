@@ -16,11 +16,21 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [.macOS(.v15)],
     products: [
-        .executable(name: "Glint", targets: ["GlintApp"]),
+        // The signed app bundle is built from Glint.xcodeproj (project.yml); this product keeps
+        // the app code compiling under `swift build`.
+        .executable(name: "glint-app", targets: ["GlintApp"]),
         .executable(name: "glint-eval", targets: ["GlintEval"]),
         .executable(name: "glint-license", targets: ["GlintLicenseTool"]),
         .executable(name: "glint-mcp", targets: ["GlintMCPTool"]),
         .library(name: "GlintCore", targets: ["GlintCore"]),
+        // Everything the Xcode app target (Glint.xcodeproj, generated from project.yml) links.
+        .library(
+            name: "GlintKit",
+            targets: [
+                "GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch", "GlintIndexer",
+                "GlintLicensing", "GlintTelemetry", "GlintUI", "GlintLocalAPI",
+            ]),
+        .library(name: "GlintMCP", targets: ["GlintMCP"]),
     ],
     dependencies: [
         // On-device model runtime (Apple). See docs/adr/0006-mlx-and-embeddinggemma-2.md.

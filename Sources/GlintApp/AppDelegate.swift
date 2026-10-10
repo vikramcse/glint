@@ -10,7 +10,8 @@ import ServiceManagement
 /// settings, license state and services in sync.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    let settings = AppSettings()
+    let launch = LaunchOptions.current
+    lazy var settings = AppSettings(defaults: launch.defaults)
     private(set) var environment: AppEnvironment?
     private(set) var actions: AppResultActions?
     private var panel: SearchPanelController?
@@ -22,7 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         super.init()
         do {
-            environment = try AppEnvironment(settings: settings)
+            environment = try AppEnvironment(settings: settings, launch: launch)
         } catch {
             launchError = error
             Log.app.fault("Glint could not start: \(String(describing: error), privacy: .public)")
@@ -54,11 +55,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             await environment.telemetry.record(.appLaunched(AppLaunchInfo.current()))
             await environment.start()
-            await environment.localAPI.apply()
+            if !self.launch.isUITest { await environment.localAPI.apply() }
+            if let source = self.launch.testSource, self.settings.hasCompletedOnboarding {
+                _ = try? await environment.indexer.addSource(source)
+            }
         }
 
+        if launch.skipOnboarding { settings.hasCompletedOnboarding = true }
+        if launch.showMainWindow { actions.showMainWindow() }
+        if launch.showUpgrade { actions.showUpgrade(.menu) }
+        if launch.showPanel { panel.show() }
         if !settings.hasCompletedOnboarding {
-            actions.showOnboarding { [weak self] in self?.panel?.show() }
+            actions.showOnboarding(suggestions: launch.testSource.map { [$0] }) { [weak self] in self?.panel?.show() }
         }
     }
 

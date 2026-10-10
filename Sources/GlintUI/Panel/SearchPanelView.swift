@@ -74,6 +74,7 @@ public struct SearchPanelView: View {
             .textFieldStyle(.plain)
             .font(.system(size: 22))
             .focused($fieldFocused)
+            .accessibilityIdentifier("panel.search")
             .onKeyPress(phases: .down, action: handleKey)
             .onSubmit(openSelection)
             .accessibilityHint(Text("Type to search. Use the arrow keys to choose a result."))
@@ -128,6 +129,7 @@ public struct SearchPanelView: View {
                 }
             }
             .id(result.id)
+            .accessibilityIdentifier("result.\(result.file.name)")
             .onTapGesture(count: 2) { open(result) }
             .onTapGesture { model.selection = result.id }
             .onDrag { NSItemProvider(object: result.file.url as NSURL) }

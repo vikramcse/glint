@@ -173,10 +173,10 @@ final class AppResultActions: ResultActions {
 
     // MARK: Onboarding and player
 
-    func showOnboarding(onFinish: @escaping () -> Void) {
+    func showOnboarding(suggestions: [URL]? = nil, onFinish: @escaping () -> Void) {
         let window = makeWindow(
             title: String(localized: "Welcome to Glint"),
-            root: OnboardingView(services: services) { [weak self] in
+            root: OnboardingView(services: services, suggestions: suggestions) { [weak self] in
                 self?.onboardingWindow?.close()
                 self?.onboardingWindow = nil
                 onFinish()

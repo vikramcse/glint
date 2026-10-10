@@ -12,9 +12,17 @@ public struct OnboardingView: View {
     @State private var startedAt = Date()
     @State private var downloadModel = true
 
-    public init(services: GlintServices, onFinish: @escaping () -> Void) {
+    /// - Parameter suggestions: folders to pre-select; `nil` suggests Desktop, Documents,
+    ///   Downloads and Screenshots.
+    public init(services: GlintServices, suggestions: [URL]? = nil, onFinish: @escaping () -> Void) {
         self.services = services
         self.onFinish = onFinish
+        if let suggestions {
+            _choices = State(
+                initialValue: suggestions.map {
+                    SuggestedFolder(name: $0.lastPathComponent, symbol: "folder", url: $0, isSelected: true)
+                })
+        }
     }
 
     public var body: some View {
@@ -41,6 +49,7 @@ public struct OnboardingView: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(isFinishing || (step == 1 && selectedFolders.isEmpty))
+                .accessibilityIdentifier(step == 2 ? "onboarding.start" : "onboarding.continue")
             }
             .padding(16)
         }

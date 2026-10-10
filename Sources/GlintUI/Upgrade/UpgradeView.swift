@@ -58,20 +58,25 @@ public struct UpgradeView: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .controlSize(.large)
+                .accessibilityIdentifier("upgrade.buy")
                 Spacer()
                 Button("Not Now") { dismiss() }
                     .keyboardShortcut(.cancelAction)
+                    .accessibilityIdentifier("upgrade.notNow")
             }
             Divider()
             HStack {
                 TextField(text: $key, prompt: Text("Already have a key?")) { Text("License key") }
                     .font(.body.monospaced())
                     .onSubmit(activate)
+                    .accessibilityIdentifier("upgrade.key")
                 Button("Activate", action: activate)
+                    .accessibilityIdentifier("upgrade.activate")
                     .disabled(key.isEmpty || isWorking)
             }
             if let message {
                 Text(message).font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("upgrade.message")
             }
         }
         .padding(24)
