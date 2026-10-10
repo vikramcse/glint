@@ -54,6 +54,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             await environment.telemetry.record(.appLaunched(AppLaunchInfo.current()))
             await environment.start()
+            await environment.localAPI.apply()
         }
 
         if !settings.hasCompletedOnboarding {
@@ -78,6 +79,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        environment?.localAPI.stop()
         environment?.metricKit.stop()
         hotKeys.unregister()
     }
@@ -99,6 +101,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let license = environment.license
         var wasLicensed = license.entitlements.isLicensed
         license.onChange = { entitlements in
+            Task { @MainActor in await environment.localAPI.apply() }
             environment.features.update(entitlements.snapshot)
             Task { await environment.indexer.entitlementsDidChange() }
             if entitlements.isLicensed, !wasLicensed {
@@ -116,6 +119,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func observeSettings(_ environment: AppEnvironment) {
         observe({ self.settings.hotKey }) { [weak self] _ in self?.registerHotKey() }
+        observe({ self.settings.localAPIEnabled }) { _ in
+            Task { await environment.localAPI.apply() }
+        }
         observe({ self.settings.analyticsEnabled }) { enabled in
             Task { await environment.telemetry.setEnabled(enabled) }
         }

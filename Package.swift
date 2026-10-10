@@ -74,7 +74,7 @@ let package = Package(
             name: "GlintApp",
             dependencies: [
                 "GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch",
-                "GlintIndexer", "GlintLicensing", "GlintTelemetry", "GlintUI",
+                "GlintIndexer", "GlintLicensing", "GlintTelemetry", "GlintUI", "GlintLocalAPI",
                 .product(name: "Sparkle", package: "Sparkle"),
             ],
             swiftSettings: strictSettings,

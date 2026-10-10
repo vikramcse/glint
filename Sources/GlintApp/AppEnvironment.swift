@@ -32,6 +32,7 @@ final class AppEnvironment {
     let savedSearches: AppSavedSearches
     let photos = PhotoKitLibrary()
     let models: ModelController
+    let localAPI: LocalAPIController
 
     init(settings: AppSettings) throws {
         self.settings = settings
@@ -105,6 +106,8 @@ final class AppEnvironment {
             registry: { ExtractorRegistry.standard(options: options) }
         )
         services.models = models
+        localAPI = LocalAPIController(paths: paths, engine: engine, indexing: indexer, features: features, settings: settings)
+        services.localAPI = localAPI.control
     }
 
     /// Loads vectors into the resident index, then starts the indexer.
