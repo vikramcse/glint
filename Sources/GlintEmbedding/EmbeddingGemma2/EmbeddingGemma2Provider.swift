@@ -16,7 +16,11 @@ public final class EmbeddingGemma2Provider: EmbeddingProvider, @unchecked Sendab
     /// - Parameters:
     ///   - towers: which towers to load; the search path uses `.text` only.
     ///   - dimensions: Matryoshka output size.
-    public init(directory: URL, towers: EG2Towers = .all, dimensions: Int = 512) async throws {
+    /// - Parameter quantization: weight precision of the resident text tower; 8-bit halves its
+    ///   memory (see ADR 0006 for the accuracy check). Media towers stay bf16.
+    public init(
+        directory: URL, towers: EG2Towers = .all, dimensions: Int = 512, quantization: EG2Quantization = .int8
+    ) async throws {
         let config = try EG2Configuration.load(from: directory)
         guard [768, 512, 256, 128].contains(dimensions), dimensions <= config.textConfig.embeddingDim else {
             throw EmbeddingError.modelUnavailable("dimension \(dimensions)")
@@ -25,7 +29,8 @@ public final class EmbeddingGemma2Provider: EmbeddingProvider, @unchecked Sendab
         var descriptor = ModelCatalog.embeddingGemma2
         descriptor.dimensions = dimensions
         self.descriptor = descriptor
-        runtime = try EG2Runtime(directory: directory, config: config, tokenizer: tokenizer, towers: towers)
+        runtime = try EG2Runtime(
+            directory: directory, config: config, tokenizer: tokenizer, towers: towers, quantization: quantization)
         await runtime.warmUp()
     }
 
@@ -57,9 +62,15 @@ actor EG2Runtime {
     private var lastMediaUse = ContinuousClock.now
     private var unloadTask: Task<Void, Never>?
 
-    init(directory: URL, config: EG2Configuration, tokenizer: any Tokenizer, towers: EG2Towers) throws {
+    init(
+        directory: URL, config: EG2Configuration, tokenizer: any Tokenizer, towers: EG2Towers,
+        quantization: EG2Quantization = .none
+    ) throws {
         let model = EG2Model(config, towers: towers)
         try model.loadWeights(from: directory)
+        if quantization == .int8 { model.quantizeText() }
+        // Return freed buffers to the system instead of caching them for reuse.
+        Memory.cacheLimit = 64 * 1_024 * 1_024
         self.model = model
         self.directory = directory
         processor = EG2Processor(tokenizer: tokenizer, config: config)
@@ -173,6 +184,13 @@ actor EG2Runtime {
         let flat = output.asArray(Float.self)
         return (0..<output.dim(0)).map { Array(flat[($0 * width)..<(($0 + 1) * width)]) }
     }
+}
+
+/// Weight precision of the resident text tower.
+public enum EG2Quantization: Sendable, Hashable {
+    case none
+    /// Affine 8-bit, group size 64.
+    case int8
 }
 
 /// Loads the checkpoint's `tokenizer.json` (no network).

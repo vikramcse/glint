@@ -75,11 +75,11 @@ struct EmbeddingGemma2ParityTests {
         return try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
     }
 
-    static func load(_ towers: EG2Towers) async throws -> (EG2Runtime, EG2Processor) {
+    static func load(_ towers: EG2Towers, quantization: EG2Quantization = .none) async throws -> (EG2Runtime, EG2Processor) {
         let config = try EG2Configuration.load(from: modelDirectory)
         let tokenizer = try await TokenizerLoader.load(modelDirectory)
         return (
-            try EG2Runtime(directory: modelDirectory, config: config, tokenizer: tokenizer, towers: towers),
+            try EG2Runtime(directory: modelDirectory, config: config, tokenizer: tokenizer, towers: towers, quantization: quantization),
             EG2Processor(tokenizer: tokenizer, config: config)
         )
     }
@@ -99,6 +99,27 @@ struct EmbeddingGemma2ParityTests {
             print("text parity \(similarity) — \(fixture.text.prefix(48))")
             #expect(similarity >= Self.threshold)
         }
+    }
+
+    /// The app runs the text tower in 8-bit; it must stay within the parity gate too.
+    @Test func quantizedTextStaysWithinGate() async throws {
+        struct File: Decodable { var fixtures: [TextFixture] }
+        let file = try JSONDecoder().decode(File.self, from: Data(contentsOf: Self.fixtures.appendingPathComponent("text_fixtures.json")))
+        Memory.clearCache()
+        let before = Memory.activeMemory
+        let (runtime, _) = try await Self.load(.text, quantization: .int8)
+        print("int8 text tower active memory \((Memory.activeMemory - before) / 1_048_576) MB")
+        let vectors = try await runtime.embedRaw(file.fixtures.map(\.text))
+        let photo = try Self.media("photo")
+        let image = try await runtime.embed([.image(try Self.image("photo.png"))], purpose: .document)[0]
+        for (fixture, vector) in zip(file.fixtures, vectors) {
+            let similarity = Self.cosine(vector, fixture.embedding)
+            print("int8 text parity \(similarity)")
+            #expect(similarity >= Self.threshold)
+        }
+        let imageSimilarity = Self.cosine(image, photo.embedding)
+        print("int8 image parity \(imageSimilarity)")
+        #expect(imageSimilarity >= Self.threshold)
     }
 
     @Test(arguments: ["photo", "document"])

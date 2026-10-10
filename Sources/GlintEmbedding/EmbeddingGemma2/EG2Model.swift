@@ -165,6 +165,12 @@ final class EG2Model: Module {
         try loadWeights(from: directory, towers: missing)
     }
 
+    /// Converts the text tower's linear and embedding layers to affine 8-bit (group 64).
+    func quantizeText() {
+        quantize(model: languageModel, groupSize: 64, bits: 8)
+        eval(self)
+    }
+
     /// Drops the vision and/or audio parts and frees their GPU memory.
     func detach(_ towers: EG2Towers) {
         if towers.contains(.vision) { media.vision = nil }
