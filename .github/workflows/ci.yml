@@ -67,6 +67,27 @@ jobs:
       - uses: actions/checkout@v4
       - run: GLINT_PERF=1 swift test -c release --filter GlintPerformanceTests
 
+  license-server:
+    name: License server (Worker)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server/license
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: server/license/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Cross-language token fixture is in sync
+        run: |
+          npm run fixture
+          git diff --exit-code test/fixtures/tokens.json ../../Tests/GlintLicensingTests/Fixtures/worker-tokens.json
+
   app:
     name: App bundle
     runs-on: macos-26

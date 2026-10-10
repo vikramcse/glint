@@ -74,6 +74,9 @@
     "Audio" : {
       "comment" : "Media kind\nResult section"
     },
+    "Automatically check for updates" : {
+
+    },
     "Back" : {
 
     },
@@ -102,6 +105,9 @@
 
     },
     "Change how results are shown" : {
+
+    },
+    "Check for Updates…" : {
 
     },
     "Choose" : {
@@ -866,6 +872,9 @@
 
     },
     "Update checks" : {
+
+    },
+    "Updates" : {
 
     },
     "Updating %@ items for the new model. Keyword search works meanwhile." : {

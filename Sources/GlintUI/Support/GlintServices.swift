@@ -51,6 +51,8 @@ public final class GlintServices {
     public let settings: AppSettings
     public let status: IndexStatusModel
     public weak var actions: (any ResultActions)?
+    /// In-app updates; `nil` in builds without an updater (development, tests).
+    public weak var updates: (any UpdateChecking)?
     public let report: @MainActor (UIEvent) -> Void
     /// Bytes on disk used by thumbnails and the database, for Settings > Models.
     public let storageUsage: @Sendable () async -> Int64

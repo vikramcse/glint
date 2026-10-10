@@ -57,10 +57,27 @@ if [[ ! -f "$BUILD/AppIcon.icns" || scripts/make_icon.swift -nt "$BUILD/AppIcon.
 fi
 cp "$BUILD/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 
-echo "▸ Signing"
+# The hardened runtime's library validation refuses to load an ad hoc framework (Sparkle)
+# into an ad hoc process, so local builds sign without it. Developer ID builds, and the
+# release scripts, always use it (notarization requires it).
 IDENTITY="${SIGN_IDENTITY:--}"
-codesign --force --options runtime --timestamp=none --sign "$IDENTITY" "$APP/Contents/MacOS/glint-mcp"
-codesign --force --options runtime --timestamp=none --entitlements App/Glint.entitlements --sign "$IDENTITY" "$APP"
+RUNTIME=()
+[[ "$IDENTITY" != "-" ]] && RUNTIME=(--options runtime)
+
+echo "▸ Frameworks"
+# Sparkle ships as a binary xcframework; embed its macOS slice next to the executable.
+SPARKLE_FRAMEWORK="$(find "$PRODUCTS" -maxdepth 3 -name Sparkle.framework -type d | head -1)"
+if [[ -n "$SPARKLE_FRAMEWORK" ]]; then
+  mkdir -p "$APP/Contents/Frameworks"
+  ditto "$SPARKLE_FRAMEWORK" "$APP/Contents/Frameworks/Sparkle.framework"
+  codesign --force ${RUNTIME[@]+"${RUNTIME[@]}"} --timestamp=none --sign "$IDENTITY" "$APP/Contents/Frameworks/Sparkle.framework"
+fi
+
+echo "▸ Signing"
+codesign --force ${RUNTIME[@]+"${RUNTIME[@]}"} --timestamp=none --sign "$IDENTITY" "$APP/Contents/MacOS/glint-mcp"
+codesign --force ${RUNTIME[@]+"${RUNTIME[@]}"} --timestamp=none \
+  --entitlements App/Glint.entitlements \
+  --sign "$IDENTITY" "$APP"
 codesign --verify --strict "$APP"
 
 echo "✓ $APP"
