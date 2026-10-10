@@ -4,14 +4,11 @@ import GlintCore
 
 /// Errors the indexer reports to the UI.
 public enum IndexerError: GlintError, Equatable {
-    case sourceLimitReached(limit: Int)
-    case externalDrivesRequirePro
     case sourceUnreadable
     case unsupportedFile
 
     public var category: ErrorCategory {
         switch self {
-        case .sourceLimitReached, .externalDrivesRequirePro: .licensing
         case .sourceUnreadable: .permissionDenied
         case .unsupportedFile: .unsupported
         }
@@ -19,8 +16,6 @@ public enum IndexerError: GlintError, Equatable {
 
     public var description: String {
         switch self {
-        case .sourceLimitReached(let limit): "Free includes up to \(limit) folders"
-        case .externalDrivesRequirePro: "External drives need Pro"
         case .sourceUnreadable: "Glint cannot read this folder"
         case .unsupportedFile: "This file type is not supported"
         }

@@ -133,9 +133,9 @@ public actor Indexer: IndexingService {
                 id: found.id, path: path, isExternalVolume: false, isAccessible: true, itemCount: 0
             )
         }
-        if let limit = gate.sourceLimit, existing.count >= limit { throw IndexerError.sourceLimitReached(limit: limit) }
+        if let limit = gate.sourceLimit, existing.count >= limit { throw EntitlementError.sourceLimitReached(limit: limit) }
         let external = Self.isExternal(url)
-        if external, !gate.allows(.externalDrives) { throw IndexerError.externalDrivesRequirePro }
+        if external, !gate.allows(.externalDrives) { throw EntitlementError.externalDrivesRequirePro }
         guard FileManager.default.isReadableFile(atPath: path) else { throw IndexerError.sourceUnreadable }
 
         let bookmark = try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)

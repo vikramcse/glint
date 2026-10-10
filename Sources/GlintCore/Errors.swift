@@ -20,6 +20,23 @@ public protocol GlintError: Error, Sendable, CustomStringConvertible {
     var category: ErrorCategory { get }
 }
 
+/// An action needs a Pro feature. Thrown by services; the UI responds with the upgrade sheet.
+public enum EntitlementError: GlintError, Equatable {
+    case sourceLimitReached(limit: Int)
+    case externalDrivesRequirePro
+    case itemLimitReached(limit: Int)
+
+    public var category: ErrorCategory { .licensing }
+
+    public var description: String {
+        switch self {
+        case .sourceLimitReached(let limit): "Source limit of \(limit) reached"
+        case .externalDrivesRequirePro: "External drives need Pro"
+        case .itemLimitReached(let limit): "Item limit of \(limit) reached"
+        }
+    }
+}
+
 extension Error {
     /// Category of any error, mapping common system errors.
     public var glintCategory: ErrorCategory {

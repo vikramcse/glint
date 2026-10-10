@@ -207,7 +207,7 @@ struct IndexerIntegrationTests {
         let harness = try Harness(gate: FeatureGateSnapshot(enabled: [], itemLimit: nil, sourceLimit: 1), power: FixedPowerMonitor(reason: .thermal))
         try FileManager.default.createDirectory(at: harness.root.appendingPathComponent("Other"), withIntermediateDirectories: true)
         try await harness.indexer.addSource(harness.library)
-        await #expect(throws: IndexerError.sourceLimitReached(limit: 1)) {
+        await #expect(throws: EntitlementError.sourceLimitReached(limit: 1)) {
             try await harness.indexer.addSource(harness.root.appendingPathComponent("Other"))
         }
 
