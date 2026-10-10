@@ -210,7 +210,7 @@ public actor SearchEngine {
         return top.compactMap { ranked -> SearchResult? in
             guard let record = files[ranked.fileID] else { return nil }
             let chunk = ranked.bestChunk.flatMap { chunks[$0] } ?? fallbacks[ranked.fileID]
-            let snippet = chunk?.text.map { Snippet.make(from: $0, terms: terms) }
+            let snippet = chunk.flatMap { Self.snippet(for: $0, terms: terms) }
             return SearchResult(
                 file: FileSummary(record),
                 match: MatchDetail(
@@ -224,5 +224,15 @@ public actor SearchEngine {
                 isLocked: !snapshot.allows(record.kind)
             )
         }
+    }
+
+    /// Chunk text around the query terms; for photos and frames without text, the visual tags
+    /// that match the query ("person in white shirt").
+    static func snippet(for chunk: ChunkRecord, terms: [String]) -> Snippet? {
+        if let text = chunk.text, !text.isEmpty { return Snippet.make(from: text, terms: terms) }
+        let options: String.CompareOptions = [.caseInsensitive, .diacriticInsensitive]
+        let matching = chunk.tags.filter { tag in terms.contains { tag.range(of: $0, options: options) != nil } }
+        guard !matching.isEmpty else { return nil }
+        return Snippet.make(from: matching.prefix(3).joined(separator: " · "), terms: terms)
     }
 }

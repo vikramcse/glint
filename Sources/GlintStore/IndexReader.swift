@@ -111,7 +111,7 @@ public actor IndexReader {
         for batch in ids.chunked(into: 500) {
             let placeholders = Array(repeating: "?", count: batch.count).joined(separator: ",")
             let rows = try db.query(
-                "SELECT id, file_id, ordinal, locator, text, thumb FROM chunks WHERE id IN (\(placeholders))",
+                "SELECT id, file_id, ordinal, locator, text, thumb, tags FROM chunks WHERE id IN (\(placeholders))",
                 batch.map { .int($0.rawValue) },
                 map: SQLiteConnection.chunkRecord
             )
@@ -128,7 +128,7 @@ public actor IndexReader {
             let placeholders = Array(repeating: "?", count: batch.count).joined(separator: ",")
             let rows = try db.query(
                 """
-                SELECT id, file_id, ordinal, locator, text, thumb FROM chunks
+                SELECT id, file_id, ordinal, locator, text, thumb, tags FROM chunks
                 WHERE file_id IN (\(placeholders)) AND ordinal = 0
                 """,
                 batch.map { .int($0.rawValue) },

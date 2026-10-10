@@ -10,6 +10,8 @@ public struct ExtractionOptions: Sendable, Hashable {
 
     /// Run Vision OCR on images and on PDF pages without a text layer.
     public var ocrEnabled: Bool
+    /// Tag photos and video keyframes with scene labels and clothing colors.
+    public var visualTagsEnabled: Bool = true
     public var ocrLevel: OCRLevel
     /// Transcribe audio on device (needs Speech Recognition authorization; never prompts).
     public var transcriptionEnabled: Bool

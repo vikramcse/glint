@@ -61,6 +61,8 @@ public struct ChunkRecord: Sendable, Hashable, Identifiable {
     public var text: String?
     /// Thumbnail path relative to the thumbnail store, if one was generated.
     public var thumbnail: String?
+    /// Visual tags ("person in white shirt").
+    public var tags: [String] = []
 }
 
 /// A chunk to commit, with its vector when it was embedded.
@@ -70,13 +72,15 @@ public struct ChunkWrite: Sendable {
     public var text: String?
     public var thumbnail: String?
     public var vector: [Float]?
+    public var tags: [String]
 
-    public init(ordinal: Int, locator: ChunkLocator, text: String?, thumbnail: String?, vector: [Float]?) {
+    public init(ordinal: Int, locator: ChunkLocator, text: String?, thumbnail: String?, vector: [Float]?, tags: [String] = []) {
         self.ordinal = ordinal
         self.locator = locator
         self.text = text
         self.thumbnail = thumbnail
         self.vector = vector
+        self.tags = tags
     }
 }
 

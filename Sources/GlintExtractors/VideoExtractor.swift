@@ -71,10 +71,13 @@ actor VideoCursor {
         }
         let videoClip = VideoClip(frames: frames, audio: audio, start: clip.start, end: clip.end)
         let spoken = transcript.text(from: clip.start, to: clip.end)
+        let middle = frames[frames.count / 2]
+        let tags = options.visualTagsEnabled ? try await Offload.run { VisualTagger().tags(for: middle) } : []
         return Chunk(
             ordinal: nextClip - 1,
             locator: .time(start: clip.start, end: clip.end),
             text: spoken,
+            tags: tags,
             input: spoken.map { .interleaved([.video(videoClip), .text($0)]) } ?? .video(videoClip),
             preview: preview
         )

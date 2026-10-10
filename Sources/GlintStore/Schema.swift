@@ -89,7 +89,26 @@ enum Schema {
         );
 
         CREATE TABLE settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+        """,
+        // v2: visual tags ("person in white shirt") are keyword-indexed beside chunk text.
+        // Photos and videos go back to the queue so existing libraries get tags.
         """
+        ALTER TABLE chunks ADD COLUMN tags TEXT;
+        DROP TRIGGER chunks_ai;
+        DROP TRIGGER chunks_ad;
+        DROP TABLE chunks_fts;
+        CREATE VIRTUAL TABLE chunks_fts USING fts5(
+            text, tags, content='chunks', content_rowid='id', tokenize='unicode61 remove_diacritics 2'
+        );
+        CREATE TRIGGER chunks_ai AFTER INSERT ON chunks WHEN new.text IS NOT NULL OR new.tags IS NOT NULL BEGIN
+            INSERT INTO chunks_fts(rowid, text, tags) VALUES (new.id, new.text, new.tags);
+        END;
+        CREATE TRIGGER chunks_ad AFTER DELETE ON chunks WHEN old.text IS NOT NULL OR old.tags IS NOT NULL BEGIN
+            INSERT INTO chunks_fts(chunks_fts, rowid, text, tags) VALUES ('delete', old.id, old.text, old.tags);
+        END;
+        INSERT INTO chunks_fts(chunks_fts) VALUES ('rebuild');
+        UPDATE files SET status = 0, attempts = 0 WHERE status = 1 AND kind IN ('image', 'video');
+        """,
     ]
 
     static var currentVersion: Int { migrations.count }

@@ -279,10 +279,10 @@ public actor IndexWriter {
             var committed: [CommittedVector] = []
             for chunk in chunks {
                 try db.run(
-                    "INSERT INTO chunks(file_id, ordinal, locator, text, thumb) VALUES (?, ?, ?, ?, ?)",
+                    "INSERT INTO chunks(file_id, ordinal, locator, text, thumb, tags) VALUES (?, ?, ?, ?, ?, ?)",
                     [
                         .int(fileID.rawValue), SQLValue(chunk.ordinal), .text(chunk.locator.json),
-                        SQLValue(chunk.text), SQLValue(chunk.thumbnail),
+                        SQLValue(chunk.text), SQLValue(chunk.thumbnail), ChunkWrite.encodeTags(chunk.tags),
                     ]
                 )
                 let chunkID = ChunkID(db.lastInsertRowID)
@@ -322,7 +322,7 @@ public actor IndexWriter {
     public func copyIndex(from source: FileID, to target: FileID, contentHash: String, space: VectorSpace) throws -> [CommittedVector] {
         let chunks = try db.query(
             """
-            SELECT c.ordinal, c.locator, c.text, c.thumb, v.data FROM chunks c
+            SELECT c.ordinal, c.locator, c.text, c.thumb, v.data, c.tags FROM chunks c
             LEFT JOIN vectors v ON v.chunk_id = c.id AND v.space = ?
             WHERE c.file_id = ? ORDER BY c.ordinal
             """,
@@ -333,7 +333,8 @@ public actor IndexWriter {
             else { return nil }
             return ChunkWrite(
                 ordinal: Int(row.int(0)), locator: locator, text: row.text(2), thumbnail: row.text(3),
-                vector: row.blob(4).map(VectorCodec.decode)
+                vector: row.blob(4).map(VectorCodec.decode),
+                tags: ChunkWrite.decodeTags(row.text(5))
             )
         }.compactMap { $0 }
         let media =

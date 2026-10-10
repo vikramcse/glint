@@ -111,7 +111,10 @@ struct FilePipeline: Sendable {
                 if FileManager.default.fileExists(atPath: thumbnails.url(forRelativePath: path).path) { thumbnail = path }
             }
             if let input = composedInput(for: chunk) { pending.append((writes.count, input)) }
-            writes.append(ChunkWrite(ordinal: chunk.ordinal, locator: chunk.locator, text: chunk.text, thumbnail: thumbnail, vector: nil))
+            writes.append(
+                ChunkWrite(
+                    ordinal: chunk.ordinal, locator: chunk.locator, text: chunk.text, thumbnail: thumbnail, vector: nil,
+                    tags: chunk.tags))
         }
 
         var start = 0
@@ -133,9 +136,13 @@ struct FilePipeline: Sendable {
 
     private func composedInput(for chunk: Chunk) -> EmbeddingInput? {
         guard let input = chunk.input else { return nil }
-        guard options.fuseTextIntoMedia, let text = chunk.text, !text.isEmpty else { return input }
+        guard options.fuseTextIntoMedia else { return input }
+        // What the photo shows (tags) first, then what it says (OCR), so the description a
+        // model sees leads with the visual subject.
+        let words = (chunk.tags + [chunk.text ?? ""]).filter { !$0.isEmpty }.joined(separator: ". ")
+        guard !words.isEmpty else { return input }
         switch input {
-        case .image, .video: return .interleaved([input, .text(String(text.prefix(600)))])
+        case .image, .video: return .interleaved([input, .text(String(words.prefix(600)))])
         case .text, .audio, .interleaved: return input
         }
     }
