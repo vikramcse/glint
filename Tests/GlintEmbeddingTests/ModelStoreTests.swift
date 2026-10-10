@@ -21,9 +21,7 @@ final class StubProtocol: URLProtocol, @unchecked Sendable {
             return (Self.bodies[url.lastPathComponent], Self.ignoreRanges ? nil : request.value(forHTTPHeaderField: "Range"))
         }
         guard let body else {
-            client?.urlProtocol(
-                self, didReceive: HTTPURLResponse(url: url, statusCode: 404, httpVersion: nil, headerFields: nil)!,
-                cacheStoragePolicy: .notAllowed)
+            respond(url, status: 404)
             client?.urlProtocolDidFinishLoading(self)
             return
         }
@@ -33,9 +31,7 @@ final class StubProtocol: URLProtocol, @unchecked Sendable {
             status = 206
             payload = body.subdata(in: start..<body.count)
         }
-        client?.urlProtocol(
-            self, didReceive: HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: nil)!,
-            cacheStoragePolicy: .notAllowed)
+        respond(url, status: status)
         // Deliver in a few chunks like a real connection.
         var offset = 0
         while offset < payload.count {
