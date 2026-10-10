@@ -144,8 +144,9 @@ struct FilePipeline: Sendable {
         try await vectorIndex.remove(fileID: record.id)
         guard !vectors.isEmpty else { return }
         let attributes = record.attributes
-        try await vectorIndex.upsert(vectors.map {
-            StoredVector(chunkID: $0.chunkID, fileID: record.id, values: $0.values, attributes: attributes)
-        })
+        try await vectorIndex.upsert(
+            vectors.map {
+                StoredVector(chunkID: $0.chunkID, fileID: record.id, values: $0.values, attributes: attributes)
+            })
     }
 }

@@ -39,18 +39,22 @@ private struct Harness {
             ("standup.m4a", .audio, "the client mentioned the deadline is friday", 2),
             ("notes.md", .document, "Flight confirmation ABC123 for Goa", 3),
         ]
-        _ = try await writer.reconcile(sourceID: source, scanned: corpus.map { name, kind, _, _ in
-            ScannedFile(path: "/lib/\(name)", kind: kind, contentType: .data, size: 1, modified: Date(timeIntervalSince1970: 1_000))
-        })
+        _ = try await writer.reconcile(
+            sourceID: source,
+            scanned: corpus.map { name, kind, _, _ in
+                ScannedFile(path: "/lib/\(name)", kind: kind, contentType: .data, size: 1, modified: Date(timeIntervalSince1970: 1_000))
+            })
         let claimed = try await writer.claimPending(limit: 10, kinds: Set(MediaKind.allCases))
         var ids: [String: FileID] = [:]
         for record in claimed {
             guard let entry = corpus.first(where: { $0.0 == record.name }) else { continue }
             var vector = [Float](repeating: 0, count: 8)
             vector[entry.3] = 1
-            _ = try await writer.commit(fileID: record.id, contentHash: record.name, space: space, chunks: [
-                ChunkWrite(ordinal: 0, locator: .whole, text: entry.2, thumbnail: "th/\(record.name).jpg", vector: vector),
-            ])
+            _ = try await writer.commit(
+                fileID: record.id, contentHash: record.name, space: space,
+                chunks: [
+                    ChunkWrite(ordinal: 0, locator: .whole, text: entry.2, thumbnail: "th/\(record.name).jpg", vector: vector)
+                ])
             ids[record.name] = record.id
         }
 
@@ -109,7 +113,7 @@ struct SearchEngineTests {
         let audio = try #require(results.items.first { $0.file.kind == .audio })
         #expect(audio.isLocked)
         harness.gate.update(.pro)
-        let unlocked = try await harness.engine.mergedResults(for: SearchQuery(text: "when was the deadline ")) // new query bypasses cache
+        let unlocked = try await harness.engine.mergedResults(for: SearchQuery(text: "when was the deadline "))  // new query bypasses cache
         #expect(unlocked.items.first { $0.file.kind == .audio }?.isLocked == false)
     }
 

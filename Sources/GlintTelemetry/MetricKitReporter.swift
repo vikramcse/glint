@@ -30,9 +30,10 @@ public final class MetricKitReporter: NSObject, MXMetricManagerSubscriber, @unch
 
     /// Payload files saved so far, newest first.
     public func savedPayloads() -> [URL] {
-        let files = (try? FileManager.default.contentsOfDirectory(
-            at: directory, includingPropertiesForKeys: nil
-        )) ?? []
+        let files =
+            (try? FileManager.default.contentsOfDirectory(
+                at: directory, includingPropertiesForKeys: nil
+            )) ?? []
         return files.filter { $0.pathExtension == "json" }.sorted { $0.lastPathComponent > $1.lastPathComponent }
     }
 

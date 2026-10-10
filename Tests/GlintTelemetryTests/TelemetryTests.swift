@@ -106,10 +106,11 @@ struct RedactionTests {
 
     @Test func eventNamesMatchPRD() {
         let names = Set(everyEvent.map(\.name))
-        #expect(names == [
-            "app_launched", "onboarding_completed", "first_search", "index_progress", "search_performed",
-            "result_opened", "paywall_viewed", "trial_started", "license_activated",
-        ])
+        #expect(
+            names == [
+                "app_launched", "onboarding_completed", "first_search", "index_progress", "search_performed",
+                "result_opened", "paywall_viewed", "trial_started", "license_activated",
+            ])
     }
 }
 

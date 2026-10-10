@@ -41,11 +41,13 @@ final class HotKeyCenter {
         guard handler == nil else { return }
         var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         let context = Unmanaged.passUnretained(self).toOpaque()
-        InstallEventHandler(GetApplicationEventTarget(), { _, _, context in
-            guard let context else { return noErr }
-            let center = Unmanaged<HotKeyCenter>.fromOpaque(context).takeUnretainedValue()
-            MainActor.assumeIsolated { center.action?() }
-            return noErr
-        }, 1, &spec, context, &handler)
+        InstallEventHandler(
+            GetApplicationEventTarget(),
+            { _, _, context in
+                guard let context else { return noErr }
+                let center = Unmanaged<HotKeyCenter>.fromOpaque(context).takeUnretainedValue()
+                MainActor.assumeIsolated { center.action?() }
+                return noErr
+            }, 1, &spec, context, &handler)
     }
 }

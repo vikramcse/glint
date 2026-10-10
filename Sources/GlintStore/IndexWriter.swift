@@ -69,7 +69,9 @@ public actor IndexWriter {
             if let scope {
                 for file in try storedFiles(atOrBelow: scope) where file.sourceID == sourceID { stale[file.path] = file }
             } else {
-                let rows = try db.query("SELECT id, source_id, path, size, modified FROM files WHERE source_id = ?", [.int(sourceID.rawValue)], map: StoredFile.init)
+                let rows = try db.query(
+                    "SELECT id, source_id, path, size, modified FROM files WHERE source_id = ?", [.int(sourceID.rawValue)],
+                    map: StoredFile.init)
                 for file in rows.compactMap({ $0 }) { stale[file.path] = file }
             }
             return try apply(upserts: scanned.map { (sourceID, $0) }, stale: &stale, removeStale: true)
@@ -134,16 +136,19 @@ public actor IndexWriter {
             let modified = file.modified.timeIntervalSince1970
             var stored = stale.removeValue(forKey: file.path)
             if stored == nil {
-                stored = try db.query(
-                    "SELECT id, source_id, path, size, modified FROM files WHERE path = ?", [.text(file.path)], map: StoredFile.init
-                ).first ?? nil
+                stored =
+                    try db.query(
+                        "SELECT id, source_id, path, size, modified FROM files WHERE path = ?", [.text(file.path)], map: StoredFile.init
+                    ).first ?? nil
             }
             if let stored {
                 guard stored.size != file.size || abs(stored.modified - modified) > 0.001 else { continue }
                 try db.run(
                     "UPDATE files SET size = ?, modified = ?, kind = ?, uti = ?, priority = ?, status = 0, attempts = 0, error = NULL WHERE id = ?",
-                    [.int(file.size), .double(modified), .text(file.kind.rawValue), .text(file.contentType.identifier),
-                     SQLValue(file.kind.indexingPriority), .int(stored.id.rawValue)]
+                    [
+                        .int(file.size), .double(modified), .text(file.kind.rawValue), .text(file.contentType.identifier),
+                        SQLValue(file.kind.indexingPriority), .int(stored.id.rawValue),
+                    ]
                 )
                 result.changed += 1
             } else {
@@ -155,15 +160,20 @@ public actor IndexWriter {
         var vanishedByKey: [String: [StoredFile]] = [:]
         for file in stale.values { vanishedByKey[file.moveKey, default: []].append(file) }
         for (sourceID, file) in additions {
-            let key = "\(file.size)|\(Int64(file.modified.timeIntervalSince1970 * 1_000))|\(URL(fileURLWithPath: file.path).pathExtension.lowercased())"
+            let key =
+                "\(file.size)|\(Int64(file.modified.timeIntervalSince1970 * 1_000))|\(URL(fileURLWithPath: file.path).pathExtension.lowercased())"
             if var candidates = vanishedByKey[key], let match = candidates.popLast() {
                 vanishedByKey[key] = candidates
                 stale[match.path] = nil
                 try db.run(
                     "UPDATE files SET path = ?, name = ?, source_id = ? WHERE id = ?",
-                    [.text(file.path), .text(URL(fileURLWithPath: file.path).lastPathComponent), .int(sourceID.rawValue), .int(match.id.rawValue)]
+                    [
+                        .text(file.path), .text(URL(fileURLWithPath: file.path).lastPathComponent), .int(sourceID.rawValue),
+                        .int(match.id.rawValue),
+                    ]
                 )
-                result.moved.append(MovedFile(id: match.id, attributes: FileAttributes(kind: file.kind, modified: file.modified, path: file.path)))
+                result.moved.append(
+                    MovedFile(id: match.id, attributes: FileAttributes(kind: file.kind, modified: file.modified, path: file.path)))
             } else {
                 try insert(file, sourceID: sourceID)
                 result.added += 1
@@ -185,9 +195,11 @@ public actor IndexWriter {
             INSERT INTO files(source_id, path, name, kind, uti, size, modified, status, priority)
             VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)
             """,
-            [.int(sourceID.rawValue), .text(file.path), .text(URL(fileURLWithPath: file.path).lastPathComponent),
-             .text(file.kind.rawValue), .text(file.contentType.identifier), .int(file.size),
-             .double(file.modified.timeIntervalSince1970), SQLValue(file.kind.indexingPriority)]
+            [
+                .int(sourceID.rawValue), .text(file.path), .text(URL(fileURLWithPath: file.path).lastPathComponent),
+                .text(file.kind.rawValue), .text(file.contentType.identifier), .int(file.size),
+                .double(file.modified.timeIntervalSince1970), SQLValue(file.kind.indexingPriority),
+            ]
         )
     }
 
@@ -267,8 +279,10 @@ public actor IndexWriter {
             for chunk in chunks {
                 try db.run(
                     "INSERT INTO chunks(file_id, ordinal, locator, text, thumb) VALUES (?, ?, ?, ?, ?)",
-                    [.int(fileID.rawValue), SQLValue(chunk.ordinal), .text(chunk.locator.json),
-                     SQLValue(chunk.text), SQLValue(chunk.thumbnail)]
+                    [
+                        .int(fileID.rawValue), SQLValue(chunk.ordinal), .text(chunk.locator.json),
+                        SQLValue(chunk.text), SQLValue(chunk.thumbnail),
+                    ]
                 )
                 let chunkID = ChunkID(db.lastInsertRowID)
                 if let vector = chunk.vector {
@@ -284,10 +298,12 @@ public actor IndexWriter {
                 UPDATE files SET status = 1, content_hash = ?, error = NULL, indexed_at = ?, space = ?,
                 duration = ?, waveform = ? WHERE id = ?
                 """,
-                [.text(contentHash), SQLValue(now()), .text(space.description),
-                 media.duration.map(SQLValue.double) ?? .null,
-                 media.waveform.map { .blob(VectorCodec.encodeWaveform($0)) } ?? .null,
-                 .int(fileID.rawValue)]
+                [
+                    .text(contentHash), SQLValue(now()), .text(space.description),
+                    media.duration.map(SQLValue.double) ?? .null,
+                    media.waveform.map { .blob(VectorCodec.encodeWaveform($0)) } ?? .null,
+                    .int(fileID.rawValue),
+                ]
             )
             return committed
         }
@@ -319,9 +335,10 @@ public actor IndexWriter {
                 vector: row.blob(4).map(VectorCodec.decode)
             )
         }.compactMap { $0 }
-        let media = try db.query("SELECT duration, waveform FROM files WHERE id = ?", [.int(source.rawValue)]) { row in
-            FileMedia(duration: row.isNull(0) ? nil : row.double(0), waveform: row.blob(1).map(VectorCodec.decodeWaveform))
-        }.first ?? FileMedia()
+        let media =
+            try db.query("SELECT duration, waveform FROM files WHERE id = ?", [.int(source.rawValue)]) { row in
+                FileMedia(duration: row.isNull(0) ? nil : row.double(0), waveform: row.blob(1).map(VectorCodec.decodeWaveform))
+            }.first ?? FileMedia()
         return try commit(fileID: target, contentHash: contentHash, space: space, chunks: chunks, media: media)
     }
 
@@ -332,7 +349,9 @@ public actor IndexWriter {
     public func setting(_ key: String) throws -> String? { try db.setting(key) }
 
     public func setSetting(_ key: String, value: String) throws {
-        try db.run("INSERT INTO settings(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", [.text(key), .text(value)])
+        try db.run(
+            "INSERT INTO settings(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            [.text(key), .text(value)])
     }
 
     public func saveSearch(name: String, query: String, filter: SearchFilter) throws -> SavedSearch {

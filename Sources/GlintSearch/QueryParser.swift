@@ -54,7 +54,9 @@ public struct ParsedQuery: Sendable, Hashable {
             case .kind(let kind):
                 filter.kinds.insert(kind)
             case .folder(let name):
-                let matches = sources.filter { $0 == name || URL(fileURLWithPath: $0).lastPathComponent.caseInsensitiveCompare(name) == .orderedSame }
+                let matches = sources.filter {
+                    $0 == name || URL(fileURLWithPath: $0).lastPathComponent.caseInsensitiveCompare(name) == .orderedSame
+                }
                 filter.folders.append(contentsOf: matches.isEmpty ? [name] : matches)
             case .modifiedSince(let preset):
                 let start = preset.startDate(relativeTo: now)

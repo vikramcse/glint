@@ -32,7 +32,7 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
             return Self.responses[host]
         }
         guard let response, let url = request.url,
-              let http = HTTPURLResponse(url: url, statusCode: response.status, httpVersion: nil, headerFields: nil)
+            let http = HTTPURLResponse(url: url, statusCode: response.status, httpVersion: nil, headerFields: nil)
         else {
             client?.urlProtocol(self, didFailWithError: URLError(.cannotConnectToHost))
             return

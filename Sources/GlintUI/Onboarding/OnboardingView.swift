@@ -57,10 +57,12 @@ public struct OnboardingView: View {
             DemoLoop()
                 .frame(height: 220)
             Text("Find anything by describing it").font(.title.bold())
-            Text("Photos, moments in videos, things said in recordings, pages in PDFs. Glint searches them all at once, entirely on this Mac.")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: 460)
+            Text(
+                "Photos, moments in videos, things said in recordings, pages in PDFs. Glint searches them all at once, entirely on this Mac."
+            )
+            .multilineTextAlignment(.center)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: 460)
         }
     }
 
@@ -170,7 +172,8 @@ struct SuggestedFolder: Identifiable, Hashable {
         if let location = UserDefaults(suiteName: "com.apple.screencapture")?.string(forKey: "location") {
             let url = URL(fileURLWithPath: (location as NSString).expandingTildeInPath, isDirectory: true)
             if !folders.contains(where: { $0.url.standardizedFileURL == url.standardizedFileURL }) {
-                folders.append(SuggestedFolder(name: String(localized: "Screenshots"), symbol: "camera.viewfinder", url: url, isSelected: true))
+                folders.append(
+                    SuggestedFolder(name: String(localized: "Screenshots"), symbol: "camera.viewfinder", url: url, isSelected: true))
             }
         }
         return folders

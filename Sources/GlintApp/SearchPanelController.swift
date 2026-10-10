@@ -132,7 +132,11 @@ private struct PanelHostView: View {
     var body: some View {
         content
             .fixedSize(horizontal: false, vertical: true)
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { onHeightChange($0) }
+            .onGeometryChange(for: CGFloat.self) {
+                $0.size.height
+            } action: {
+                onHeightChange($0)
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .ignoresSafeArea()
     }

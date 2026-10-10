@@ -59,7 +59,8 @@ public actor Indexer: IndexingService {
     /// Catches up with changes made while the app was closed, then starts watching and indexing.
     public func start() async {
         if let json = try? await writer.setting(Self.exclusionsKey),
-            let stored = try? JSONDecoder().decode(ExclusionRules.self, from: Data(json.utf8)) {
+            let stored = try? JSONDecoder().decode(ExclusionRules.self, from: Data(json.utf8))
+        {
             rules = stored
         }
         let requeued = (try? await writer.requeueFiles(notIn: pipeline.space)) ?? 0
@@ -140,9 +141,10 @@ public actor Indexer: IndexingService {
         let gate = features.current
         let existing = try await writer.sources()
         if let found = existing.first(where: { $0.path == path }) {
-            return try await sources().first { $0.id == found.id } ?? SourceInfo(
-                id: found.id, path: path, isExternalVolume: false, isAccessible: true, itemCount: 0
-            )
+            return try await sources().first { $0.id == found.id }
+                ?? SourceInfo(
+                    id: found.id, path: path, isExternalVolume: false, isAccessible: true, itemCount: 0
+                )
         }
         if let limit = gate.sourceLimit, existing.count >= limit { throw EntitlementError.sourceLimitReached(limit: limit) }
         let external = Self.isExternal(url)

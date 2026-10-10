@@ -42,7 +42,9 @@ public struct SearchPanelView: View {
             guard let url = urls.first else { return false }
             findSimilar(toFileAt: url)
             return true
-        } isTargeted: { isDropTargeted = $0 }
+        } isTargeted: {
+            isDropTargeted = $0
+        }
         .onAppear {
             fieldFocused = true
             services.status.start()

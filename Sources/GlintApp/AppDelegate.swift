@@ -123,7 +123,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 Log.app.error("Login item change failed: \(error.localizedDescription, privacy: .public)")
             }
         }
-        observe({ [self.settings.groupResultsByKind.description, self.settings.defaultKinds.map(\.rawValue).sorted().description] }) { [weak self] _ in
+        observe({ [self.settings.groupResultsByKind.description, self.settings.defaultKinds.map(\.rawValue).sorted().description] }) {
+            [weak self] _ in
             guard let self else { return }
             self.panel?.applySettings(self.settings)
         }
@@ -146,23 +147,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func scheduleMaintenance(_ environment: AppEnvironment) {
         // Hourly: send the telemetry batch if a day has passed (no-op when opted out).
-        timers.append(Timer.scheduledTimer(withTimeInterval: 3_600, repeats: true) { _ in
-            Task { await environment.telemetrySender.flushIfDue() }
-        })
+        timers.append(
+            Timer.scheduledTimer(withTimeInterval: 3_600, repeats: true) { _ in
+                Task { await environment.telemetrySender.flushIfDue() }
+            })
         // Daily: license re-validation (itself limited to weekly) and the index progress event.
-        timers.append(Timer.scheduledTimer(withTimeInterval: 86_400, repeats: true) { _ in
-            Task { @MainActor in
-                await environment.license.revalidateIfNeeded()
-                let status = await environment.indexer.currentStatus()
-                await environment.telemetry.record(.indexProgress(itemsPerKind: status.indexed, pending: status.pending))
-            }
-        })
+        timers.append(
+            Timer.scheduledTimer(withTimeInterval: 86_400, repeats: true) { _ in
+                Task { @MainActor in
+                    await environment.license.revalidateIfNeeded()
+                    let status = await environment.indexer.currentStatus()
+                    await environment.telemetry.record(.indexProgress(itemsPerKind: status.indexed, pending: status.pending))
+                }
+            })
     }
 
     private func presentLaunchFailure() {
         let alert = NSAlert()
         alert.messageText = String(localized: "Glint couldn’t start")
-        alert.informativeText = launchError.map(ErrorPresenter.message(for:))
+        alert.informativeText =
+            launchError.map(ErrorPresenter.message(for:))
             ?? String(localized: "Something went wrong. Please try again.")
         alert.alertStyle = .critical
         alert.addButton(withTitle: String(localized: "Quit"))

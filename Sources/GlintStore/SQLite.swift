@@ -73,7 +73,8 @@ final class SQLiteConnection {
 
     init(url: URL, readOnly: Bool = false) throws {
         var pointer: OpaquePointer?
-        let flags = (readOnly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)
+        let flags =
+            (readOnly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)
             | SQLITE_OPEN_NOMUTEX
         let code = sqlite3_open_v2(url.path, &pointer, flags, nil)
         guard code == SQLITE_OK, let pointer else {

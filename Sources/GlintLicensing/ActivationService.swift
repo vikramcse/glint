@@ -28,7 +28,7 @@ public struct HTTPActivationService: ActivationService {
     public func activate(key: String, installID: String) async throws -> String {
         struct Body: Encodable {
             let key: String
-            let install_id: String // swiftlint:disable:this identifier_name
+            let install_id: String  // swiftlint:disable:this identifier_name
         }
         struct Response: Decodable { let activation: String }
         let data = try await send(path: "v1/activate", body: Body(key: key, install_id: installID))
@@ -42,7 +42,7 @@ public struct HTTPActivationService: ActivationService {
     public func deactivate(activationToken: String, installID: String) async throws {
         struct Body: Encodable {
             let activation: String
-            let install_id: String // swiftlint:disable:this identifier_name
+            let install_id: String  // swiftlint:disable:this identifier_name
         }
         _ = try await send(path: "v1/deactivate", body: Body(activation: activationToken, install_id: installID))
     }

@@ -109,7 +109,7 @@ let package = Package(
         .testTarget(name: "GlintTelemetryTests", dependencies: ["GlintTelemetry"], swiftSettings: strictSettings),
         .testTarget(
             name: "GlintUITests",
-            dependencies: ["GlintUI", "GlintSearch", "GlintLicensing", "GlintTestSupport"],
+            dependencies: ["GlintUI", "GlintSearch", "GlintStore", "GlintLicensing", "GlintTestSupport"],
             swiftSettings: strictSettings
         ),
         .testTarget(

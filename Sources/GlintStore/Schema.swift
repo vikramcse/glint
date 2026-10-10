@@ -89,7 +89,7 @@ enum Schema {
         );
 
         CREATE TABLE settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
-        """,
+        """
     ]
 
     static var currentVersion: Int { migrations.count }

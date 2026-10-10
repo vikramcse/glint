@@ -67,7 +67,10 @@ enum EvalGates {
 
     private static func compare(_ label: String, _ current: Scores, _ base: Scores, tolerance: Double) -> [String] {
         var failures: [String] = []
-        let pairs = [("Recall@10", current.recallAt10, base.recallAt10), ("MRR", current.mrr, base.mrr), ("nDCG@10", current.ndcgAt10, base.ndcgAt10)]
+        let pairs = [
+            ("Recall@10", current.recallAt10, base.recallAt10), ("MRR", current.mrr, base.mrr),
+            ("nDCG@10", current.ndcgAt10, base.ndcgAt10),
+        ]
         for (name, now, before) in pairs where before - now > tolerance + 1e-9 {
             failures.append(String(format: "%@ %@ dropped from %.3f to %.3f", label, name, before, now))
         }

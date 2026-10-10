@@ -14,12 +14,13 @@ public struct MainWindowView: View {
 
     public init(services: GlintServices, savedSearches: any SavedSearchProviding) {
         self.services = services
-        _model = State(initialValue: SearchModel(
-            engine: services.engine,
-            entitlements: { services.entitlements },
-            sourcePaths: { services.status.sources.map(\.path) },
-            report: services.report
-        ))
+        _model = State(
+            initialValue: SearchModel(
+                engine: services.engine,
+                entitlements: { services.entitlements },
+                sourcePaths: { services.status.sources.map(\.path) },
+                report: services.report
+            ))
         _library = State(initialValue: LibraryModel(engine: services.engine, saved: savedSearches))
     }
 
@@ -36,7 +37,10 @@ public struct MainWindowView: View {
             InspectorView(result: selectedResult, model: model, services: services)
                 .inspectorColumnWidth(min: 240, ideal: 300, max: 420)
         }
-        .searchable(text: $model.text, tokens: $model.tokens, suggestedTokens: .constant(suggestedTokens), placement: .toolbar, prompt: Text("Search anything")) { token in
+        .searchable(
+            text: $model.text, tokens: $model.tokens, suggestedTokens: .constant(suggestedTokens), placement: .toolbar,
+            prompt: Text("Search anything")
+        ) { token in
             TokenLabel(token: token)
         }
         .toolbar { toolbar }
@@ -59,7 +63,11 @@ public struct MainWindowView: View {
     }
 
     private var layoutBinding: Binding<ResultsLayout> {
-        Binding { services.settings.mainWindowLayout } set: { services.settings.mainWindowLayout = $0 }
+        Binding {
+            services.settings.mainWindowLayout
+        } set: {
+            services.settings.mainWindowLayout = $0
+        }
     }
 
     private var selectedResult: SearchResult? {

@@ -44,10 +44,12 @@ public final class FileSystemWatcher: @unchecked Sendable {
                 defer { free(resolved) }
                 return String(cString: resolved)
             }
-            guard let stream = FSEventStreamCreate(
-                kCFAllocatorDefault, Self.callback, &context, realPaths as CFArray,
-                FSEventStreamEventId(kFSEventStreamEventIdSinceNow), latency, flags
-            ) else {
+            guard
+                let stream = FSEventStreamCreate(
+                    kCFAllocatorDefault, Self.callback, &context, realPaths as CFArray,
+                    FSEventStreamEventId(kFSEventStreamEventIdSinceNow), latency, flags
+                )
+            else {
                 Log.indexer.error("Could not create FSEvents stream")
                 return
             }

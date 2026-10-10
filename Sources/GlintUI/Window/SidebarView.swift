@@ -31,9 +31,10 @@ struct SidebarView: View {
                     Label {
                         Text(source.displayName)
                     } icon: {
-                        Image(systemName: source.isAccessible
-                            ? (source.isExternalVolume ? "externaldrive" : "folder")
-                            : "exclamationmark.triangle")
+                        Image(
+                            systemName: source.isAccessible
+                                ? (source.isExternalVolume ? "externaldrive" : "folder")
+                                : "exclamationmark.triangle")
                     }
                     .help(Text(verbatim: (source.path as NSString).abbreviatingWithTildeInPath))
                     .tag(SidebarItem.source(source.id))

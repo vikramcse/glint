@@ -21,7 +21,8 @@ public struct Snippet: Sendable, Hashable {
             .min { $0.lowerBound < $1.lowerBound }
         var start = collapsed.startIndex
         if let firstMatch {
-            start = collapsed.index(firstMatch.lowerBound, offsetBy: -maxLength / 3, limitedBy: collapsed.startIndex)
+            start =
+                collapsed.index(firstMatch.lowerBound, offsetBy: -maxLength / 3, limitedBy: collapsed.startIndex)
                 ?? collapsed.startIndex
             if start > collapsed.startIndex, let space = collapsed[start...].firstIndex(of: " "), space < firstMatch.lowerBound {
                 start = collapsed.index(after: space)

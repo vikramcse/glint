@@ -40,7 +40,9 @@ struct FlatVectorIndexTests {
         let index = FlatVectorIndex(space: space, useGPU: false)
         var vectors: [StoredVector] = []
         for chunk in 0..<8 {
-            vectors.append(StoredVector(chunkID: ChunkID(Int64(chunk)), fileID: FileID(Int64(chunk % 3)), values: unit(chunk), attributes: attributes()))
+            vectors.append(
+                StoredVector(
+                    chunkID: ChunkID(Int64(chunk)), fileID: FileID(Int64(chunk % 3)), values: unit(chunk), attributes: attributes()))
         }
         try await index.upsert(vectors)
         try await index.remove(fileID: FileID(0))
@@ -142,9 +144,11 @@ struct HybridRankerTests {
         var ranker = HybridRanker()
         ranker.nameWeight = 1
         // Same RRF contribution at ranks 1 and 2 would favour file 1; give them equal ranks via two lists.
-        let ranked = ranker.rank(
-            semantic: [], keyword: [], names: [hits[0]], attributes: [FileID(1): hits[0].attributes, FileID(2): hits[1].attributes], now: now
-        ) + ranker.rank(semantic: [], keyword: [], names: [hits[1]], attributes: [FileID(2): hits[1].attributes], now: now)
+        let ranked =
+            ranker.rank(
+                semantic: [], keyword: [], names: [hits[0]], attributes: [FileID(1): hits[0].attributes, FileID(2): hits[1].attributes],
+                now: now
+            ) + ranker.rank(semantic: [], keyword: [], names: [hits[1]], attributes: [FileID(2): hits[1].attributes], now: now)
         #expect(ranked[1].score > ranked[0].score)
     }
 }
@@ -152,7 +156,8 @@ struct HybridRankerTests {
 @Suite("Snippet")
 struct SnippetTests {
     @Test func centersOnFirstTermAndHighlights() {
-        let text = String(repeating: "filler words here ", count: 20) + "the Pricing chart for Acme " + String(repeating: "tail ", count: 40)
+        let text =
+            String(repeating: "filler words here ", count: 20) + "the Pricing chart for Acme " + String(repeating: "tail ", count: 40)
         let snippet = Snippet.make(from: text, terms: ["pricing", "acme"], maxLength: 120)
         #expect(snippet.text.hasPrefix("…"))
         #expect(snippet.text.hasSuffix("…"))

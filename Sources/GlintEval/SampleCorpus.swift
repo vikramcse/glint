@@ -18,14 +18,38 @@ enum SampleCorpus {
     }
 
     static let documents: [(String, String)] = [
-        ("notes/product-launch.md", "# Product launch plan\n\nLaunch date moves to March. Marketing owns the press kit; engineering ships the onboarding fixes first. Risks: pricing page copy and the waitlist email."),
-        ("notes/standup-2026-09-14.txt", "Standup notes. The client mentioned the deadline is Friday the 19th. Priya will send the revised contract. Budget approval pending from finance."),
-        ("recipes/pasta.txt", "Weeknight pasta sauce: crush ripe tomatoes with garlic and olive oil, simmer twenty minutes, finish with torn basil and parmesan."),
-        ("recipes/bread.txt", "Sourdough loaf: feed the starter the night before, autolyse flour and water for an hour, bulk ferment until doubled, bake in a dutch oven."),
-        ("travel/goa-itinerary.md", "Goa trip itinerary: arrive Dabolim airport, check in at the Seaview hotel in Candolim, sunset at Chapora fort, spice plantation tour on day three."),
-        ("work/retro.txt", "Sprint retrospective: what went well was pairing on the search ranking. What to improve: flaky CI on the indexing tests and slow code review turnaround."),
-        ("code/vector_scan.swift", "// Scores every row of the matrix against the query with one matrix-vector multiply\nfunc scan(matrix: [Float], query: [Float]) -> [Float] { [] }"),
-        ("finance/q3-summary.txt", "Q3 summary: revenue grew 18 percent year over year, led by Europe. Gross margin improved to 71 percent. Hiring paused in support."),
+        (
+            "notes/product-launch.md",
+            "# Product launch plan\n\nLaunch date moves to March. Marketing owns the press kit; engineering ships the onboarding fixes first. Risks: pricing page copy and the waitlist email."
+        ),
+        (
+            "notes/standup-2026-09-14.txt",
+            "Standup notes. The client mentioned the deadline is Friday the 19th. Priya will send the revised contract. Budget approval pending from finance."
+        ),
+        (
+            "recipes/pasta.txt",
+            "Weeknight pasta sauce: crush ripe tomatoes with garlic and olive oil, simmer twenty minutes, finish with torn basil and parmesan."
+        ),
+        (
+            "recipes/bread.txt",
+            "Sourdough loaf: feed the starter the night before, autolyse flour and water for an hour, bulk ferment until doubled, bake in a dutch oven."
+        ),
+        (
+            "travel/goa-itinerary.md",
+            "Goa trip itinerary: arrive Dabolim airport, check in at the Seaview hotel in Candolim, sunset at Chapora fort, spice plantation tour on day three."
+        ),
+        (
+            "work/retro.txt",
+            "Sprint retrospective: what went well was pairing on the search ranking. What to improve: flaky CI on the indexing tests and slow code review turnaround."
+        ),
+        (
+            "code/vector_scan.swift",
+            "// Scores every row of the matrix against the query with one matrix-vector multiply\nfunc scan(matrix: [Float], query: [Float]) -> [Float] { [] }"
+        ),
+        (
+            "finance/q3-summary.txt",
+            "Q3 summary: revenue grew 18 percent year over year, led by Europe. Gross margin improved to 71 percent. Hiring paused in support."
+        ),
     ]
 
     static let screenshots: [(String, [String])] = [
@@ -36,15 +60,22 @@ enum SampleCorpus {
 
     static let queries: [EvalQuery] = [
         EvalQuery(id: "flight-confirmation", text: "flight confirmation", mustPass: true, relevant: ["Screenshots/flight.png": 2]),
-        EvalQuery(id: "hotel-receipt-goa", text: "the receipt from the hotel in Goa", mustPass: true, relevant: ["Screenshots/receipt.png": 2, "travel/goa-itinerary.md": 1]),
+        EvalQuery(
+            id: "hotel-receipt-goa", text: "the receipt from the hotel in Goa", mustPass: true,
+            relevant: ["Screenshots/receipt.png": 2, "travel/goa-itinerary.md": 1]),
         EvalQuery(id: "wifi-password", text: "guest wifi password", mustPass: true, relevant: ["Screenshots/wifi.png": 2]),
         EvalQuery(id: "pricing-chart", text: "pricing chart for the Acme pitch", mustPass: true, relevant: ["work/Acme pitch.pdf": 2]),
-        EvalQuery(id: "revenue-by-region", text: "chart showing revenue by region", relevant: ["work/Acme pitch.pdf": 2, "finance/q3-summary.txt": 1]),
-        EvalQuery(id: "client-deadline", text: "when the client mentioned the deadline", mustPass: true, relevant: ["notes/standup-2026-09-14.txt": 2]),
+        EvalQuery(
+            id: "revenue-by-region", text: "chart showing revenue by region",
+            relevant: ["work/Acme pitch.pdf": 2, "finance/q3-summary.txt": 1]),
+        EvalQuery(
+            id: "client-deadline", text: "when the client mentioned the deadline", mustPass: true,
+            relevant: ["notes/standup-2026-09-14.txt": 2]),
         EvalQuery(id: "tomato-recipe", text: "recipe with tomatoes and basil", relevant: ["recipes/pasta.txt": 2]),
         EvalQuery(id: "baking", text: "how to bake bread", relevant: ["recipes/bread.txt": 2]),
         EvalQuery(id: "launch-plan", text: "plan for the product launch", relevant: ["notes/product-launch.md": 2]),
-        EvalQuery(id: "goa-trip", text: "trip to the beach in India", relevant: ["travel/goa-itinerary.md": 2, "Screenshots/flight.png": 1]),
+        EvalQuery(
+            id: "goa-trip", text: "trip to the beach in India", relevant: ["travel/goa-itinerary.md": 2, "Screenshots/flight.png": 1]),
         EvalQuery(id: "flaky-ci", text: "flaky tests in continuous integration", relevant: ["work/retro.txt": 2]),
         EvalQuery(id: "quarterly-results", text: "quarterly financial results", relevant: ["finance/q3-summary.txt": 2]),
         EvalQuery(id: "matrix-code", text: "matrix vector multiply", relevant: ["code/vector_scan.swift": 2]),
@@ -61,10 +92,12 @@ enum SampleCorpus {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         let width = 1_200
         let height = 140 + lines.count * 90
-        guard let context = CGContext(
-            data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ) else { throw CocoaError(.fileWriteUnknown) }
+        guard
+            let context = CGContext(
+                data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            )
+        else { throw CocoaError(.fileWriteUnknown) }
         context.setFillColor(CGColor(gray: 1, alpha: 1))
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
         for (index, line) in lines.enumerated() {

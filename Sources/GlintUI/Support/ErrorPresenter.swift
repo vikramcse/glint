@@ -29,7 +29,8 @@ public enum ErrorPresenter {
         case .licensing:
             return String(localized: "This needs Glint Pro.")
         case .permissionDenied:
-            return String(localized: "Glint doesn’t have permission to read this. You can grant access in System Settings › Privacy & Security.")
+            return String(
+                localized: "Glint doesn’t have permission to read this. You can grant access in System Settings › Privacy & Security.")
         case .notFound:
             return String(localized: "The file is no longer there. It may have been moved or deleted.")
         case .unsupported:

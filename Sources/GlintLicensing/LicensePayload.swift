@@ -101,8 +101,8 @@ public enum LicenseTokenCodec {
         let body = cleaned.dropFirst(prefix.count)
         let parts = body.split(separator: ".", omittingEmptySubsequences: false)
         guard parts.count == 2,
-              let payload = Data(base64URLEncoded: String(parts[0])),
-              let signature = Data(base64URLEncoded: String(parts[1]))
+            let payload = Data(base64URLEncoded: String(parts[0])),
+            let signature = Data(base64URLEncoded: String(parts[1]))
         else { return nil }
         return (payload, signature)
     }
@@ -119,7 +119,8 @@ extension Data {
 
     /// Decodes base64url with or without padding.
     public init?(base64URLEncoded string: String) {
-        var base64 = string
+        var base64 =
+            string
             .replacingOccurrences(of: "-", with: "+")
             .replacingOccurrences(of: "_", with: "/")
         let remainder = base64.count % 4

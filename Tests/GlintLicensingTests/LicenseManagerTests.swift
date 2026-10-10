@@ -154,14 +154,15 @@ struct LicenseManagerTests {
         #expect(await !manager.handle(url: try #require(URL(string: "glint://search?q=x"))))
     }
 
-    @Test(arguments: [
-        ("glint://activate?key=GLINT1-abc.def", "GLINT1-abc.def"),
-        ("GLINT://Activate?key=K", "K"),
-        ("glint://activate", nil),
-        ("glint://activate?key=", nil),
-        ("https://activate?key=K", nil),
-        ("glint://open?key=K", nil),
-    ] as [(String, String?)])
+    @Test(
+        arguments: [
+            ("glint://activate?key=GLINT1-abc.def", "GLINT1-abc.def"),
+            ("GLINT://Activate?key=K", "K"),
+            ("glint://activate", nil),
+            ("glint://activate?key=", nil),
+            ("https://activate?key=K", nil),
+            ("glint://open?key=K", nil),
+        ] as [(String, String?)])
     func parsesDeepLinks(url: String, expected: String?) throws {
         #expect(LicenseManager.activationKey(from: try #require(URL(string: url))) == expected)
     }

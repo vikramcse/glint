@@ -34,11 +34,16 @@ struct InspectorView: View {
 
     @ViewBuilder private func preview(_ result: SearchResult) -> some View {
         if result.file.kind == .audio {
-            WaveformView(peaks: result.file.waveform ?? [], highlight: highlight(result), playhead: playback.isPlaying(result.id) ? playback.progress : nil)
-                .frame(height: 64)
+            WaveformView(
+                peaks: result.file.waveform ?? [], highlight: highlight(result),
+                playhead: playback.isPlaying(result.id) ? playback.progress : nil
+            )
+            .frame(height: 64)
         } else {
-            ThumbnailView(url: result.match.thumbnailURL, filePath: result.file.path, kind: result.file.kind, cornerRadius: 10, contentMode: .fit)
-                .frame(maxWidth: .infinity, maxHeight: 240)
+            ThumbnailView(
+                url: result.match.thumbnailURL, filePath: result.file.path, kind: result.file.kind, cornerRadius: 10, contentMode: .fit
+            )
+            .frame(maxWidth: .infinity, maxHeight: 240)
         }
     }
 
@@ -54,7 +59,9 @@ struct InspectorView: View {
                 Button {
                     playback.toggle(id: result.id, url: result.file.url, start: range.lowerBound, duration: result.file.duration)
                 } label: {
-                    Label(playback.isPlaying(result.id) ? "Stop" : "Play", systemImage: playback.isPlaying(result.id) ? "stop.fill" : "play.fill")
+                    Label(
+                        playback.isPlaying(result.id) ? "Stop" : "Play",
+                        systemImage: playback.isPlaying(result.id) ? "stop.fill" : "play.fill")
                 }
                 .disabled(result.isLocked)
             }

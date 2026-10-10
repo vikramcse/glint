@@ -73,13 +73,15 @@ struct SourcesSettings: View {
                     }
                 }
                 Button("Exclude Folder…") { importingExclusion = true }
-                Toggle("Index hidden files", isOn: Binding {
-                    services.status.exclusions.includeHiddenFiles
-                } set: { value in
-                    var rules = services.status.exclusions
-                    rules.includeHiddenFiles = value
-                    update(rules)
-                })
+                Toggle(
+                    "Index hidden files",
+                    isOn: Binding {
+                        services.status.exclusions.includeHiddenFiles
+                    } set: { value in
+                        var rules = services.status.exclusions
+                        rules.includeHiddenFiles = value
+                        update(rules)
+                    })
             }
 
             Section {

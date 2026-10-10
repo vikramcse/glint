@@ -13,8 +13,9 @@ private func makeDatabaseURL() throws -> URL {
 }
 
 private func scanned(_ path: String, kind: MediaKind = .document, size: Int64 = 10, modified: TimeInterval = 1_000) -> ScannedFile {
-    ScannedFile(path: path, kind: kind, contentType: kind == .document ? .plainText : .png, size: size,
-                modified: Date(timeIntervalSince1970: modified))
+    ScannedFile(
+        path: path, kind: kind, contentType: kind == .document ? .plainText : .png, size: size,
+        modified: Date(timeIntervalSince1970: modified))
 }
 
 private let space = VectorSpace(modelID: "test/1", dimension: 4)
@@ -52,9 +53,11 @@ struct IndexWriterTests {
         let source = try await writer.addSource(path: "/s", bookmark: nil)
         _ = try await writer.reconcile(sourceID: source, scanned: [scanned("/s/a/report.txt", size: 42)])
         let file = try #require(try await writer.claimPending(limit: 1, kinds: [.document]).first)
-        _ = try await writer.commit(fileID: file.id, contentHash: "h", space: space, chunks: [
-            ChunkWrite(ordinal: 0, locator: .whole, text: "t", thumbnail: nil, vector: [1, 0, 0, 0]),
-        ])
+        _ = try await writer.commit(
+            fileID: file.id, contentHash: "h", space: space,
+            chunks: [
+                ChunkWrite(ordinal: 0, locator: .whole, text: "t", thumbnail: nil, vector: [1, 0, 0, 0])
+            ])
 
         // Watcher: the folder was renamed.
         let watched = try await writer.applyChanges(upserts: [(source, scanned("/s/b/report.txt", size: 42))], removedPaths: ["/s/a"])
@@ -85,11 +88,14 @@ struct IndexWriterTests {
     @Test func claimOrdersByPriorityThenRecency() async throws {
         let writer = try IndexWriter(url: try makeDatabaseURL())
         let source = try await writer.addSource(path: "/s", bookmark: nil)
-        _ = try await writer.reconcile(sourceID: source, scanned: [
-            scanned("/s/old.txt", modified: 100),
-            scanned("/s/new.txt", modified: 200),
-            ScannedFile(path: "/s/clip.mov", kind: .video, contentType: .quickTimeMovie, size: 1, modified: Date(timeIntervalSince1970: 300)),
-        ])
+        _ = try await writer.reconcile(
+            sourceID: source,
+            scanned: [
+                scanned("/s/old.txt", modified: 100),
+                scanned("/s/new.txt", modified: 200),
+                ScannedFile(
+                    path: "/s/clip.mov", kind: .video, contentType: .quickTimeMovie, size: 1, modified: Date(timeIntervalSince1970: 300)),
+            ])
         let claimed = try await writer.claimPending(limit: 10, kinds: Set(MediaKind.allCases))
         #expect(claimed.map(\.name) == ["new.txt", "old.txt", "clip.mov"])
 
@@ -155,9 +161,11 @@ struct IndexWriterTests {
         let source = try await writer.addSource(path: "/s", bookmark: nil)
         _ = try await writer.reconcile(sourceID: source, scanned: [scanned("/s/a.txt")])
         let file = try #require(try await writer.claimPending(limit: 1, kinds: [.document]).first)
-        _ = try await writer.commit(fileID: file.id, contentHash: "h", space: space, chunks: [
-            ChunkWrite(ordinal: 0, locator: .whole, text: "pricing chart", thumbnail: nil, vector: [1, 0, 0, 0]),
-        ])
+        _ = try await writer.commit(
+            fileID: file.id, contentHash: "h", space: space,
+            chunks: [
+                ChunkWrite(ordinal: 0, locator: .whole, text: "pricing chart", thumbnail: nil, vector: [1, 0, 0, 0])
+            ])
         let removed = try await writer.removeSource(source)
         #expect(removed == [file.id])
 
@@ -198,9 +206,11 @@ struct KeywordSearchTests {
         _ = try await writer.reconcile(sourceID: source, scanned: [scanned("/s/Acme Pitch Deck.txt"), scanned("/s/notes.txt")])
         let files = try await writer.claimPending(limit: 2, kinds: [.document])
         let notes = try #require(files.first { $0.name == "notes.txt" })
-        _ = try await writer.commit(fileID: notes.id, contentHash: "n", space: space, chunks: [
-            ChunkWrite(ordinal: 0, locator: .whole, text: "The flight confirmation for Café Zürich", thumbnail: nil, vector: nil),
-        ])
+        _ = try await writer.commit(
+            fileID: notes.id, contentHash: "n", space: space,
+            chunks: [
+                ChunkWrite(ordinal: 0, locator: .whole, text: "The flight confirmation for Café Zürich", thumbnail: nil, vector: nil)
+            ])
 
         let reader = try IndexReader(url: url)
         let query = FTSQuery("flight confirm")
@@ -254,10 +264,11 @@ struct CodecTests {
     @Test func thumbnailsAreDownscaledAndShared() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("thumbs-\(UUID().uuidString)")
         let store = ThumbnailStore(directory: directory, maxPixelSize: 100)
-        let context = try #require(CGContext(
-            data: nil, width: 800, height: 400, bitsPerComponent: 8, bytesPerRow: 0,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ))
+        let context = try #require(
+            CGContext(
+                data: nil, width: 800, height: 400, bitsPerComponent: 8, bytesPerRow: 0,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ))
         context.setFillColor(CGColor(red: 1, green: 0, blue: 0, alpha: 1))
         context.fill(CGRect(x: 0, y: 0, width: 800, height: 400))
         let image = try #require(context.makeImage())

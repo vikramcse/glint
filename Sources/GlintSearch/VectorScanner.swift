@@ -16,24 +16,24 @@ final class MetalVectorScanner: VectorScanner {
     private var scoreBuffer: (any MTLBuffer)?
 
     private static let source = """
-    #include <metal_stdlib>
-    using namespace metal;
+        #include <metal_stdlib>
+        using namespace metal;
 
-    kernel void dot_rows(device const half4 *matrix [[buffer(0)]],
-                         constant float4 *query [[buffer(1)]],
-                         device float *scores [[buffer(2)]],
-                         constant uint &quads [[buffer(3)]],
-                         constant uint &rows [[buffer(4)]],
-                         uint gid [[thread_position_in_grid]]) {
-        if (gid >= rows) { return; }
-        device const half4 *row = matrix + gid * quads;
-        float4 acc = 0.0f;
-        for (uint i = 0; i < quads; i++) {
-            acc += float4(row[i]) * query[i];
+        kernel void dot_rows(device const half4 *matrix [[buffer(0)]],
+                             constant float4 *query [[buffer(1)]],
+                             device float *scores [[buffer(2)]],
+                             constant uint &quads [[buffer(3)]],
+                             constant uint &rows [[buffer(4)]],
+                             uint gid [[thread_position_in_grid]]) {
+            if (gid >= rows) { return; }
+            device const half4 *row = matrix + gid * quads;
+            float4 acc = 0.0f;
+            for (uint i = 0; i < quads; i++) {
+                acc += float4(row[i]) * query[i];
+            }
+            scores[gid] = acc.x + acc.y + acc.z + acc.w;
         }
-        scores[gid] = acc.x + acc.y + acc.z + acc.w;
-    }
-    """
+        """
 
     /// Fails when there is no Metal device or the kernel cannot compile.
     init?(device: (any MTLDevice)? = MTLCreateSystemDefaultDevice()) {
@@ -106,10 +106,12 @@ struct AccelerateVectorScanner: VectorScanner {
             let elements = count * dimension
             let source = matrix.pointer + start * dimension
             block.withUnsafeMutableBufferPointer { floats in
-                var input = vImage_Buffer(data: UnsafeMutableRawPointer(source), height: 1, width: vImagePixelCount(elements),
-                                          rowBytes: elements * MemoryLayout<Float16>.stride)
-                var output = vImage_Buffer(data: floats.baseAddress, height: 1, width: vImagePixelCount(elements),
-                                           rowBytes: elements * MemoryLayout<Float>.stride)
+                var input = vImage_Buffer(
+                    data: UnsafeMutableRawPointer(source), height: 1, width: vImagePixelCount(elements),
+                    rowBytes: elements * MemoryLayout<Float16>.stride)
+                var output = vImage_Buffer(
+                    data: floats.baseAddress, height: 1, width: vImagePixelCount(elements),
+                    rowBytes: elements * MemoryLayout<Float>.stride)
                 vImageConvert_Planar16FtoPlanarF(&input, &output, 0)
             }
             scores.withUnsafeMutableBufferPointer { output in

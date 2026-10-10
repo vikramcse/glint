@@ -18,7 +18,8 @@ private struct LineExtractor: ContentExtractor {
                 let text = file.kind == .audio ? "voice memo" : try String(contentsOf: file.url, encoding: .utf8)
                 if text.contains("CRASH") { throw CocoaError(.fileReadCorruptFile) }
                 for (index, line) in text.split(separator: "\n").enumerated() {
-                    continuation.yield(Chunk(ordinal: index, locator: .text(start: 0, end: line.count), text: String(line), input: .text(String(line))))
+                    continuation.yield(
+                        Chunk(ordinal: index, locator: .text(start: 0, end: line.count), text: String(line), input: .text(String(line))))
                 }
                 continuation.finish()
             } catch {
@@ -111,14 +112,16 @@ struct IndexerIntegrationTests {
         let initialEmbeds = harness.provider.count
 
         // Rename: no re-embedding, still found under its new name.
-        try FileManager.default.moveItem(at: harness.library.appendingPathComponent("a.txt"), to: harness.library.appendingPathComponent("mug.txt"))
+        try FileManager.default.moveItem(
+            at: harness.library.appendingPathComponent("a.txt"), to: harness.library.appendingPathComponent("mug.txt"))
         _ = try await harness.writer.reconcile(sourceID: source.id, scanned: try FileScanner(exclusions: .default).scan(harness.library))
         await harness.indexer.drain()
         #expect(harness.provider.count == initialEmbeds)
         #expect(try await harness.names(for: "blue mug").first == "mug.txt")
 
         // Copy: identical content reuses stored vectors.
-        try FileManager.default.copyItem(at: harness.library.appendingPathComponent("mug.txt"), to: harness.library.appendingPathComponent("copy.txt"))
+        try FileManager.default.copyItem(
+            at: harness.library.appendingPathComponent("mug.txt"), to: harness.library.appendingPathComponent("copy.txt"))
         _ = try await harness.writer.reconcile(sourceID: source.id, scanned: try FileScanner(exclusions: .default).scan(harness.library))
         await harness.indexer.drain()
         #expect(harness.provider.count == initialEmbeds)
@@ -133,7 +136,8 @@ struct IndexerIntegrationTests {
 
         // Delete: gone from keyword and vector results.
         try FileManager.default.removeItem(at: harness.library.appendingPathComponent("copy.txt"))
-        let result = try await harness.writer.reconcile(sourceID: source.id, scanned: try FileScanner(exclusions: .default).scan(harness.library))
+        let result = try await harness.writer.reconcile(
+            sourceID: source.id, scanned: try FileScanner(exclusions: .default).scan(harness.library))
         #expect(result.removed.count == 1)
         for id in result.removed { try await harness.engine.vectorIndex.remove(fileID: id) }
         #expect(!(try await harness.names(for: "kettle")).contains("copy.txt"))
@@ -204,7 +208,8 @@ struct IndexerIntegrationTests {
     }
 
     @Test func sourceLimitAndPowerPolicy() async throws {
-        let harness = try Harness(gate: FeatureGateSnapshot(enabled: [], itemLimit: nil, sourceLimit: 1), power: FixedPowerMonitor(reason: .thermal))
+        let harness = try Harness(
+            gate: FeatureGateSnapshot(enabled: [], itemLimit: nil, sourceLimit: 1), power: FixedPowerMonitor(reason: .thermal))
         try FileManager.default.createDirectory(at: harness.root.appendingPathComponent("Other"), withIntermediateDirectories: true)
         try await harness.indexer.addSource(harness.library)
         await #expect(throws: EntitlementError.sourceLimitReached(limit: 1)) {

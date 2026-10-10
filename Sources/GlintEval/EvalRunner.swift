@@ -49,16 +49,17 @@ struct EvalRunner {
             let results = try await engine.mergedResults(for: SearchQuery(text: query.text))
             let latency = stopwatch.milliseconds
             let ranked = results.items.map { relativePath($0.file.path, root: root) }
-            outcomes.append(QueryOutcome(
-                id: query.id,
-                kind: kind(of: query),
-                recallAt10: RetrievalMetrics.recall(ranked: ranked, relevant: query.relevant),
-                reciprocalRank: RetrievalMetrics.reciprocalRank(ranked: ranked, relevant: query.relevant),
-                ndcgAt10: RetrievalMetrics.ndcg(ranked: ranked, relevant: query.relevant),
-                latencyMilliseconds: latency,
-                top: Array(ranked.prefix(5)),
-                mustPass: query.mustPass ?? false
-            ))
+            outcomes.append(
+                QueryOutcome(
+                    id: query.id,
+                    kind: kind(of: query),
+                    recallAt10: RetrievalMetrics.recall(ranked: ranked, relevant: query.relevant),
+                    reciprocalRank: RetrievalMetrics.reciprocalRank(ranked: ranked, relevant: query.relevant),
+                    ndcgAt10: RetrievalMetrics.ndcg(ranked: ranked, relevant: query.relevant),
+                    latencyMilliseconds: latency,
+                    top: Array(ranked.prefix(5)),
+                    mustPass: query.mustPass ?? false
+                ))
         }
 
         var perKind: [String: Scores] = [:]

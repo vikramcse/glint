@@ -48,7 +48,7 @@ public struct AppLaunchInfo: Sendable, Hashable {
     static func sanitizedVersion(_ version: String) -> String {
         let parts = version.split(separator: ".", omittingEmptySubsequences: false)
         guard (1...3).contains(parts.count),
-              parts.allSatisfy({ !$0.isEmpty && $0.count <= 4 && $0.allSatisfy(\.isASCII) && $0.allSatisfy(\.isNumber) })
+            parts.allSatisfy({ !$0.isEmpty && $0.count <= 4 && $0.allSatisfy(\.isASCII) && $0.allSatisfy(\.isNumber) })
         else { return "unknown" }
         return version
     }

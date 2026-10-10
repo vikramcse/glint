@@ -119,8 +119,9 @@ struct PerformanceBudgetTests {
             """.split(separator: " ").map(String.init)
         let source = try await writer.addSource(path: "/perf", bookmark: nil)
         let files = (0..<(chunkCount / 4)).map { index in
-            ScannedFile(path: "/perf/\(index / 500)/file-\(index).txt", kind: .document, contentType: .plainText,
-                        size: Int64(index), modified: Date(timeIntervalSince1970: Double(index)))
+            ScannedFile(
+                path: "/perf/\(index / 500)/file-\(index).txt", kind: .document, contentType: .plainText,
+                size: Int64(index), modified: Date(timeIntervalSince1970: Double(index)))
         }
         _ = try await writer.reconcile(sourceID: source, scanned: files)
         var generator = SystemRandomNumberGenerator()
@@ -130,8 +131,10 @@ struct PerformanceBudgetTests {
             for record in claimed {
                 let chunks = (0..<4).map { ordinal in
                     let text = (0..<60).map { _ in words.randomElement(using: &generator) ?? "" }.joined(separator: " ")
-                    let vector = Embedding(normalizing: (0..<space.dimension).map { _ in Float.random(in: -1...1, using: &generator) }, space: space)
-                    return ChunkWrite(ordinal: ordinal, locator: .text(start: 0, end: text.count), text: text, thumbnail: nil, vector: vector.values)
+                    let vector = Embedding(
+                        normalizing: (0..<space.dimension).map { _ in Float.random(in: -1...1, using: &generator) }, space: space)
+                    return ChunkWrite(
+                        ordinal: ordinal, locator: .text(start: 0, end: text.count), text: text, thumbnail: nil, vector: vector.values)
                 }
                 _ = try await writer.commit(fileID: record.id, contentHash: "h\(record.id.rawValue)", space: space, chunks: chunks)
             }
@@ -145,8 +148,9 @@ struct PerformanceBudgetTests {
 private struct PerfEncoder: EmbeddingProvider {
     let space: VectorSpace
     var descriptor: ModelDescriptor {
-        ModelDescriptor(id: "perf", version: "1", displayName: "Perf", dimensions: space.dimension,
-                        supportedDimensions: [space.dimension], modalities: [.text], license: "test", allowsCommercialUse: true)
+        ModelDescriptor(
+            id: "perf", version: "1", displayName: "Perf", dimensions: space.dimension,
+            supportedDimensions: [space.dimension], modalities: [.text], license: "test", allowsCommercialUse: true)
     }
 
     func embed(_ batch: [EmbeddingInput], purpose: EmbeddingPurpose) async throws -> [Embedding] {

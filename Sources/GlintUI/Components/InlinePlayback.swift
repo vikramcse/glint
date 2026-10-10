@@ -27,7 +27,8 @@ public final class InlinePlayback {
         let player = AVPlayer(url: url)
         self.duration = duration ?? 0
         player.seek(to: CMTime(seconds: start, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
-        observer = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), queue: .main) { [weak self] time in
+        observer = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), queue: .main) {
+            [weak self] time in
             MainActor.assumeIsolated {
                 guard let self, self.duration > 0 else { return }
                 self.progress = min(1, time.seconds / self.duration)

@@ -54,7 +54,8 @@ public enum AnonymousID {
 
     public static func current(in store: any KeyValueStore, now: Date) -> String {
         if let id = store.string(forKey: idKey), let created = store.date(forKey: createdKey),
-           now.timeIntervalSince(created) < rotationInterval, now >= created {
+            now.timeIntervalSince(created) < rotationInterval, now >= created
+        {
             return id
         }
         let id = UUID().uuidString

@@ -114,7 +114,8 @@ public final class LicenseManager {
     /// Frees this Mac's seat and returns to Free (or the trial, if still running).
     public func deactivate() async throws {
         if let activationService, let token = try? store.string(for: Keys.activation),
-           let payload = try? verifier.verify(token), payload.kind == .activation {
+            let payload = try? verifier.verify(token), payload.kind == .activation
+        {
             do {
                 try await activationService.deactivate(activationToken: token, installID: installID)
             } catch {
@@ -133,10 +134,11 @@ public final class LicenseManager {
     /// Checks the revocation list at most weekly. Network failures are ignored.
     public func revalidateIfNeeded() async {
         guard let activationService, case .active = state,
-              let token = try? store.string(for: Keys.activation)
+            let token = try? store.string(for: Keys.activation)
         else { return }
         if let last = try? store.date(for: Keys.lastValidated),
-           now().timeIntervalSince(last) < Self.revalidationInterval {
+            now().timeIntervalSince(last) < Self.revalidationInterval
+        {
             return
         }
         do {
@@ -164,9 +166,9 @@ public final class LicenseManager {
     /// Extracts the key from an activation deep link.
     public nonisolated static func activationKey(from url: URL) -> String? {
         guard url.scheme?.lowercased() == "glint", url.host?.lowercased() == "activate",
-              let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              let key = components.queryItems?.first(where: { $0.name == "key" })?.value,
-              !key.isEmpty
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+            let key = components.queryItems?.first(where: { $0.name == "key" })?.value,
+            !key.isEmpty
         else { return nil }
         return key
     }
@@ -193,8 +195,8 @@ public final class LicenseManager {
 
     private func verifiedActivation() -> LicensePayload? {
         guard let token = try? store.string(for: Keys.activation),
-              let installID = try? InstallID.current(in: store),
-              let payload = try? verifier.verify(token, installID: installID)
+            let installID = try? InstallID.current(in: store),
+            let payload = try? verifier.verify(token, installID: installID)
         else { return nil }
         if payload.kind == .license, activationService != nil { return nil }
         return payload

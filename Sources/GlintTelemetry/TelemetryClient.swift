@@ -112,7 +112,7 @@ public actor QueuedTelemetryClient: TelemetryClient {
             return
         }
         guard current.timeIntervalSince(lastFlush) >= Self.flushInterval || current < lastFlush,
-              !queue.isEmpty
+            !queue.isEmpty
         else { return }
         keyValueStore.setDate(current, forKey: Self.lastFlushKey)
         let sent = queue

@@ -49,13 +49,15 @@ struct SearchSettings: View {
             Toggle("Group results by kind", isOn: $settings.groupResultsByKind)
             Section("Search these kinds by default") {
                 ForEach(MediaKind.allCases.sorted(), id: \.self) { kind in
-                    Toggle(kind.sectionTitle, isOn: Binding {
-                        settings.defaultKinds.isEmpty || settings.defaultKinds.contains(kind)
-                    } set: { isOn in
-                        var kinds = settings.defaultKinds.isEmpty ? Set(MediaKind.allCases) : settings.defaultKinds
-                        if isOn { kinds.insert(kind) } else { kinds.remove(kind) }
-                        settings.defaultKinds = kinds.count == MediaKind.allCases.count ? [] : kinds
-                    })
+                    Toggle(
+                        kind.sectionTitle,
+                        isOn: Binding {
+                            settings.defaultKinds.isEmpty || settings.defaultKinds.contains(kind)
+                        } set: { isOn in
+                            var kinds = settings.defaultKinds.isEmpty ? Set(MediaKind.allCases) : settings.defaultKinds
+                            if isOn { kinds.insert(kind) } else { kinds.remove(kind) }
+                            settings.defaultKinds = kinds.count == MediaKind.allCases.count ? [] : kinds
+                        })
                 }
             }
             Section {
@@ -150,7 +152,9 @@ struct PrivacySettings: View {
                 Button("Delete Index…", role: .destructive) { confirmingDelete = true }
                 if let deleteError { Text(deleteError).foregroundStyle(.red).font(.caption) }
             } footer: {
-                Text("Removes everything Glint derived from your files. Your files are not touched; Glint re-indexes your folders afterwards.")
+                Text(
+                    "Removes everything Glint derived from your files. Your files are not touched; Glint re-indexes your folders afterwards."
+                )
             }
         }
         .formStyle(.grouped)

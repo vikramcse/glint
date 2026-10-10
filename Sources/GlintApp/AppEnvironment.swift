@@ -127,7 +127,8 @@ final class AppEnvironment {
         do {
             return try AppleOnDeviceEmbeddingProvider()
         } catch {
-            Log.embedding.error("On-device embedding unavailable, using keyword-only fallback: \(String(describing: error), privacy: .public)")
+            Log.embedding.error(
+                "On-device embedding unavailable, using keyword-only fallback: \(String(describing: error), privacy: .public)")
             return HashingEmbeddingProvider()
         }
     }
@@ -139,14 +140,15 @@ final class AppEnvironment {
     }
 
     private static func modelDescription(active: ModelDescriptor) -> ModelDescription {
-        ModelDescription(options: ModelCatalog.all.map { entry in
-            let descriptor = entry.descriptor
-            let detail = "\(descriptor.dimensions) dimensions · \(descriptor.license)"
-            return ModelDescription.Option(
-                id: descriptor.id, name: descriptor.displayName, detail: detail,
-                isAvailable: entry.isAvailable, isActive: descriptor.id == active.id
-            )
-        })
+        ModelDescription(
+            options: ModelCatalog.all.map { entry in
+                let descriptor = entry.descriptor
+                let detail = "\(descriptor.dimensions) dimensions · \(descriptor.license)"
+                return ModelDescription.Option(
+                    id: descriptor.id, name: descriptor.displayName, detail: detail,
+                    isAvailable: entry.isAvailable, isActive: descriptor.id == active.id
+                )
+            })
     }
 }
 

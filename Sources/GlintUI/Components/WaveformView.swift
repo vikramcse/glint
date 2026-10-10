@@ -18,7 +18,8 @@ struct WaveformView: View {
                 let height = max(1.5, CGFloat(peak) * size.height)
                 let rect = CGRect(x: x + barWidth * 0.15, y: midY - height / 2, width: max(1, barWidth * 0.7), height: height)
                 let isMatch = highlight?.contains(fraction) ?? false
-                context.fill(Path(roundedRect: rect, cornerRadius: barWidth * 0.35), with: .color(isMatch ? .accentColor : .secondary.opacity(0.45)))
+                context.fill(
+                    Path(roundedRect: rect, cornerRadius: barWidth * 0.35), with: .color(isMatch ? .accentColor : .secondary.opacity(0.45)))
             }
             if let playhead {
                 let x = size.width * CGFloat(playhead)

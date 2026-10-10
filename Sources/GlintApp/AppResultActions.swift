@@ -134,7 +134,8 @@ final class AppResultActions: ResultActions {
         window.setContentSize(size)
         window.isReleasedWhenClosed = false
         window.center()
-        let observer = NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { [weak self] notification in
+        let observer = NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) {
+            [weak self] notification in
             let closed = notification.object as? NSWindow
             MainActor.assumeIsolated { self?.windowClosed(closed) }
         }
@@ -153,7 +154,8 @@ final class AppResultActions: ResultActions {
     private func windowClosed(_ window: NSWindow?) {
         playerWindows.removeAll { $0 === window }
         if window === upgradeWindow { upgradeWindow = nil }
-        let anyOpen = [mainWindow, onboardingWindow, upgradeWindow].contains { $0?.isVisible == true && $0 !== window }
+        let anyOpen =
+            [mainWindow, onboardingWindow, upgradeWindow].contains { $0?.isVisible == true && $0 !== window }
             || playerWindows.contains { $0.isVisible }
         if !anyOpen { NSApp.setActivationPolicy(.accessory) }
     }

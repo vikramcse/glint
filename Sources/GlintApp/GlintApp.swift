@@ -36,6 +36,7 @@ struct GlintApp: App {
         Binding {
             guard delegate.settings.hideMenuBarItemWhenIdle, let status = delegate.environment?.services.status else { return true }
             return status.status.isBusy || status.isPaused
-        } set: { _ in }
+        } set: { _ in
+        }
     }
 }

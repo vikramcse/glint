@@ -96,7 +96,8 @@ struct LicenseStatusRow: View {
             Label {
                 VStack(alignment: .leading) {
                     Text("Glint Pro is active")
-                    Text("License for Glint \(payload.majorVersion).x on up to \(payload.seats) Macs").font(.caption).foregroundStyle(.secondary)
+                    Text("License for Glint \(payload.majorVersion).x on up to \(payload.seats) Macs").font(.caption).foregroundStyle(
+                        .secondary)
                 }
             } icon: {
                 Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)

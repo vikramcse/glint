@@ -38,6 +38,21 @@ public struct FileSummary: Sendable, Hashable {
     public var url: URL { URL(fileURLWithPath: path) }
     public var folder: String { (path as NSString).deletingLastPathComponent }
 
+    public init(
+        id: FileID, name: String, path: String, kind: MediaKind, modified: Date, size: Int64,
+        duration: Double? = nil, waveform: [Float]? = nil, isIndexed: Bool = true
+    ) {
+        self.id = id
+        self.name = name
+        self.path = path
+        self.kind = kind
+        self.modified = modified
+        self.size = size
+        self.duration = duration
+        self.waveform = waveform
+        self.isIndexed = isIndexed
+    }
+
     init(_ record: FileRecord) {
         id = record.id
         name = record.name
@@ -75,6 +90,14 @@ public struct SearchResult: Sendable, Hashable, Identifiable {
     public var sources: MatchSources
     /// Visible but not openable without Pro (video and audio after a trial ends).
     public var isLocked: Bool
+
+    public init(file: FileSummary, match: MatchDetail, score: Double, sources: MatchSources, isLocked: Bool) {
+        self.file = file
+        self.match = match
+        self.score = score
+        self.sources = sources
+        self.isLocked = isLocked
+    }
 
     public var id: FileID { file.id }
 }

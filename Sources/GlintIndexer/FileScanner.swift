@@ -25,12 +25,16 @@ public struct FileScanner: Sendable {
         }
         var options: FileManager.DirectoryEnumerationOptions = [.skipsPackageDescendants]
         if !exclusions.includeHiddenFiles { options.insert(.skipsHiddenFiles) }
-        guard let enumerator = FileManager.default.enumerator(
-            at: root, includingPropertiesForKeys: Self.keys, options: options, errorHandler: { url, error in
-                Log.indexer.debug("Skipping unreadable item \(url.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
-                return true
-            }
-        ) else { throw IndexerError.sourceUnreadable }
+        guard
+            let enumerator = FileManager.default.enumerator(
+                at: root, includingPropertiesForKeys: Self.keys, options: options,
+                errorHandler: { url, error in
+                    Log.indexer.debug(
+                        "Skipping unreadable item \(url.path, privacy: .private): \(error.localizedDescription, privacy: .public)")
+                    return true
+                }
+            )
+        else { throw IndexerError.sourceUnreadable }
 
         var files: [ScannedFile] = []
         for case let url as URL in enumerator {
