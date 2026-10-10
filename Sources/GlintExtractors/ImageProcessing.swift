@@ -45,34 +45,85 @@ enum ImageProcessing {
     }
 }
 
+/// What produced an image, which decides how `.automatic` OCR reads it.
+public enum OCRSource: Sendable, Hashable {
+    /// A camera photo: scene text, varied lighting. Read accurately, with language correction.
+    case camera
+    /// A screenshot or other rendered image: crisp UI text.
+    case screen
+    /// A scanned or rendered document page.
+    case document
+}
+
 /// On-device text recognition with Vision.
 public struct TextRecognizer: Sendable {
     public var level: ExtractionOptions.OCRLevel
     public var usesLanguageCorrection: Bool
 
-    public init(level: ExtractionOptions.OCRLevel = .accurate, usesLanguageCorrection: Bool = true) {
+    public init(level: ExtractionOptions.OCRLevel = .automatic, usesLanguageCorrection: Bool = true) {
         self.level = level
         self.usesLanguageCorrection = usesLanguageCorrection
     }
 
     /// Recognized lines, top to bottom, joined with newlines. Empty when the image has no text.
     /// Runs off the cooperative thread pool.
-    public func recognizeText(in image: CGImage) async throws -> String {
+    public func recognizeText(in image: CGImage, source: OCRSource = .screen) async throws -> String {
         let recognizer = self
-        return try await Offload.run { try recognizer.recognizeTextBlocking(in: image) }
+        return try await Offload.run { try recognizer.recognizeTextBlocking(in: image, source: source) }
     }
 
     /// Blocking variant for code already running on the offload queue.
-    func recognizeTextBlocking(in image: CGImage) throws -> String {
-        Offload.ocrSlots.wait()
-        defer { Offload.ocrSlots.signal() }
-        let request = VNRecognizeTextRequest()
-        request.recognitionLevel = level == .accurate ? .accurate : .fast
-        request.usesLanguageCorrection = usesLanguageCorrection
-        request.automaticallyDetectsLanguage = true
-        let handler = VNImageRequestHandler(cgImage: image, options: [:])
-        try handler.perform([request])
-        let lines = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
-        return lines.joined(separator: "\n")
+    func recognizeTextBlocking(in image: CGImage, source: OCRSource = .screen) throws -> String {
+        try Offload.ocrLane.run {
+            let request = VNRecognizeTextRequest()
+            switch (level, source) {
+            case (.accurate, _), (.automatic, .camera):
+                request.recognitionLevel = .accurate
+                request.usesLanguageCorrection = usesLanguageCorrection
+                request.automaticallyDetectsLanguage = true
+            case (.fast, _), (.automatic, .screen), (.automatic, .document):
+                // Language correction costs ~2.5x and changed no words on crisp text.
+                request.recognitionLevel = .fast
+                request.usesLanguageCorrection = false
+            }
+            let handler = VNImageRequestHandler(cgImage: image, options: [:])
+            try handler.perform([request])
+            let lines = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+            return lines.joined(separator: "\n")
+        }
+    }
+
+    /// Whether `image` appears to contain any text (1–3 ms; skips OCR on most photos).
+    static func containsText(_ image: CGImage) -> Bool {
+        let request = VNDetectTextRectanglesRequest()
+        do {
+            try VNImageRequestHandler(cgImage: image, options: [:]).perform([request])
+        } catch {
+            return true  // When unsure, let recognition decide.
+        }
+        return !(request.results ?? []).isEmpty
+    }
+}
+
+extension ImageProcessing {
+    /// Pixel size of an image file without decoding it.
+    static func pixelSize(at url: URL) -> (width: Int, height: Int)? {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary),
+            let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+            let width = properties[kCGImagePropertyPixelWidth] as? Int,
+            let height = properties[kCGImagePropertyPixelHeight] as? Int
+        else { return nil }
+        return (width, height)
+    }
+
+    /// Whether the file carries camera metadata (exposure, lens or camera make).
+    static func isCameraPhoto(at url: URL) -> Bool {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary),
+            let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+        else { return false }
+        let exif = properties[kCGImagePropertyExifDictionary] as? [CFString: Any] ?? [:]
+        let tiff = properties[kCGImagePropertyTIFFDictionary] as? [CFString: Any] ?? [:]
+        return exif[kCGImagePropertyExifExposureTime] != nil || exif[kCGImagePropertyExifFNumber] != nil
+            || exif[kCGImagePropertyExifLensModel] != nil || tiff[kCGImagePropertyTIFFMake] != nil
     }
 }

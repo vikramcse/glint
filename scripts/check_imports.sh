@@ -19,7 +19,7 @@ allowed() {
     GlintMCP)         echo "" ;;
     GlintMCPTool)     echo "GlintMCP" ;;
     GlintLicenseTool) echo "GlintCore GlintLicensing" ;;
-    GlintEval)        echo "GlintCore GlintExtractors GlintEmbedding GlintStore GlintSearch GlintIndexer" ;;
+    GlintEval)        echo "GlintCore GlintExtractors GlintEmbedding GlintStore GlintSearch GlintIndexer GlintTestSupport" ;;
     GlintApp)         echo "*" ;;
     *)                echo "UNKNOWN" ;;
   esac

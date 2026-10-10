@@ -80,6 +80,23 @@ public struct ChunkWrite: Sendable {
     }
 }
 
+/// One file's complete index update, committed atomically (possibly with other files).
+public struct FileCommit: Sendable {
+    public var fileID: FileID
+    public var contentHash: String
+    public var space: VectorSpace
+    public var chunks: [ChunkWrite]
+    public var media: FileMedia
+
+    public init(fileID: FileID, contentHash: String, space: VectorSpace, chunks: [ChunkWrite], media: FileMedia = FileMedia()) {
+        self.fileID = fileID
+        self.contentHash = contentHash
+        self.space = space
+        self.chunks = chunks
+        self.media = media
+    }
+}
+
 /// File-level display data committed alongside chunks.
 public struct FileMedia: Sendable, Hashable {
     public var duration: Double?

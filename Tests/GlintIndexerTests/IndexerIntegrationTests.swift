@@ -17,6 +17,7 @@ private struct LineExtractor: ContentExtractor {
             do {
                 let text = file.kind == .audio ? "voice memo" : try String(contentsOf: file.url, encoding: .utf8)
                 if text.contains("CRASH") { throw CocoaError(.fileReadCorruptFile) }
+                if text.contains("SLOW") { Thread.sleep(forTimeInterval: 1.5) }
                 for (index, line) in text.split(separator: "\n").enumerated() {
                     continuation.yield(
                         Chunk(ordinal: index, locator: .text(start: 0, end: line.count), text: String(line), input: .text(String(line))))
@@ -167,6 +168,20 @@ struct IndexerIntegrationTests {
         let status = await harness.indexer.currentStatus()
         #expect(status.failed == 1)
         #expect(status.indexed[.document] == 1)
+    }
+
+    @Test func slowFileDoesNotBlockTheQueue() async throws {
+        let harness = try Harness()
+        try harness.write("aaa-slow.txt", "SLOW video stand-in")
+        for index in 0..<12 { try harness.write("quick-\(index).txt", "quick note \(index)") }
+        try await harness.indexer.addSource(harness.library)
+        let drain = Task { await harness.indexer.drain() }
+        try await Task.sleep(for: .milliseconds(900))
+        // With the old batch barrier nothing behind the slow file finished until it did.
+        let midway = await harness.indexer.currentStatus()
+        #expect(midway.indexed[.document] ?? 0 >= 12)
+        await drain.value
+        #expect(await harness.indexer.currentStatus().indexed[.document] == 13)
     }
 
     @Test func relaunchResumesInterruptedWork() async throws {

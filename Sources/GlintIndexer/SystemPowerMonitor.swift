@@ -21,6 +21,8 @@ public struct SystemPowerMonitor: PowerMonitoring {
 
     public var isOnBattery: Bool { batteryState().map { !$0.onAC } ?? false }
 
+    public var isConstrained: Bool { isOnBattery || ProcessInfo.processInfo.thermalState == .fair }
+
     private func batteryState() -> (percent: Int, onAC: Bool)? {
         guard let blob = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
             let sources = IOPSCopyPowerSourcesList(blob)?.takeRetainedValue() as? [CFTypeRef]

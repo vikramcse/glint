@@ -93,7 +93,9 @@ let package = Package(
         ),
         .executableTarget(
             name: "GlintEval",
-            dependencies: ["GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch", "GlintIndexer"],
+            dependencies: [
+                "GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch", "GlintIndexer", "GlintTestSupport",
+            ],
             swiftSettings: strictSettings
         ),
         .executableTarget(name: "GlintMCPTool", dependencies: ["GlintMCP"], swiftSettings: strictSettings),
@@ -160,7 +162,9 @@ let package = Package(
         ),
         .testTarget(
             name: "GlintPerformanceTests",
-            dependencies: ["GlintSearch", "GlintStore", "GlintEmbedding", "GlintTestSupport"],
+            dependencies: [
+                "GlintSearch", "GlintStore", "GlintEmbedding", "GlintTestSupport", "GlintIndexer", "GlintExtractors",
+            ],
             swiftSettings: strictSettings
         ),
     ]
