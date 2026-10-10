@@ -55,7 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             await environment.telemetry.record(.appLaunched(AppLaunchInfo.current()))
             await environment.start()
-            if !self.launch.isUITest { await environment.localAPI.apply() }
+            if self.launch.isUITest { environment.localAPI.stop() } else { await environment.localAPI.apply() }
             if let source = self.launch.testSource, self.settings.hasCompletedOnboarding {
                 _ = try? await environment.indexer.addSource(source)
             }

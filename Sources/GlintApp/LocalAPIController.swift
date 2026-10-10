@@ -31,7 +31,8 @@ final class LocalAPIController {
         let wanted = settings.localAPIEnabled && features.current.allows(.localAPI)
         if wanted, server == nil {
             await start()
-        } else if !wanted, server != nil {
+        } else if !wanted {
+            // Also clears a discovery file left by a previous run that didn't shut down cleanly.
             stop()
         }
     }
