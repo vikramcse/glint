@@ -111,3 +111,70 @@ public enum InstallID {
         return created
     }
 }
+
+/// A file-backed store (one JSON file, owner-only permissions) for development builds.
+///
+/// Ad hoc signatures change on every build, so the login keychain asks the user to approve
+/// each new build. Builds signed with a stable identity use `KeychainStore`; see
+/// `SecureStoreFactory`.
+public final class FileSecureStore: SecureStore, @unchecked Sendable {
+    private let url: URL
+    private let lock = NSLock()
+
+    public init(url: URL) {
+        self.url = url
+    }
+
+    public func data(for key: String) throws -> Data? {
+        try lock.withLock { try load()[key] }
+    }
+
+    public func set(_ data: Data, for key: String) throws {
+        try lock.withLock {
+            var values = try load()
+            values[key] = data
+            try save(values)
+        }
+    }
+
+    public func remove(_ key: String) throws {
+        try lock.withLock {
+            var values = try load()
+            values[key] = nil
+            try save(values)
+        }
+    }
+
+    private func load() throws -> [String: Data] {
+        guard FileManager.default.fileExists(atPath: url.path) else { return [:] }
+        return try JSONDecoder().decode([String: Data].self, from: Data(contentsOf: url))
+    }
+
+    private func save(_ values: [String: Data]) throws {
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try JSONEncoder().encode(values).write(to: url, options: [.atomic])
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+    }
+}
+
+/// Chooses the secure store for the running build.
+public enum SecureStoreFactory {
+    /// The keychain when the app is signed with a team identity (Developer ID), otherwise a
+    /// private file next to the index, so development builds never block on keychain prompts.
+    public static func make(fallbackDirectory: URL) -> any SecureStore {
+        if hasTeamIdentity() { return KeychainStore() }
+        return FileSecureStore(url: fallbackDirectory.appendingPathComponent("license-dev.json"))
+    }
+
+    static func hasTeamIdentity() -> Bool {
+        var code: SecCode?
+        guard SecCodeCopySelf([], &code) == errSecSuccess, let code else { return false }
+        var staticCode: SecStaticCode?
+        guard SecCodeCopyStaticCode(code, [], &staticCode) == errSecSuccess, let staticCode else { return false }
+        var info: CFDictionary?
+        guard SecCodeCopySigningInformation(staticCode, SecCSFlags(rawValue: kSecCSSigningInformation), &info) == errSecSuccess,
+            let dictionary = info as? [String: Any]
+        else { return false }
+        return (dictionary[kSecCodeInfoTeamIdentifier as String] as? String)?.isEmpty == false
+    }
+}

@@ -11,15 +11,15 @@ final class FloatingPanel: NSPanel {
     init() {
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 720, height: 80),
-            styleMask: [.nonactivatingPanel, .titled, .fullSizeContentView],
+            // Borderless: a titled window's title-bar safe area feeds back into SwiftUI's
+            // preferred size and loops the constraint pass.
+            styleMask: [.nonactivatingPanel, .borderless],
             backing: .buffered,
             defer: true
         )
         isFloatingPanel = true
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
-        titleVisibility = .hidden
-        titlebarAppearsTransparent = true
         isMovableByWindowBackground = true
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
@@ -27,9 +27,6 @@ final class FloatingPanel: NSPanel {
         isOpaque = false
         hasShadow = true
         animationBehavior = .utilityWindow
-        for button in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
-            standardWindowButton(button)?.isHidden = true
-        }
         setAccessibilityLabel(String(localized: "Glint Search"))
     }
 
@@ -62,8 +59,13 @@ final class SearchPanelController {
         if !services.settings.hasSearched {
             model.onFirstSearch = { services.settings.hasSearched = true }
         }
-        let host = NSHostingController(rootView: SearchPanelView(model: model, services: services))
-        host.sizingOptions = [.preferredContentSize]
+        let content = PanelHostView(content: SearchPanelView(model: model, services: services)) { [weak self] height in
+            self?.resize(toHeight: height)
+        }
+        let host = NSHostingController(rootView: content)
+        // The panel is sized explicitly from the measured content height. Automatic sizing lets
+        // the window's height feed back into the content's size and loops the constraint pass.
+        host.sizingOptions = []
         host.view.wantsLayer = true
         host.view.layer?.backgroundColor = .clear
         panel.contentViewController = host
@@ -93,6 +95,19 @@ final class SearchPanelController {
         panel.orderOut(nil)
     }
 
+    /// Grows and shrinks downward from a fixed top edge as results come and go, like Spotlight.
+    private func resize(toHeight height: CGFloat) {
+        let height = ceil(height)
+        var frame = panel.frame
+        guard abs(frame.height - height) > 0.5 else { return }
+        let top = frame.maxY
+        frame.size = NSSize(width: SearchPanelController.width, height: height)
+        frame.origin.y = top - height
+        panel.setFrame(frame, display: panel.isVisible)
+    }
+
+    static let width: CGFloat = 720
+
     func applySettings(_ settings: AppSettings) {
         model.groupByKind = settings.groupResultsByKind
         model.scope = settings.defaultKinds
@@ -106,5 +121,19 @@ final class SearchPanelController {
         let size = panel.frame.size
         let origin = NSPoint(x: frame.midX - size.width / 2, y: frame.minY + frame.height * 0.72 - size.height)
         panel.setFrameTopLeftPoint(NSPoint(x: origin.x, y: origin.y + size.height))
+    }
+}
+
+/// Gives the panel content a definite height and reports it, independent of the window size.
+private struct PanelHostView: View {
+    let content: SearchPanelView
+    let onHeightChange: (CGFloat) -> Void
+
+    var body: some View {
+        content
+            .fixedSize(horizontal: false, vertical: true)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { onHeightChange($0) }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .ignoresSafeArea()
     }
 }

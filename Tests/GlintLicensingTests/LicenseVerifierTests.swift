@@ -132,3 +132,18 @@ struct TrialClockTests {
         #expect(try trial.status() == .expired)
     }
 }
+
+@Suite("FileSecureStore")
+struct FileSecureStoreTests {
+    @Test func roundTripsAndRestrictsPermissions() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("secure-\(UUID().uuidString)/store.json")
+        let store = FileSecureStore(url: url)
+        try store.setString("value", for: "k")
+        #expect(try store.string(for: "k") == "value")
+        #expect(try FileSecureStore(url: url).string(for: "k") == "value")
+        let permissions = try FileManager.default.attributesOfItem(atPath: url.path)[.posixPermissions] as? Int
+        #expect(permissions == 0o600)
+        try store.remove("k")
+        #expect(try store.string(for: "k") == nil)
+    }
+}

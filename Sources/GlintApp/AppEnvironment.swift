@@ -43,7 +43,7 @@ final class AppEnvironment {
 
         license = LicenseManager(
             verifier: try LicenseVerifier.production(),
-            store: KeychainStore(),
+            store: SecureStoreFactory.make(fallbackDirectory: paths.root),
             // The M3 license server is not deployed yet; signed keys activate offline until then.
             activationService: AppLinks.licenseServer.map { HTTPActivationService(baseURL: $0) }
         )
