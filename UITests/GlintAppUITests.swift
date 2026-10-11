@@ -14,7 +14,8 @@ final class GlintAppUITests: XCTestCase {
 
     override func setUp() async throws {
         continueAfterFailure = false
-        root = URL(fileURLWithPath: "/private/tmp", isDirectory: true).appendingPathComponent("glint-ui-\(UUID().uuidString)", isDirectory: true)
+        root = URL(fileURLWithPath: "/private/tmp", isDirectory: true).appendingPathComponent(
+            "glint-ui-\(UUID().uuidString)", isDirectory: true)
         fixtures = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Library", withExtension: nil))
     }
 
@@ -22,7 +23,9 @@ final class GlintAppUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchEnvironment["GLINT_UI_TEST_ROOT"] = root.path
         app.launchEnvironment["GLINT_UI_TEST_SOURCE"] = fixtures.path
-        app.launchArguments = arguments
+        // Legacy scroll bars, as on CI's virtual Macs (a mouse, no trackpad): they take width from
+        // scrolling content, which once sent the panel into an endless resize.
+        app.launchArguments = arguments + ["-AppleShowScrollBars", "Always"]
         app.launch()
         return app
     }

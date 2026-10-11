@@ -92,7 +92,11 @@ public struct SearchPanelView: View {
         } else {
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 2, pinnedViews: []) {
+                    // Not lazy: the panel sizes itself to this content's ideal height, and a lazy
+                    // stack's estimate changes with the rows it has built, which change with the
+                    // panel's height. With legacy scroll bars that never settled. Results are
+                    // capped (SearchEngine.resultLimit), so building them all is cheap.
+                    VStack(alignment: .leading, spacing: 2) {
                         ForEach(model.sections) { section in
                             Text(section.title)
                                 .font(.caption.weight(.semibold))
