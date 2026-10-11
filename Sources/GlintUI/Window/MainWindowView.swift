@@ -186,7 +186,8 @@ struct ResultsArea: View {
     let services: GlintServices
     @Binding var layout: ResultsLayout
 
-    private var items: [SearchResult] { model.currentQuery.isEmpty && model.similarTo == nil ? library.items : model.displayOrder }
+    private var isBrowsing: Bool { model.currentQuery.isEmpty && model.similarTo == nil }
+    private var items: [SearchResult] { isBrowsing ? library.items : model.displayOrder }
 
     var body: some View {
         Group {
@@ -219,7 +220,7 @@ struct ResultsArea: View {
         ScrollView {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150, maximum: 220), spacing: 14)], spacing: 16) {
                 ForEach(items) { result in
-                    ResultTile(result: result)
+                    ResultTile(result: result, showsMatch: !isBrowsing)
                         .padding(4)
                         .background {
                             if model.selection == result.id {
@@ -251,9 +252,10 @@ struct ResultsArea: View {
     private var list: some View {
         List(selection: $model.selection) {
             ForEach(items) { result in
-                ResultRow(result: result, isSelected: model.selection == result.id)
+                ResultRow(result: result, isSelected: model.selection == result.id, showsMatch: !isBrowsing)
                     .tag(result.id)
-                    .onDrag { NSItemProvider(object: result.file.url as NSURL) }
+                    // `.onDrag` swallows clicks on List rows, breaking selection and double-click.
+                    .itemProvider { NSItemProvider(object: result.file.url as NSURL) }
             }
         }
         .contextMenu(forSelectionType: FileID.self) { ids in

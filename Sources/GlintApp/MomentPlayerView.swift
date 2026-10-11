@@ -17,7 +17,7 @@ struct MomentPlayerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VideoPlayer(player: player)
+            PlayerView(player: player)
                 .frame(minWidth: 480, minHeight: result.file.kind == .audio ? 80 : 270)
             HStack {
                 Label {
@@ -40,5 +40,21 @@ struct MomentPlayerView: View {
         player.seek(to: CMTime(seconds: start, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { _ in
             Task { @MainActor in player.play() }
         }
+    }
+}
+
+/// AppKit's player view. SwiftUI's `VideoPlayer` aborts at launch (AVKit SwiftUI metadata failure).
+private struct PlayerView: NSViewRepresentable {
+    let player: AVPlayer
+
+    func makeNSView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView()
+        view.controlsStyle = .inline
+        view.player = player
+        return view
+    }
+
+    func updateNSView(_ view: AVPlayerView, context: Context) {
+        if view.player !== player { view.player = player }
     }
 }

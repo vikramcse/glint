@@ -8,6 +8,8 @@ struct ResultRow: View {
     let result: SearchResult
     let isSelected: Bool
     var playback: InlinePlayback?
+    /// False when browsing the library: the locator is just the first chunk, not a match.
+    var showsMatch = true
 
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
@@ -61,7 +63,7 @@ struct ResultRow: View {
 
     @ViewBuilder private var subtitle: some View {
         HStack(spacing: 4) {
-            if let location = Formatting.location(of: result.match.locator) {
+            if showsMatch, let location = Formatting.location(of: result.match.locator) {
                 Text(location)
                     .monospacedDigit()
                     .foregroundStyle(.tint)
@@ -102,7 +104,7 @@ struct ResultRow: View {
     }
 
     private var highlightRange: ClosedRange<Double>? {
-        guard let range = result.match.locator.timeRange, let duration = result.file.duration, duration > 0 else { return nil }
+        guard showsMatch, let range = result.match.locator.timeRange, let duration = result.file.duration, duration > 0 else { return nil }
         return (range.lowerBound / duration)...(min(range.upperBound, duration) / duration)
     }
 
@@ -115,6 +117,8 @@ struct ResultRow: View {
 /// A grid cell for the main window.
 struct ResultTile: View {
     let result: SearchResult
+    /// False when browsing the library: the locator is just the first chunk, not a match.
+    var showsMatch = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -127,7 +131,7 @@ struct ResultTile: View {
                 } else {
                     ThumbnailView(url: result.match.thumbnailURL, filePath: result.file.path, kind: result.file.kind, cornerRadius: 8)
                 }
-                if let location = Formatting.location(of: result.match.locator) {
+                if showsMatch, let location = Formatting.location(of: result.match.locator) {
                     Text(location)
                         .font(.caption2.monospacedDigit().weight(.semibold))
                         .padding(.horizontal, 5)
