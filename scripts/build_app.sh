@@ -23,13 +23,19 @@ cd "$ROOT"
 echo "▸ Generating Xcode/Glint.xcodeproj"
 mkdir -p Xcode
 xcodegen generate --quiet --project Xcode
+# XcodeGen writes the local package path relative to project.yml, not to Xcode/; point it back
+# at the repository root or package resolution fails.
+sed -i '' 's|relativePath = \.;|relativePath = ..;|' Xcode/Glint.xcodeproj/project.pbxproj
 
 echo "▸ Building ($CONFIG, Apple silicon)"
 # ARCHS on the command line also reaches the Swift package targets (Float16 and MLX: arm64 only).
 xcodebuild build -project Xcode/Glint.xcodeproj -scheme Glint -configuration "$CONFIG" \
   -destination 'platform=macOS,arch=arm64' -derivedDataPath "$DERIVED" \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGN_IDENTITY=- -quiet 2>&1 \
-  | grep -vE "iOSSimulator|DVTErrorPresenter|CoreSimulator|^(Domain|Code|Failure Reason|Recovery Suggestion):|^--$|^$" || true
+  | grep -vE "iOSSimulator|DVTErrorPresenter|CoreSimulator|^(Domain|Code|Failure Reason|Recovery Suggestion):|^--$|^$" \
+  && status=0 || status=${PIPESTATUS[0]}
+# A failed build leaves the previous product in place, so check xcodebuild itself, not the binary.
+[ "$status" -eq 0 ] || { echo "✗ build failed (xcodebuild exit $status)"; exit 1; }
 test -x "$PRODUCTS/Glint.app/Contents/MacOS/Glint" || { echo "✗ build failed"; exit 1; }
 test -f "$PRODUCTS/Glint.app/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib" \
   || { echo "✗ MLX metallib missing — run: xcodebuild -downloadComponent MetalToolchain"; exit 1; }

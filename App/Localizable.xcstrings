@@ -325,6 +325,9 @@
     "Glint needs access to Photos. Allow it in System Settings › Privacy & Security › Photos." : {
 
     },
+    "Glint stops watching this folder and deletes everything it indexed from it. Your files are not touched." : {
+
+    },
     "Grid" : {
 
     },
@@ -636,6 +639,9 @@
     "Quit Glint" : {
 
     },
+    "Re-index" : {
+
+    },
     "Remove" : {
 
     },
@@ -648,7 +654,13 @@
     "Remove exclusion" : {
 
     },
+    "Remove “%@”?" : {
+
+    },
     "Removes everything Glint derived from your files. Your files are not touched; Glint re-indexes your folders afterwards." : {
+
+    },
+    "Remove…" : {
 
     },
     "Replay Moment" : {
