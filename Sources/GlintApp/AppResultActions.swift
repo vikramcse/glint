@@ -114,6 +114,8 @@ final class AppResultActions: ResultActions {
                 style: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
             )
             window.setFrameAutosaveName("GlintMainWindow")
+            // The title follows the selected section, so UI tests find the window by identifier.
+            window.setAccessibilityIdentifier("main")
             mainWindow = window
         }
         present(mainWindow)
@@ -177,9 +179,11 @@ final class AppResultActions: ResultActions {
         let window = makeWindow(
             title: String(localized: "Welcome to Glint"),
             root: OnboardingView(services: services, suggestions: suggestions) { [weak self] in
+                // Show what comes next before closing, so Glint isn't sent back to the menu bar
+                // (which deactivates it and dismisses the panel) in between.
+                onFinish()
                 self?.onboardingWindow?.close()
                 self?.onboardingWindow = nil
-                onFinish()
             },
             size: NSSize(width: 620, height: 500),
             style: [.titled, .closable, .fullSizeContentView]
@@ -219,9 +223,9 @@ final class AppResultActions: ResultActions {
         window.setContentSize(size)
         window.isReleasedWhenClosed = false
         window.center()
-        let observer = NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) {
-            [weak self] notification in
-            let closed = notification.object as? NSWindow
+        let willClose = NSWindow.willCloseNotification
+        let observer = NotificationCenter.default.addObserver(forName: willClose, object: window, queue: .main) { [weak self] note in
+            let closed = note.object as? NSWindow
             MainActor.assumeIsolated { self?.windowClosed(closed) }
         }
         windowObservers.append(observer)
@@ -240,9 +244,16 @@ final class AppResultActions: ResultActions {
         playerWindows.removeAll { $0 === window }
         pdfWindows.removeAll { $0 === window }
         if window === upgradeWindow { upgradeWindow = nil }
+        returnToMenuBarIfIdle(closing: window)
+    }
+
+    /// Glint goes back to the menu bar once no window or panel is up. Doing so while the panel is
+    /// up would deactivate the app and dismiss the panel.
+    func returnToMenuBarIfIdle(closing window: NSWindow? = nil) {
         let anyOpen =
             [mainWindow, onboardingWindow, upgradeWindow].contains { $0?.isVisible == true && $0 !== window }
             || playerWindows.contains { $0.isVisible } || pdfWindows.contains { $0.isVisible }
+            || panel?.isVisible == true
         if !anyOpen { NSApp.setActivationPolicy(.accessory) }
     }
 }

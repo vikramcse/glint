@@ -92,22 +92,9 @@ struct MCPTools: Sendable {
         do {
             switch name {
             case "search_files":
-                guard let query = arguments["query"]?.stringValue,
-                    !query.trimmingCharacters(in: .whitespaces).isEmpty
-                else { return Self.failure("search_files needs a non-empty \"query\".") }
-                var body: [String: JSONValue] = ["query": .string(query), "limit": .integer(Int64(Self.limit(arguments)))]
-                if let kinds = arguments["kinds"] { body["kinds"] = kinds }
-                if let folders = arguments["folders"] { body["folders"] = folders }
-                if let date = arguments["modified_after"] { body["modifiedAfter"] = date }
-                let data = try await client.post("/v1/search", body: Self.encode(.object(body)))
-                return try Self.resultsSuccess(data, heading: "Results for “\(query)”")
+                return try await searchFiles(arguments)
             case "find_similar":
-                guard let path = arguments["path"]?.stringValue, path.hasPrefix("/") else {
-                    return Self.failure("find_similar needs an absolute \"path\".")
-                }
-                let body: JSONValue = ["path": .string(path), "limit": .integer(Int64(Self.limit(arguments)))]
-                let data = try await client.post("/v1/similar", body: Self.encode(body))
-                return try Self.resultsSuccess(data, heading: "Files similar to \((path as NSString).lastPathComponent)")
+                return try await findSimilar(arguments)
             case "index_status":
                 let status = try JSONValue.parse(try await client.get("/v1/status"))
                 return Self.success(text: Self.describeStatus(status), structured: status)
@@ -122,6 +109,27 @@ struct MCPTools: Sendable {
         } catch {
             return Self.failure("Glint returned a response glint-mcp couldn’t read.")
         }
+    }
+
+    private func searchFiles(_ arguments: JSONValue) async throws -> JSONValue {
+        guard let query = arguments["query"]?.stringValue,
+            !query.trimmingCharacters(in: .whitespaces).isEmpty
+        else { return Self.failure("search_files needs a non-empty \"query\".") }
+        var body: [String: JSONValue] = ["query": .string(query), "limit": .integer(Int64(Self.limit(arguments)))]
+        if let kinds = arguments["kinds"] { body["kinds"] = kinds }
+        if let folders = arguments["folders"] { body["folders"] = folders }
+        if let date = arguments["modified_after"] { body["modifiedAfter"] = date }
+        let data = try await client.post("/v1/search", body: Self.encode(.object(body)))
+        return try Self.resultsSuccess(data, heading: "Results for “\(query)”")
+    }
+
+    private func findSimilar(_ arguments: JSONValue) async throws -> JSONValue {
+        guard let path = arguments["path"]?.stringValue, path.hasPrefix("/") else {
+            return Self.failure("find_similar needs an absolute \"path\".")
+        }
+        let body: JSONValue = ["path": .string(path), "limit": .integer(Int64(Self.limit(arguments)))]
+        let data = try await client.post("/v1/similar", body: Self.encode(body))
+        return try Self.resultsSuccess(data, heading: "Files similar to \((path as NSString).lastPathComponent)")
     }
 
     // MARK: Results

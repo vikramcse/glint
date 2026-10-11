@@ -20,35 +20,43 @@ enum SampleCorpus {
     static let documents: [(String, String)] = [
         (
             "notes/product-launch.md",
-            "# Product launch plan\n\nLaunch date moves to March. Marketing owns the press kit; engineering ships the onboarding fixes first. Risks: pricing page copy and the waitlist email."
+            "# Product launch plan\n\nLaunch date moves to March. Marketing owns the press kit; engineering "
+                + "ships the onboarding fixes first. Risks: pricing page copy and the waitlist email."
         ),
         (
             "notes/standup-2026-09-14.txt",
-            "Standup notes. The client mentioned the deadline is Friday the 19th. Priya will send the revised contract. Budget approval pending from finance."
+            "Standup notes. The client mentioned the deadline is Friday the 19th. Priya will send the revised "
+                + "contract. Budget approval pending from finance."
         ),
         (
             "recipes/pasta.txt",
-            "Weeknight pasta sauce: crush ripe tomatoes with garlic and olive oil, simmer twenty minutes, finish with torn basil and parmesan."
+            "Weeknight pasta sauce: crush ripe tomatoes with garlic and olive oil, simmer twenty minutes, finish "
+                + "with torn basil and parmesan."
         ),
         (
             "recipes/bread.txt",
-            "Sourdough loaf: feed the starter the night before, autolyse flour and water for an hour, bulk ferment until doubled, bake in a dutch oven."
+            "Sourdough loaf: feed the starter the night before, autolyse flour and water for an hour, bulk "
+                + "ferment until doubled, bake in a dutch oven."
         ),
         (
             "travel/goa-itinerary.md",
-            "Goa trip itinerary: arrive Dabolim airport, check in at the Seaview hotel in Candolim, sunset at Chapora fort, spice plantation tour on day three."
+            "Goa trip itinerary: arrive Dabolim airport, check in at the Seaview hotel in Candolim, sunset at "
+                + "Chapora fort, spice plantation tour on day three."
         ),
         (
             "work/retro.txt",
-            "Sprint retrospective: what went well was pairing on the search ranking. What to improve: flaky CI on the indexing tests and slow code review turnaround."
+            "Sprint retrospective: what went well was pairing on the search ranking. What to improve: flaky CI "
+                + "on the indexing tests and slow code review turnaround."
         ),
         (
             "code/vector_scan.swift",
-            "// Scores every row of the matrix against the query with one matrix-vector multiply\nfunc scan(matrix: [Float], query: [Float]) -> [Float] { [] }"
+            "// Scores every row of the matrix against the query with one matrix-vector multiply\nfunc "
+                + "scan(matrix: [Float], query: [Float]) -> [Float] { [] }"
         ),
         (
             "finance/q3-summary.txt",
-            "Q3 summary: revenue grew 18 percent year over year, led by Europe. Gross margin improved to 71 percent. Hiring paused in support."
+            "Q3 summary: revenue grew 18 percent year over year, led by Europe. Gross margin improved to 71 "
+                + "percent. Hiring paused in support."
         ),
     ]
 

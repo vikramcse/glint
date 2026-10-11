@@ -273,4 +273,3 @@ public enum EG2Quantization: Sendable, Hashable {
     /// Affine 8-bit, group size 64.
     case int8
 }
-

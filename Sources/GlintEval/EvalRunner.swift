@@ -12,9 +12,9 @@ struct EvalRunner {
     let queries: [EvalQuery]
     let provider: any EmbeddingProvider
     /// Overrides the model's similarity margin when set (`.some(nil)` turns it off), for tuning.
-    var similarityMargin: Float?? = nil
+    var similarityMargin: Float??
     /// Overrides the model's minimum z-score when set (`.some(nil)` turns it off).
-    var minimumZScore: Float?? = nil
+    var minimumZScore: Float??
 
     func run() async throws -> EvalReport {
         let work = FileManager.default.temporaryDirectory.appendingPathComponent("glint-eval-\(UUID().uuidString)")
@@ -51,30 +51,36 @@ struct EvalRunner {
 
         var outcomes: [QueryOutcome] = []
         for query in queries {
-            let stopwatch = Stopwatch()
-            let results = try await engine.mergedResults(for: SearchQuery(text: query.text))
-            let latency = stopwatch.milliseconds
-            let ignored = Set(query.ignored ?? [])
-            let ranked = results.items.map { relativePath($0.file.path, root: root) }.filter { !ignored.contains($0) }
-            let hits = ranked.filter { (query.relevant[$0] ?? 0) > 0 }.count
-            let wanted = query.relevant.values.filter { $0 > 0 }.count
-            outcomes.append(
-                QueryOutcome(
-                    id: query.id,
-                    kind: kind(of: query),
-                    recallAt10: RetrievalMetrics.recall(ranked: ranked, relevant: query.relevant),
-                    reciprocalRank: RetrievalMetrics.reciprocalRank(ranked: ranked, relevant: query.relevant),
-                    ndcgAt10: RetrievalMetrics.ndcg(ranked: ranked, relevant: query.relevant),
-                    latencyMilliseconds: latency,
-                    top: Array(ranked.prefix(5)),
-                    mustPass: query.mustPass ?? false,
-                    returned: ranked.count,
-                    precision: ranked.isEmpty ? (query.isNegative ? 1 : 0) : Double(hits) / Double(ranked.count),
-                    recall: wanted == 0 ? nil : Double(hits) / Double(wanted),
-                    isNegative: query.isNegative
-                ))
+            outcomes.append(try await outcome(of: query, engine: engine, root: root))
         }
+        return report(outcomes, corpusFiles: status.totalIndexed, indexingSeconds: indexingSeconds)
+    }
 
+    private func outcome(of query: EvalQuery, engine: SearchEngine, root: String) async throws -> QueryOutcome {
+        let stopwatch = Stopwatch()
+        let results = try await engine.mergedResults(for: SearchQuery(text: query.text))
+        let latency = stopwatch.milliseconds
+        let ignored = Set(query.ignored ?? [])
+        let ranked = results.items.map { relativePath($0.file.path, root: root) }.filter { !ignored.contains($0) }
+        let hits = ranked.filter { (query.relevant[$0] ?? 0) > 0 }.count
+        let wanted = query.relevant.values.filter { $0 > 0 }.count
+        return QueryOutcome(
+            id: query.id,
+            kind: kind(of: query),
+            recallAt10: RetrievalMetrics.recall(ranked: ranked, relevant: query.relevant),
+            reciprocalRank: RetrievalMetrics.reciprocalRank(ranked: ranked, relevant: query.relevant),
+            ndcgAt10: RetrievalMetrics.ndcg(ranked: ranked, relevant: query.relevant),
+            latencyMilliseconds: latency,
+            top: Array(ranked.prefix(5)),
+            mustPass: query.mustPass ?? false,
+            returned: ranked.count,
+            precision: ranked.isEmpty ? (query.isNegative ? 1 : 0) : Double(hits) / Double(ranked.count),
+            recall: wanted == 0 ? nil : Double(hits) / Double(wanted),
+            isNegative: query.isNegative
+        )
+    }
+
+    private func report(_ outcomes: [QueryOutcome], corpusFiles: Int, indexingSeconds: Double) -> EvalReport {
         let negatives = outcomes.filter { $0.isNegative == true }
         let positives = outcomes.filter { $0.isNegative != true }
         var perKind: [String: Scores] = [:]
@@ -83,7 +89,7 @@ struct EvalRunner {
         return EvalReport(
             model: provider.descriptor.space.description,
             date: Date(),
-            corpusFiles: status.totalIndexed,
+            corpusFiles: corpusFiles,
             indexingSeconds: indexingSeconds,
             overall: scores(positives),
             perKind: perKind,

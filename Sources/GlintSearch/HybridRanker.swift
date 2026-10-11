@@ -59,12 +59,7 @@ public struct HybridRanker: Sendable {
         var similarity: [ChunkID: Float] = [:]
         var files: [FileID: RankedFile] = [:]
 
-        var floor = minimumSimilarity
-        if let minimumZScore, let statistics, statistics.deviation > 0, statistics.count >= calibrationMinimumRows {
-            floor = max(floor, statistics.mean + minimumZScore * statistics.deviation)
-        } else if let similarityMargin, let best = semantic.map(\.score).max() {
-            floor = max(floor, best - similarityMargin)
-        }
+        let floor = semanticFloor(semantic, statistics: statistics)
         for (rank, hit) in semantic.filter({ $0.score >= floor }).enumerated() {
             chunkScores[hit.chunkID, default: (hit.fileID, 0)].score += semanticWeight / (k + Double(rank + 1))
             similarity[hit.chunkID] = hit.score
@@ -101,6 +96,18 @@ public struct HybridRanker: Sendable {
         return ranked.sorted { lhs, rhs in
             lhs.score != rhs.score ? lhs.score > rhs.score : lhs.fileID < rhs.fileID
         }
+    }
+
+    /// The lowest semantic score kept: calibrated against the library's score statistics when
+    /// there are enough vectors, otherwise a margin below the best match.
+    private func semanticFloor(_ semantic: [ScoredChunk], statistics: ScoreStatistics?) -> Float {
+        var floor = minimumSimilarity
+        if let minimumZScore, let statistics, statistics.deviation > 0, statistics.count >= calibrationMinimumRows {
+            floor = max(floor, statistics.mean + minimumZScore * statistics.deviation)
+        } else if let similarityMargin, let best = semantic.map(\.score).max() {
+            floor = max(floor, best - similarityMargin)
+        }
+        return floor
     }
 }
 

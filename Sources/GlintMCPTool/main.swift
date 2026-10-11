@@ -11,7 +11,8 @@ import GlintMCP
 let arguments = CommandLine.arguments.dropFirst()
 if arguments.contains("--help") || arguments.contains("-h") {
     print(
-        "usage: glint-mcp [--discovery PATH]\nAn MCP server over stdio for Glint. Add it to your agent, e.g.:\n  claude mcp add glint -- \(CommandLine.arguments[0])"
+        "usage: glint-mcp [--discovery PATH]\nAn MCP server over stdio for Glint. Add it to your agent, e.g.:\n"
+            + "  claude mcp add glint -- \(CommandLine.arguments[0])"
     )
     exit(0)
 }

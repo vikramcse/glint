@@ -109,7 +109,7 @@ struct EG2Tokenizer: Sendable {
                     index + token.content.count <= bytes.count && bytes[index..<(index + token.content.count)].elementsEqual(token.content)
                 })
             {
-                if start < index { result.append(.text(String(decoding: bytes[start..<index], as: UTF8.self))) }
+                if start < index { result.append(.text(String(lossyUTF8: bytes[start..<index]))) }
                 result.append(.special(match.id))
                 index += match.content.count
                 start = index
@@ -117,7 +117,7 @@ struct EG2Tokenizer: Sendable {
                 index += 1
             }
         }
-        if start < bytes.count { result.append(.text(String(decoding: bytes[start...], as: UTF8.self))) }
+        if start < bytes.count { result.append(.text(String(lossyUTF8: bytes[start...]))) }
         return result
     }
 
@@ -161,7 +161,11 @@ struct EG2Tokenizer: Sendable {
             if previous[left] != -1 { enqueue(previous[left]) }
             enqueue(left)
         }
+        append(symbols, linkedBy: next, of: scalars, to: &ids)
+    }
 
+    /// Appends the merged symbols in order; characters outside the vocabulary become their bytes.
+    private func append(_ symbols: [Int32], linkedBy next: [Int], of scalars: [Unicode.Scalar], to ids: inout [Int32]) {
         var cursor = 0
         while cursor != -1 {
             if symbols[cursor] >= 0 {
@@ -223,159 +227,6 @@ private struct VocabularyTable: Sendable {
         var hash: UInt64 = 0xcbf2_9ce4_8422_2325
         for byte in bytes { hash = (hash ^ UInt64(byte)) &* 0x100_0000_01b3 }
         return hash
-    }
-}
-
-/// A JSON reader that keeps strings and object keys exactly as written: objects are ordered
-/// key-value lists, so keys that are canonically equal in Swift stay distinct.
-enum ExactJSON {
-    indirect enum Value {
-        case object([(key: String, value: Value)])
-        case array([Value])
-        case string(String)
-        case number(Int)
-        case other
-    }
-
-    struct ParseError: Error {
-        let offset: Int
-    }
-
-    static func parse(_ data: Data) throws -> Value {
-        try data.withUnsafeBytes { raw in
-            var parser = Parser(bytes: raw.bindMemory(to: UInt8.self))
-            let value = try parser.value()
-            parser.skipWhitespace()
-            guard parser.index == parser.bytes.count else { throw ParseError(offset: parser.index) }
-            return value
-        }
-    }
-
-    private struct Parser {
-        let bytes: UnsafeBufferPointer<UInt8>
-        var index = 0
-
-        mutating func skipWhitespace() {
-            while index < bytes.count, [0x20, 0x0A, 0x0D, 0x09].contains(bytes[index]) { index += 1 }
-        }
-
-        mutating func expect(_ byte: UInt8) throws {
-            skipWhitespace()
-            guard index < bytes.count, bytes[index] == byte else { throw ParseError(offset: index) }
-            index += 1
-        }
-
-        mutating func value() throws -> Value {
-            skipWhitespace()
-            guard index < bytes.count else { throw ParseError(offset: index) }
-            switch bytes[index] {
-            case UInt8(ascii: "{"):
-                index += 1
-                var members: [(key: String, value: Value)] = []
-                skipWhitespace()
-                if bytes[index] == UInt8(ascii: "}") {
-                    index += 1
-                    return .object(members)
-                }
-                while true {
-                    skipWhitespace()
-                    let key = try string()
-                    try expect(UInt8(ascii: ":"))
-                    members.append((key, try value()))
-                    skipWhitespace()
-                    guard index < bytes.count else { throw ParseError(offset: index) }
-                    index += 1
-                    if bytes[index - 1] == UInt8(ascii: "}") { return .object(members) }
-                    guard bytes[index - 1] == UInt8(ascii: ",") else { throw ParseError(offset: index - 1) }
-                }
-            case UInt8(ascii: "["):
-                index += 1
-                var items: [Value] = []
-                skipWhitespace()
-                if bytes[index] == UInt8(ascii: "]") {
-                    index += 1
-                    return .array(items)
-                }
-                while true {
-                    items.append(try value())
-                    skipWhitespace()
-                    guard index < bytes.count else { throw ParseError(offset: index) }
-                    index += 1
-                    if bytes[index - 1] == UInt8(ascii: "]") { return .array(items) }
-                    guard bytes[index - 1] == UInt8(ascii: ",") else { throw ParseError(offset: index - 1) }
-                }
-            case UInt8(ascii: "\""):
-                return .string(try string())
-            case UInt8(ascii: "-"), UInt8(ascii: "0")...UInt8(ascii: "9"):
-                let start = index
-                index += 1
-                while index < bytes.count, "0123456789.eE+-".utf8.contains(bytes[index]) { index += 1 }
-                let text = String(decoding: UnsafeBufferPointer(rebasing: bytes[start..<index]), as: UTF8.self)
-                if let integer = Int(text) { return .number(integer) }
-                return .other
-            default:
-                // true, false, null
-                while index < bytes.count, (UInt8(ascii: "a")...UInt8(ascii: "z")).contains(bytes[index]) { index += 1 }
-                return .other
-            }
-        }
-
-        mutating func string() throws -> String {
-            guard index < bytes.count, bytes[index] == UInt8(ascii: "\"") else { throw ParseError(offset: index) }
-            index += 1
-            var scalars = String.UnicodeScalarView()
-            var runStart = index
-            func flushRun(_ end: Int) {
-                if runStart < end {
-                    scalars.append(contentsOf: String(decoding: UnsafeBufferPointer(rebasing: bytes[runStart..<end]), as: UTF8.self).unicodeScalars)
-                }
-            }
-            while index < bytes.count {
-                let byte = bytes[index]
-                if byte == UInt8(ascii: "\"") {
-                    flushRun(index)
-                    index += 1
-                    return String(scalars)
-                }
-                guard byte == UInt8(ascii: "\\") else {
-                    index += 1
-                    continue
-                }
-                flushRun(index)
-                index += 1
-                guard index < bytes.count else { break }
-                let escape = bytes[index]
-                index += 1
-                switch escape {
-                case UInt8(ascii: "n"): scalars.append("\n")
-                case UInt8(ascii: "t"): scalars.append("\t")
-                case UInt8(ascii: "r"): scalars.append("\r")
-                case UInt8(ascii: "b"): scalars.append("\u{08}")
-                case UInt8(ascii: "f"): scalars.append("\u{0C}")
-                case UInt8(ascii: "u"):
-                    var code = try hex4()
-                    if (0xD800..<0xDC00).contains(code), index + 1 < bytes.count, bytes[index] == UInt8(ascii: "\\"),
-                        bytes[index + 1] == UInt8(ascii: "u")
-                    {
-                        index += 2
-                        let low = try hex4()
-                        code = 0x10000 + ((code - 0xD800) << 10) + (low - 0xDC00)
-                    }
-                    scalars.append(Unicode.Scalar(code) ?? "\u{FFFD}")
-                default: scalars.append(Unicode.Scalar(escape))
-                }
-                runStart = index
-            }
-            throw ParseError(offset: index)
-        }
-
-        mutating func hex4() throws -> UInt32 {
-            guard index + 4 <= bytes.count,
-                let code = UInt32(String(decoding: UnsafeBufferPointer(rebasing: bytes[index..<(index + 4)]), as: UTF8.self), radix: 16)
-            else { throw ParseError(offset: index) }
-            index += 4
-            return code
-        }
     }
 }
 

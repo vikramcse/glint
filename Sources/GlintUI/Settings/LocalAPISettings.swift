@@ -91,7 +91,10 @@ struct LocalAPISection: View {
             Text("Apps and agents")
         } footer: {
             Text(
-                "Agents on this Mac can search your index through Glint’s local API. It listens only on this Mac, needs a private access token, and never sends anything off the device."
+                """
+                Agents on this Mac can search your index through Glint’s local API. It listens only on this Mac, \
+                needs a private access token, and never sends anything off the device.
+                """
             )
         }
     }

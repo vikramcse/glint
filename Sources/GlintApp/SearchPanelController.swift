@@ -46,6 +46,7 @@ final class SearchPanelController {
     private let model: SearchModel
     /// While Quick Look is up, losing key status must not dismiss the panel.
     var keepOpenOnResign = false
+    var onHide: (() -> Void)?
 
     init(services: GlintServices) {
         model = SearchModel(
@@ -78,7 +79,7 @@ final class SearchPanelController {
     var isVisible: Bool { panel.isVisible }
 
     func toggle() {
-        isVisible ? hide() : show()
+        if isVisible { hide() } else { show() }
     }
 
     func show() {
@@ -92,7 +93,9 @@ final class SearchPanelController {
 
     func hide() {
         keepOpenOnResign = false
+        guard panel.isVisible else { return }
         panel.orderOut(nil)
+        onHide?()
     }
 
     /// Grows and shrinks downward from a fixed top edge as results come and go, like Spotlight.

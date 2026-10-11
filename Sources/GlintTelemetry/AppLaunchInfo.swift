@@ -59,6 +59,6 @@ public struct AppLaunchInfo: Sendable, Hashable {
         var buffer = [CChar](repeating: 0, count: size)
         guard sysctlbyname("machdep.cpu.brand_string", &buffer, &size, nil, 0) == 0 else { return "" }
         let bytes = buffer.prefix(while: { $0 != 0 }).map { UInt8(bitPattern: $0) }
-        return String(decoding: bytes, as: UTF8.self)
+        return String(bytes: bytes, encoding: .utf8) ?? ""
     }
 }

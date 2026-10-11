@@ -8,36 +8,36 @@ import GlintStore
 /// pending queue (documents and images first, then audio, then video), pausing for battery,
 /// Low Power Mode, heat, the Free item limit, or the user.
 public actor Indexer: IndexingService {
-    private let writer: IndexWriter
-    private var pipeline: FilePipeline
-    private var vectorIndex: any VectorIndex
+    let writer: IndexWriter
+    var pipeline: FilePipeline
+    var vectorIndex: any VectorIndex
     private let thumbnails: ThumbnailStore
-    private let features: FeatureGateBox
-    private let power: any PowerMonitoring
-    private var options: IndexerOptions
-    private let watcher = FileSystemWatcher()
+    let features: FeatureGateBox
+    let power: any PowerMonitoring
+    var options: IndexerOptions
+    let watcher = FileSystemWatcher()
 
-    private var rules = ExclusionRules.default
-    private var phase: IndexStatus.Phase = .idle
-    private var userPaused = false
-    private var inaccessibleSources = 0
+    var rules = ExclusionRules.default
+    var phase: IndexStatus.Phase = .idle
+    var userPaused = false
+    var inaccessibleSources = 0
     private var lastSnapshot: FeatureGateSnapshot
     private var loopTask: Task<Void, Never>?
     private var watchTask: Task<Void, Never>?
-    private var wakeContinuation: CheckedContinuation<Void, Never>?
-    private var wakePending = false
+    var wakeContinuation: CheckedContinuation<Void, Never>?
+    var wakePending = false
     private var subscribers: [UUID: AsyncStream<IndexStatus>.Continuation] = [:]
     private var lastPublish: ContinuousClock.Instant?
-    private let photos: (any PhotoLibraryProviding)?
-    private var photosTask: Task<Void, Never>?
+    let photos: (any PhotoLibraryProviding)?
+    var photosTask: Task<Void, Never>?
     /// Claimed files waiting for a worker, in queue order.
-    private var prefetched: [FileRecord] = []
+    var prefetched: [FileRecord] = []
     /// Claimed files not yet finished (prefetched or being processed); excluded from claims.
-    private var inFlight: Set<FileID> = []
-    private var refill: Task<Void, Never>?
-    private var queueExhausted = false
+    var inFlight: Set<FileID> = []
+    var refill: Task<Void, Never>?
+    var queueExhausted = false
     /// Pools running right now (the queue loop and `drain()` may overlap).
-    private var activePools = 0
+    var activePools = 0
 
     private static let exclusionsKey = "exclusions"
 
@@ -241,7 +241,9 @@ public actor Indexer: IndexingService {
 
     public func setExclusions(_ newRules: ExclusionRules) async throws {
         let data = try JSONEncoder().encode(newRules)
-        try await writer.setSetting(Self.exclusionsKey, value: String(decoding: data, as: UTF8.self))
+        // JSONEncoder always writes UTF-8.
+        guard let json = String(bytes: data, encoding: .utf8) else { return }
+        try await writer.setSetting(Self.exclusionsKey, value: json)
         rules = newRules
         await rescanAllSources()
         wake()
@@ -276,213 +278,13 @@ public actor Indexer: IndexingService {
         wake()
     }
 
-    // MARK: Queue loop
-
-    private func runLoop() async {
-        while !Task.isCancelled {
-            if userPaused {
-                setPhase(.paused(.user))
-                await waitForWake()
-                continue
-            }
-            if let reason = power.pauseReason() {
-                setPhase(.paused(reason))
-                await waitForWake(timeout: .seconds(30))
-                continue
-            }
-            setPhase(.indexing)
-            await runPool()
-            if userPaused || power.pauseReason() != nil { continue }
-            _ = try? await writer.failExhausted()
-            if case .paused(.itemLimitReached) = phase {} else { setPhase(.idle) }
-            await publishStatus(force: true)
-            await waitForWake(timeout: .seconds(300))
-        }
-    }
-
-    /// Runs a pool of workers until the queue is empty, indexing pauses, or the task is
-    /// cancelled. Each worker takes the next file as soon as it finishes one, so a long video
-    /// never holds up the files behind it. On battery or when warm, fewer workers and OCR
-    /// lanes run instead of pausing.
-    private func runPool() async {
-        let constrained = power.isConstrained
-        let workers = options.workers(constrained: constrained)
-        ExtractionLanes.ocr.setWidth(options.ocrLanes(constrained: constrained))
-        queueExhausted = false
-        activePools += 1
-        await withTaskGroup(of: Void.self) { group in
-            for _ in 0..<workers {
-                group.addTask { [weak self] in
-                    while let self, !Task.isCancelled, let record = await self.claimNext() {
-                        _ = await self.pipelineSnapshot().process(record)
-                        await self.finished(record.id)
-                    }
-                }
-            }
-        }
-        activePools -= 1
-        guard activePools == 0 else { return }
-        // Return anything prefetched but not started (pause or cancel) to the queue.
-        let unstarted = prefetched
-        prefetched.removeAll()
-        for record in unstarted {
-            inFlight.remove(record.id)
-            try? await writer.release(record.id)
-        }
-    }
-
-    private func pipelineSnapshot() -> FilePipeline { pipeline }
-
-    private func finished(_ id: FileID) async {
-        inFlight.remove(id)
-        await publishStatus()
-    }
-
-    /// The next file for a worker, or `nil` when the worker should stop (queue empty, paused,
-    /// item limit reached).
-    private func claimNext() async -> FileRecord? {
-        while true {
-            if Task.isCancelled || userPaused || power.pauseReason() != nil { return nil }
-            if !prefetched.isEmpty { return prefetched.removeFirst() }
-            if queueExhausted { return nil }
-            // One refill at a time; it clears `refill` itself before finishing, so waiters never
-            // spin on a completed task.
-            let task = refill ?? Task { await self.refillQueue() }
-            refill = task
-            await task.value
-        }
-    }
-
-    /// Claims the next few files in queue order, skipping files already in flight.
-    private func refillQueue() async {
-        defer { refill = nil }
-        let gate = features.current
-        var limit = max(2, options.concurrentFiles * 2)
-        if let itemLimit = gate.itemLimit {
-            let indexed = (try? await writer.counts().totalIndexed) ?? 0
-            let remaining = itemLimit - indexed - inFlight.count
-            if remaining <= 0 {
-                if indexed >= itemLimit { setPhase(.paused(.itemLimitReached)) }
-                queueExhausted = true
-                return
-            }
-            limit = min(limit, remaining)
-        }
-        var kinds = Set(MediaKind.allCases.filter { gate.allows($0) })
-        if options.videoOnlyOnPower, power.isOnBattery { kinds.remove(.video) }
-        let claimed = (try? await writer.claimPending(limit: limit, kinds: kinds, excluding: inFlight)) ?? []
-        if claimed.isEmpty {
-            queueExhausted = true
-            return
-        }
-        for record in claimed { inFlight.insert(record.id) }
-        prefetched.append(contentsOf: claimed)
-    }
-
-    private func waitForWake(timeout: Duration? = nil) async {
-        if wakePending {
-            wakePending = false
-            return
-        }
-        let timer = timeout.map { duration in
-            Task { [weak self] in
-                try? await Task.sleep(for: duration)
-                await self?.wake()
-            }
-        }
-        await withCheckedContinuation { wakeContinuation = $0 }
-        timer?.cancel()
-    }
-
-    private func wake() {
-        if let continuation = wakeContinuation {
-            wakeContinuation = nil
-            continuation.resume()
-        } else {
-            wakePending = true
-        }
-    }
-
-    // MARK: Scanning and watching
-
-    private func rescanAllSources() async {
-        setPhase(.scanning)
-        await publishStatus(force: true)
-        let sources = (try? await writer.sources()) ?? []
-        var inaccessible = 0
-        for source in sources where !(await rescan(sourceID: source.id, root: source.path)) {
-            inaccessible += 1
-        }
-        inaccessibleSources = inaccessible
-        setPhase(.idle)
-    }
-
-    /// Reconciles one source (or a folder inside it). Returns false when the root is not
-    /// readable; an unplugged drive must never look like "every file was deleted".
-    @discardableResult
-    private func rescan(sourceID: SourceID, root: String, scope: String? = nil) async -> Bool {
-        if PhotosLibraryPath.isLibrary(root) { return await rescanPhotos(sourceID: sourceID) }
-        guard FileManager.default.isReadableFile(atPath: root) else { return false }
-        let scanner = FileScanner(exclusions: rules)
-        let target = URL(fileURLWithPath: scope ?? root)
-        let scanned = await Task.detached(priority: .utility) { (try? scanner.scan(target)) ?? [] }.value
-        guard let result = try? await writer.reconcile(sourceID: sourceID, scanned: scanned, scope: scope) else { return true }
-        await apply(result)
-        return true
-    }
-
-    private func restartWatcher() async {
-        let paths = ((try? await writer.sources()) ?? []).map(\.path).filter { !PhotosLibraryPath.isLibrary($0) }
-        watcher.watch(paths, latency: options.watcherLatency)
-    }
-
-    private func handle(_ change: FileSystemChange) async {
-        let sources = (try? await writer.sources()) ?? []
-        func source(for path: String) -> SourceRecord? {
-            sources.filter { path == $0.path || path.hasPrefix($0.path.hasSuffix("/") ? $0.path : $0.path + "/") }
-                .max { $0.path.count < $1.path.count }
-        }
-        for root in change.rescanRoots.map(FileScanner.canonicalPath) {
-            if let owner = source(for: root) {
-                await rescan(sourceID: owner.id, root: owner.path, scope: root == owner.path ? nil : root)
-            }
-        }
-
-        let scanner = FileScanner(exclusions: rules)
-        var upserts: [(SourceID, ScannedFile)] = []
-        var removed: [String] = []
-        for path in change.paths.map(FileScanner.canonicalPath).sorted() {
-            guard let owner = source(for: path) else { continue }
-            var isDirectory: ObjCBool = false
-            if rules.excludes(path: path) || !FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) {
-                removed.append(path)
-            } else if isDirectory.boolValue {
-                let files = (try? scanner.scan(URL(fileURLWithPath: path))) ?? []
-                upserts += files.map { (owner.id, $0) }
-            } else if let file = scanner.scannedFile(at: URL(fileURLWithPath: path)) {
-                upserts.append((owner.id, file))
-            }
-        }
-        guard !upserts.isEmpty || !removed.isEmpty,
-            let result = try? await writer.applyChanges(upserts: upserts, removedPaths: removed)
-        else { return }
-        await apply(result)
-    }
-
-    private func apply(_ result: IndexWriter.ReconcileResult) async {
-        for id in result.removed { try? await vectorIndex.remove(fileID: id) }
-        for moved in result.moved { await vectorIndex.updateAttributes(moved.attributes, for: moved.id) }
-        if result.added + result.changed > 0 { wake() }
-        if !result.isEmpty { await publishStatus() }
-    }
-
     // MARK: Status
 
-    private func setPhase(_ newPhase: IndexStatus.Phase) {
+    func setPhase(_ newPhase: IndexStatus.Phase) {
         phase = newPhase
     }
 
-    private func publishStatus(force: Bool = false) async {
+    func publishStatus(force: Bool = false) async {
         guard !subscribers.isEmpty else { return }
         let now = ContinuousClock.now
         if !force, let lastPublish, now - lastPublish < .milliseconds(500) { return }
@@ -509,60 +311,5 @@ public actor Indexer: IndexingService {
     private static func isExternal(_ url: URL) -> Bool {
         let values = try? url.resourceValues(forKeys: [.volumeIsInternalKey])
         return values?.volumeIsInternal == false
-    }
-
-    // MARK: Photos library
-
-    /// Adds the Photos library as a source (Pro). Asks for Photos access the first time.
-    private func addPhotosLibrary() async throws -> SourceInfo {
-        guard features.current.allows(.photosLibrary) else { throw EntitlementError.photosLibraryRequiresPro }
-        guard let photos else { throw IndexerError.sourceUnreadable }
-        var status = photos.authorizationStatus()
-        if status == .notDetermined { status = await photos.requestAuthorization() }
-        guard status == .authorized else { throw IndexerError.sourceUnreadable }
-
-        let id = try await writer.addSource(path: PhotosLibraryPath.library, bookmark: nil)
-        await rescanPhotos(sourceID: id)
-        startObservingPhotos()
-        wake()
-        return try await sources().first { $0.id == id }
-            ?? SourceInfo(id: id, path: PhotosLibraryPath.library, isExternalVolume: false, isAccessible: true, itemCount: 0)
-    }
-
-    /// Lists local assets and reconciles them like a folder scan. Returns false when Photos
-    /// access is unavailable; the existing rows are kept, never treated as deleted.
-    @discardableResult
-    private func rescanPhotos(sourceID: SourceID) async -> Bool {
-        guard let photos, photos.authorizationStatus() == .authorized,
-            let assets = try? await photos.localAssets()
-        else { return false }
-        let scanned = assets.map { asset in
-            ScannedFile(path: asset.path, kind: asset.kind, contentType: asset.contentType, size: asset.size, modified: asset.modified)
-        }
-        if let result = try? await writer.reconcile(sourceID: sourceID, scanned: scanned) { await apply(result) }
-        return true
-    }
-
-    /// Re-scans the library when Photos reports a change, while it is a source.
-    private func startObservingPhotos() {
-        guard photosTask == nil, let photos else { return }
-        // Subscribe before spawning the task so no change between now and its start is missed.
-        let changes = photos.changes()
-        photosTask = Task { [weak self] in
-            for await _ in changes {
-                guard let self else { return }
-                await self.rescanPhotosIfSource()
-            }
-        }
-    }
-
-    private func rescanPhotosIfSource() async {
-        guard let source = try? await writer.sources().first(where: { PhotosLibraryPath.isLibrary($0.path) }) else { return }
-        await rescanPhotos(sourceID: source.id)
-    }
-
-    private func isAccessible(_ path: String) -> Bool {
-        if PhotosLibraryPath.isLibrary(path) { return photos?.authorizationStatus() == .authorized }
-        return FileManager.default.isReadableFile(atPath: path)
     }
 }

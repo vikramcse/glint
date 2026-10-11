@@ -65,23 +65,30 @@ struct EG2Processor: @unchecked Sendable {
             item.images.append(processed)
             item.ids += mediaSpan(start: config.boiTokenId, token: config.imageTokenId, count: processed.softTokens, end: config.eoiTokenId)
         case .video(let clip):
-            for frame in clip.frames {
-                guard let processed = frameProcessor.process(frame) else { continue }
-                item.frames.append(processed)
-                item.ids += mediaSpan(
-                    start: config.boiTokenId, token: config.videoTokenId, count: processed.softTokens, end: config.eoiTokenId)
-            }
+            appendFrames(of: clip, to: &item)
             if let audio = clip.audio { try append(.audio(audio), to: &item) }
         case .audio(let clip):
-            let samples = clip.sampleRate == 16_000 ? clip.samples : Self.resample(clip.samples, from: clip.sampleRate)
-            let features = audioFeatures(samples)
-            let tokens = EG2AudioFeatureExtractor.tokenCount(mask: features.mask)
-            guard tokens > 0 else { return }
-            item.audio.append(features)
-            item.ids += mediaSpan(start: config.boaTokenId, token: config.audioTokenId, count: tokens, end: config.eoaTokenIndex)
+            append(audio: clip, to: &item)
         case .interleaved(let parts):
             for nested in parts { try append(nested, to: &item) }
         }
+    }
+
+    private func appendFrames(of clip: VideoClip, to item: inout Item) {
+        for frame in clip.frames {
+            guard let processed = frameProcessor.process(frame) else { continue }
+            item.frames.append(processed)
+            item.ids += mediaSpan(start: config.boiTokenId, token: config.videoTokenId, count: processed.softTokens, end: config.eoiTokenId)
+        }
+    }
+
+    private func append(audio clip: AudioClip, to item: inout Item) {
+        let samples = clip.sampleRate == 16_000 ? clip.samples : Self.resample(clip.samples, from: clip.sampleRate)
+        let features = audioFeatures(samples)
+        let tokens = EG2AudioFeatureExtractor.tokenCount(mask: features.mask)
+        guard tokens > 0 else { return }
+        item.audio.append(features)
+        item.ids += mediaSpan(start: config.boaTokenId, token: config.audioTokenId, count: tokens, end: config.eoaTokenIndex)
     }
 
     private func mediaSpan(start: Int, token: Int, count: Int, end: Int) -> [Int32] {

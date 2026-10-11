@@ -7,48 +7,56 @@ import GlintSearch
 public enum ErrorPresenter {
     public static func message(for error: any Error) -> String {
         if let error = error as? LicenseError { return message(for: error) }
-        if let error = error as? SearchError {
-            switch error {
-            case .encoderUnavailable:
-                return String(localized: "The search model is still loading. Keyword results are shown meanwhile.")
-            case .noExample:
-                return String(localized: "Glint couldn’t read anything to compare in that file.")
-            }
+        if let error = error as? SearchError { return searchMessage(error) }
+        if let error = error as? EntitlementError { return entitlementMessage(error) }
+        return categoryMessage(error.glintCategory)
+    }
+
+    private static func searchMessage(_ error: SearchError) -> String {
+        switch error {
+        case .encoderUnavailable:
+            String(localized: "The search model is still loading. Keyword results are shown meanwhile.")
+        case .noExample:
+            String(localized: "Glint couldn’t read anything to compare in that file.")
         }
-        if let error = error as? EntitlementError {
-            switch error {
-            case .sourceLimitReached(let limit):
-                return String(localized: "Glint Free includes up to \(limit) folders. Upgrade to Pro to add more.")
-            case .externalDrivesRequirePro:
-                return String(localized: "External drives need Glint Pro.")
-            case .itemLimitReached(let limit):
-                return String(localized: "Glint Free indexes up to \(limit) items. Upgrade to Pro to index everything.")
-            case .photosLibraryRequiresPro:
-                return String(localized: "Searching your Photos library needs Glint Pro.")
-            }
+    }
+
+    private static func entitlementMessage(_ error: EntitlementError) -> String {
+        switch error {
+        case .sourceLimitReached(let limit):
+            String(localized: "Glint Free includes up to \(limit) folders. Upgrade to Pro to add more.")
+        case .externalDrivesRequirePro:
+            String(localized: "External drives need Glint Pro.")
+        case .itemLimitReached(let limit):
+            String(localized: "Glint Free indexes up to \(limit) items. Upgrade to Pro to index everything.")
+        case .photosLibraryRequiresPro:
+            String(localized: "Searching your Photos library needs Glint Pro.")
         }
-        switch error.glintCategory {
+    }
+
+    private static func categoryMessage(_ category: ErrorCategory) -> String {
+        switch category {
         case .licensing:
-            return String(localized: "This needs Glint Pro.")
+            String(localized: "This needs Glint Pro.")
         case .permissionDenied:
-            return String(
+            String(
                 localized: "Glint doesn’t have permission to read this. You can grant access in System Settings › Privacy & Security.")
         case .notFound:
-            return String(localized: "The file is no longer there. It may have been moved or deleted.")
+            String(localized: "The file is no longer there. It may have been moved or deleted.")
         case .unsupported:
-            return String(localized: "Glint can’t read this kind of file yet.")
+            String(localized: "Glint can’t read this kind of file yet.")
         case .corrupt:
-            return String(localized: "The file appears to be damaged.")
+            String(localized: "The file appears to be damaged.")
         case .storage:
-            return String(localized: "Glint couldn’t update its index. Check that your disk has free space.")
+            String(localized: "Glint couldn’t update its index. Check that your disk has free space.")
         case .model:
-            return String(localized: "The search model isn’t available right now.")
+            String(localized: "The search model isn’t available right now.")
         case .network:
-            return String(localized: "Glint couldn’t reach the server. Check your internet connection and try again.")
+            String(localized: "Glint couldn’t reach the server. Check your internet connection and try again.")
         case .cancelled:
-            return String(localized: "Cancelled.")
+            String(localized: "Cancelled.")
         case .internal:
-            return String(localized: "Something went wrong. Please try again.")
+            String(localized: "Something went wrong. Please try again.")
         }
     }
 

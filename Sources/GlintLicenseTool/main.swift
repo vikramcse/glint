@@ -57,7 +57,7 @@ func printJSON(_ payload: LicensePayload) throws {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     encoder.dateEncodingStrategy = .iso8601
-    print(String(decoding: try encoder.encode(payload), as: UTF8.self))
+    print(String(bytes: try encoder.encode(payload), encoding: .utf8) ?? "")
 }
 
 func run(_ arguments: [String]) throws {

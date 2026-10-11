@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         super.init()
         do {
+            try launch.prepareUITest()
             environment = try AppEnvironment(settings: settings, launch: launch)
         } catch {
             launchError = error
@@ -40,6 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             services: environment.services, savedSearches: environment.savedSearches, photos: environment.photos)
         let panel = SearchPanelController(services: environment.services)
         actions.panel = panel
+        panel.onHide = { [weak actions] in actions?.returnToMenuBarIfIdle() }
         environment.services.actions = actions
         environment.services.updates = updater
         self.actions = actions
@@ -126,26 +128,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func observeSettings(_ environment: AppEnvironment) {
-        observe({ self.settings.hotKey }) { [weak self] _ in self?.registerHotKey() }
-        observe({ self.settings.localAPIEnabled }) { _ in
+        observe {
+            self.settings.hotKey
+        } onChange: { [weak self] _ in
+            self?.registerHotKey()
+        }
+        observe {
+            self.settings.localAPIEnabled
+        } onChange: { _ in
             Task { await environment.localAPI.apply() }
         }
-        observe({ self.settings.analyticsEnabled }) { enabled in
+        observe {
+            self.settings.analyticsEnabled
+        } onChange: { enabled in
             Task { await environment.telemetry.setEnabled(enabled) }
         }
-        observe({ self.settings.launchAtLogin }) { enabled in
+        observe {
+            self.settings.launchAtLogin
+        } onChange: { enabled in
             do {
                 if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
             } catch {
                 Log.app.error("Login item change failed: \(error.localizedDescription, privacy: .public)")
             }
         }
-        observe({ [self.settings.groupResultsByKind.description, self.settings.defaultKinds.map(\.rawValue).sorted().description] }) {
-            [weak self] _ in
+        observe {
+            [self.settings.groupResultsByKind.description, self.settings.defaultKinds.map(\.rawValue).sorted().description]
+        } onChange: { [weak self] _ in
             guard let self else { return }
             self.panel?.applySettings(self.settings)
         }
-        observe({ [self.settings.transcribeAudio, self.settings.videoOnlyOnPower] }) { _ in
+        observe {
+            [self.settings.transcribeAudio, self.settings.videoOnlyOnPower]
+        } onChange: { _ in
             Task { await environment.applyIndexingSettings() }
         }
     }

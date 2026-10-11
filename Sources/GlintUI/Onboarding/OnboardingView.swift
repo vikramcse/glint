@@ -64,7 +64,10 @@ public struct OnboardingView: View {
                 .frame(height: 220)
             Text("Find anything by describing it").font(.title.bold())
             Text(
-                "Photos, moments in videos, things said in recordings, pages in PDFs. Glint searches them all at once, entirely on this Mac."
+                """
+                Photos, moments in videos, things said in recordings, pages in PDFs. \
+                Glint searches them all at once, entirely on this Mac.
+                """
             )
             .multilineTextAlignment(.center)
             .foregroundStyle(.secondary)
@@ -127,7 +130,10 @@ public struct OnboardingView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Download EmbeddingGemma 2 (\(bytes.formatted(.byteCount(style: .file))))")
                         Text(
-                            "Finds photos, video moments and audio by what's in them. Downloads once, then works offline. Search works by name and text meanwhile."
+                            """
+                            Finds photos, video moments and audio by what's in them. Downloads once, then works offline. \
+                            Search works by name and text meanwhile.
+                            """
                         )
                         .font(.caption).foregroundStyle(.secondary)
                     }
@@ -218,10 +224,16 @@ struct PageDots: View {
 struct DemoLoop: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let query = String(localized: "crowd cheering at night")
-    private let rows: [(String, String, String)] = [
-        ("film", String(localized: "Festival.mov"), "12:04"),
-        ("waveform", String(localized: "Voice memo 14.m4a"), "3:18"),
-        ("photo", String(localized: "IMG_2041.HEIC"), ""),
+    private struct Row {
+        let symbol: String
+        let name: String
+        let time: String
+    }
+
+    private let rows = [
+        Row(symbol: "film", name: String(localized: "Festival.mov"), time: "12:04"),
+        Row(symbol: "waveform", name: String(localized: "Voice memo 14.m4a"), time: "3:18"),
+        Row(symbol: "photo", name: String(localized: "IMG_2041.HEIC"), time: ""),
     ]
 
     var body: some View {
@@ -239,10 +251,10 @@ struct DemoLoop: View {
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                     let visible = phase > 1.9 + Double(index) * 0.35
                     HStack {
-                        Image(systemName: row.0).frame(width: 36, height: 28).background(.quaternary, in: .rect(cornerRadius: 5))
-                        Text(row.1)
+                        Image(systemName: row.symbol).frame(width: 36, height: 28).background(.quaternary, in: .rect(cornerRadius: 5))
+                        Text(row.name)
                         Spacer()
-                        Text(row.2).monospacedDigit().foregroundStyle(.tint)
+                        Text(row.time).monospacedDigit().foregroundStyle(.tint)
                     }
                     .opacity(visible ? 1 : 0)
                     .offset(y: visible ? 0 : 6)

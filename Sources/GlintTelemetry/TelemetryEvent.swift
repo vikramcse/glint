@@ -85,28 +85,15 @@ public enum TelemetrySchema {
     }
 
     static func allowedValue(event: String, key: String, value: String) -> Bool {
+        if let values = bucketValues["\(event).\(key)"] { return values.contains(value) }
         let kinds = Set(MediaKind.allCases.map(\.rawValue))
         switch (event, key) {
         case ("app_launched", "app_version"), ("app_launched", "macos_version"):
             return value == "unknown" || AppLaunchInfo.sanitizedVersion(value) == value
-        case ("app_launched", "chip_family"):
-            return AppLaunchInfo.chipFamilies.contains(value)
-        case ("app_launched", "ram"):
-            return TelemetryBuckets.ramValues.contains(value)
-        case ("onboarding_completed", "sources"), ("index_progress", "pending"), ("search_performed", "results"):
-            return TelemetryBuckets.countValues.contains(value)
-        case ("onboarding_completed", "duration"):
-            return TelemetryBuckets.durationValues.contains(value)
-        case ("first_search", "since_install"):
-            return TelemetryBuckets.sinceInstallValues.contains(value)
         case ("index_progress", _) where key.hasPrefix("items_"):
             return kinds.contains(String(key.dropFirst("items_".count))) && TelemetryBuckets.countValues.contains(value)
-        case ("search_performed", "latency"):
-            return TelemetryBuckets.latencyValues.contains(value)
         case ("search_performed", "media_types"):
             return value == "none" || value.split(separator: ",").allSatisfy { kinds.contains(String($0)) }
-        case ("result_opened", "rank"):
-            return TelemetryBuckets.rankValues.contains(value)
         case ("result_opened", "media_type"):
             return kinds.contains(value)
         case ("paywall_viewed", "trigger"):
@@ -115,4 +102,17 @@ public enum TelemetrySchema {
             return false
         }
     }
+
+    /// Properties whose values come from a fixed set of buckets, keyed by "event.key".
+    private static let bucketValues: [String: Set<String>] = [
+        "app_launched.chip_family": Set(AppLaunchInfo.chipFamilies),
+        "app_launched.ram": Set(TelemetryBuckets.ramValues),
+        "onboarding_completed.sources": Set(TelemetryBuckets.countValues),
+        "index_progress.pending": Set(TelemetryBuckets.countValues),
+        "search_performed.results": Set(TelemetryBuckets.countValues),
+        "onboarding_completed.duration": Set(TelemetryBuckets.durationValues),
+        "first_search.since_install": Set(TelemetryBuckets.sinceInstallValues),
+        "search_performed.latency": Set(TelemetryBuckets.latencyValues),
+        "result_opened.rank": Set(TelemetryBuckets.rankValues),
+    ]
 }

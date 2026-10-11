@@ -178,16 +178,22 @@ public struct SearchPanelView: View {
             if let result = model.selectedResult { services.actions?.quickLook(model.displayOrder, selected: result) }
             return .handled
         default:
-            if press.modifiers.contains(.command), press.characters == "c", navigatingResults, let result = model.selectedResult {
-                services.actions?.copy([result])
-                return .handled
-            }
-            if press.modifiers.contains(.command), press.characters == "y", let result = model.selectedResult {
-                services.actions?.quickLook(model.displayOrder, selected: result)
-                return .handled
-            }
-            return .ignored
+            return handleCommandShortcut(press)
         }
+    }
+
+    /// ⌘C copies the selected result while navigating results; ⌘Y opens Quick Look.
+    private func handleCommandShortcut(_ press: KeyPress) -> KeyPress.Result {
+        guard press.modifiers.contains(.command), let result = model.selectedResult else { return .ignored }
+        if press.characters == "c", navigatingResults {
+            services.actions?.copy([result])
+            return .handled
+        }
+        if press.characters == "y" {
+            services.actions?.quickLook(model.displayOrder, selected: result)
+            return .handled
+        }
+        return .ignored
     }
 
     private func openSelection() {

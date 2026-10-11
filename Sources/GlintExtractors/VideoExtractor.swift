@@ -101,15 +101,23 @@ actor VideoCursor {
         let capped = min(duration, options.maxVideoDuration)
         guard capped > 0 else { throw ExtractionError.corrupt }
 
+        generator = makeGenerator(for: asset)
+        clips = AudioAnalysis.windows(duration: capped, length: options.videoClipDuration, overlap: 0)
+        try await openAudio(of: asset, capped: capped)
+    }
+
+    private func makeGenerator(for asset: AVURLAsset) -> AVAssetImageGenerator {
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
         generator.maximumSize = CGSize(width: options.videoFrameMaxPixel, height: options.videoFrameMaxPixel)
         let tolerance = CMTime(seconds: 0.4 / max(options.videoFrameRate, 0.1), preferredTimescale: 600)
         generator.requestedTimeToleranceBefore = tolerance
         generator.requestedTimeToleranceAfter = tolerance
-        self.generator = generator
+        return generator
+    }
 
-        clips = AudioAnalysis.windows(duration: capped, length: options.videoClipDuration, overlap: 0)
+    /// The soundtrack reader, waveform and transcript; a video without audio has none of them.
+    private func openAudio(of asset: AVURLAsset, capped: Double) async throws {
         audioReader = try? await AudioStreamReader.make(
             asset: asset, sampleRate: AudioAnalysis.embeddingSampleRate, maxDuration: capped
         )

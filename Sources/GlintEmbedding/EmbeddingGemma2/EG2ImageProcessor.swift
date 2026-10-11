@@ -133,8 +133,16 @@ struct RGBImage: Sendable {
         return 0
     }
 
+    /// Resampling weights: output pixel `i` reads `count` input pixels from `start`, where
+    /// `bounds[i]` is `(start, count)`, weighted by `kernel[i * size ..< i * size + count]`.
+    private struct Coefficients {
+        var bounds: [(Int, Int)]
+        var kernel: [Int32]
+        var size: Int
+    }
+
     /// Pillow's `precompute_coeffs` + `normalize_coeffs_8bpc`.
-    private static func coefficients(inSize: Int, outSize: Int) -> (bounds: [(Int, Int)], kernel: [Int32], size: Int) {
+    private static func coefficients(inSize: Int, outSize: Int) -> Coefficients {
         let scale = Double(inSize) / Double(outSize)
         let filterScale = max(scale, 1)
         let support = 2.0 * filterScale
@@ -162,12 +170,13 @@ struct RGBImage: Sendable {
             }
             bounds.append((minimum, count))
         }
-        return (bounds, kernel, size)
+        return Coefficients(bounds: bounds, kernel: kernel, size: size)
     }
 
     private func resampled(horizontally: Bool, to newSize: Int) -> RGBImage {
         let inSize = horizontally ? width : height
-        let (bounds, kernel, size) = Self.coefficients(inSize: inSize, outSize: newSize)
+        let coefficients = Self.coefficients(inSize: inSize, outSize: newSize)
+        let (bounds, kernel, size) = (coefficients.bounds, coefficients.kernel, coefficients.size)
         let outWidth = horizontally ? newSize : width
         let outHeight = horizontally ? height : newSize
         var output = [UInt8](repeating: 0, count: outWidth * outHeight * 3)

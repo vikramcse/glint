@@ -63,7 +63,8 @@ struct EG2TokenizerParityTests {
             for _ in 0..<(Int(next() % 40) + 1) {
                 let pick = next() % 10
                 let value: UInt32 =
-                    pick < 4 ? 0x20 + next() % 0x5F : pick < 6 ? 0xA0 + next() % 0x2F00 : pick < 8 ? 0x4E00 + next() % 0x5000 : next() % 0x10FFFF
+                    pick < 4
+                    ? 0x20 + next() % 0x5F : pick < 6 ? 0xA0 + next() % 0x2F00 : pick < 8 ? 0x4E00 + next() % 0x5000 : next() % 0x10FFFF
                 if let scalar = Unicode.Scalar(value) { text.unicodeScalars.append(scalar) }
             }
             texts.append(text)

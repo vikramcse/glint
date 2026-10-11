@@ -115,6 +115,8 @@ final class EG2Model: Module {
     /// The returned function holds this model as an input, so the caller keeps it next to the
     /// model (never inside it, which would form a cycle and leak the weights).
     func compileText() -> @Sendable (MLXArray, MLXArray) -> MLXArray {
+        // Unowned: `compile` already holds the model as an input, and weak would need an unwrap.
+        // swiftlint:disable:next unowned_variable_capture
         compile(inputs: [self], outputs: []) { [unowned self] ids, mask in self.embedText(ids, mask: mask) }
     }
 
@@ -226,23 +228,22 @@ final class EG2Model: Module {
         // Each part drops its own references to the source arrays before evaluating, so a
         // bf16 weight is freed as soon as its 8-bit version exists.
         if towers.contains(.text) {
-            try update(parameters: ModuleParameters.unflattened(text), verify: [.noUnusedKeys])
-            text.removeAll()
-            if quantized.contains(.text) { quantize8(languageModel) }
-            Self.evalLayerByLayer(self)
+            try load(self, from: &text, quantizing: quantized.contains(.text) ? languageModel : nil)
         }
         if towers.contains(.vision), let part = media.vision {
-            try part.update(parameters: ModuleParameters.unflattened(vision), verify: [.noUnusedKeys])
-            vision.removeAll()
-            if quantized.contains(.vision) { quantize8(part) }
-            Self.evalLayerByLayer(part)
+            try load(part, from: &vision, quantizing: quantized.contains(.vision) ? part : nil)
         }
         if towers.contains(.audio), let part = media.audio {
-            try part.update(parameters: ModuleParameters.unflattened(audio), verify: [.noUnusedKeys])
-            audio.removeAll()
-            if quantized.contains(.audio) { quantize8(part) }
-            Self.evalLayerByLayer(part)
+            try load(part, from: &audio, quantizing: quantized.contains(.audio) ? part : nil)
         }
+    }
+
+    /// Loads `weights` into `part`, converts `quantizing` (when given) to 8-bit, then evaluates.
+    private func load(_ part: Module, from weights: inout [String: MLXArray], quantizing: Module?) throws {
+        try part.update(parameters: ModuleParameters.unflattened(weights), verify: [.noUnusedKeys])
+        weights.removeAll()
+        if let quantizing { quantize8(quantizing) }
+        Self.evalLayerByLayer(part)
     }
 
     /// Evaluates one layer at a time, so at most one layer's bf16 weights are in memory

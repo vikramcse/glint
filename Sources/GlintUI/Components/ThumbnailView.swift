@@ -38,15 +38,15 @@ struct ThumbnailView: View {
     var body: some View {
         framed
             .clipShape(.rect(cornerRadius: cornerRadius))
-        .accessibilityHidden(true)
-        .task(id: url) {
-            guard let url else { return }
-            if let cached = ThumbnailCache.shared.cached(url) {
-                image = cached
-            } else {
-                image = await ThumbnailCache.shared.load(url)
+            .accessibilityHidden(true)
+            .task(id: url) {
+                guard let url else { return }
+                if let cached = ThumbnailCache.shared.cached(url) {
+                    image = cached
+                } else {
+                    image = await ThumbnailCache.shared.load(url)
+                }
             }
-        }
     }
 
     /// A filled thumbnail takes exactly the space it is offered and crops the image to it;
@@ -67,7 +67,7 @@ struct ThumbnailView: View {
         } else {
             Image(nsImage: NSWorkspace.shared.icon(forFile: filePath))
                 .resizable()
-                .aspectRatio(contentMode: .fit)
+                .scaledToFit()
                 .padding(4)
         }
     }

@@ -11,7 +11,8 @@ public enum LocalAPIClientError: Error, Sendable, Equatable, CustomStringConvert
     public var description: String {
         switch self {
         case .notRunning:
-            "Glint isn’t running, or its local API is turned off. Open Glint, then turn on Settings › Privacy › “Allow apps and agents to search Glint”."
+            "Glint isn’t running, or its local API is turned off. Open Glint, then turn on "
+                + "Settings › Privacy › “Allow apps and agents to search Glint”."
         case .unauthorized:
             "Glint rejected the access token. Quit and reopen Glint, then try again."
         case .proRequired(let message):

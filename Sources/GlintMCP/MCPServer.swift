@@ -32,26 +32,33 @@ public struct MCPServer: Sendable {
         }
         guard let id else { return nil }  // Notification (e.g. notifications/initialized): no reply.
 
-        let params = object["params"] ?? [:]
+        return Self.encode(await respond(to: method, id: id, params: object["params"] ?? [:]))
+    }
+
+    private func respond(to method: String, id: JSONValue, params: JSONValue) async -> JSONValue {
         switch method {
         case "initialize":
-            return Self.encode(Self.result(id: id, initialize(params)))
+            return Self.result(id: id, initialize(params))
         case "ping":
-            return Self.encode(Self.result(id: id, [:]))
+            return Self.result(id: id, [:])
         case "tools/list":
-            return Self.encode(Self.result(id: id, ["tools": .array(MCPTools.all)]))
+            return Self.result(id: id, ["tools": .array(MCPTools.all)])
         case "tools/call":
-            guard let name = params["name"]?.stringValue else {
-                return Self.encode(Self.errorResponse(id: id, code: -32_602, message: "Invalid params: missing tool name"))
-            }
-            guard MCPTools.names.contains(name) else {
-                return Self.encode(Self.errorResponse(id: id, code: -32_602, message: "Unknown tool: \(name)"))
-            }
-            let result = await MCPTools(client: client).call(name, arguments: params["arguments"] ?? [:])
-            return Self.encode(Self.result(id: id, result))
+            return await callTool(id: id, params: params)
         default:
-            return Self.encode(Self.errorResponse(id: id, code: -32_601, message: "Method not found: \(method)"))
+            return Self.errorResponse(id: id, code: -32_601, message: "Method not found: \(method)")
         }
+    }
+
+    private func callTool(id: JSONValue, params: JSONValue) async -> JSONValue {
+        guard let name = params["name"]?.stringValue else {
+            return Self.errorResponse(id: id, code: -32_602, message: "Invalid params: missing tool name")
+        }
+        guard MCPTools.names.contains(name) else {
+            return Self.errorResponse(id: id, code: -32_602, message: "Unknown tool: \(name)")
+        }
+        let result = await MCPTools(client: client).call(name, arguments: params["arguments"] ?? [:])
+        return Self.result(id: id, result)
     }
 
     private func initialize(_ params: JSONValue) -> JSONValue {

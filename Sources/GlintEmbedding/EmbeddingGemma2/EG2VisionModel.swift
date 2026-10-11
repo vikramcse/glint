@@ -40,8 +40,6 @@ struct EG2VisionConfiguration: Decodable, Sendable {
         case ropeParameters = "rope_parameters"
     }
 
-    private struct Rope: Decodable { var ropeTheta: Float?; enum CodingKeys: String, CodingKey { case ropeTheta = "rope_theta" } }
-
     init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         hiddenLayers = try c.decodeIfPresent(Int.self, forKey: .hiddenLayers) ?? 16
@@ -57,7 +55,7 @@ struct EG2VisionConfiguration: Decodable, Sendable {
         poolingKernelSize = try c.decodeIfPresent(Int.self, forKey: .poolingKernelSize) ?? 3
         useClippedLinears = try c.decodeIfPresent(Bool.self, forKey: .useClippedLinears) ?? false
         standardize = try c.decodeIfPresent(Bool.self, forKey: .standardize) ?? false
-        ropeTheta = (try c.decodeIfPresent(Rope.self, forKey: .ropeParameters))?.ropeTheta ?? 100
+        ropeTheta = (try c.decodeIfPresent(EG2VisionRope.self, forKey: .ropeParameters))?.ropeTheta ?? 100
     }
 }
 
@@ -360,4 +358,11 @@ final class EG2MultimodalEmbedder: Module, UnaryLayer {
     func callAsFunction(_ x: MLXArray) -> MLXArray {
         projection(norm(x))
     }
+}
+
+/// `rope_parameters` in the vision config; the theta may be absent.
+private struct EG2VisionRope: Decodable {
+    var ropeTheta: Float?
+
+    enum CodingKeys: String, CodingKey { case ropeTheta = "rope_theta" }
 }

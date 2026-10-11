@@ -145,8 +145,8 @@ private struct PDFKitView: NSViewRepresentable {
         }
 
         func observe(_ view: PDFView) {
-            observer = NotificationCenter.default.addObserver(forName: .PDFViewPageChanged, object: view, queue: .main) {
-                [weak self, weak view] _ in
+            let center = NotificationCenter.default
+            observer = center.addObserver(forName: .PDFViewPageChanged, object: view, queue: .main) { [weak self, weak view] _ in
                 MainActor.assumeIsolated {
                     guard let view, let page = view.currentPage, let document = view.document else { return }
                     self?.currentPage.wrappedValue = document.index(for: page)
