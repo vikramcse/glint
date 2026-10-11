@@ -216,6 +216,22 @@ struct HybridRankerTests {
         #expect(ranker.rank(semantic: tight, keyword: [], names: [], attributes: [:], statistics: small).count == 1)
     }
 
+    @Test func partialKeywordMatchesOnlyAddFiles() {
+        let ranker = HybridRanker()
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.9),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.8),
+        ]
+        let loose = [
+            KeywordHit(fileID: FileID(2), chunkID: ChunkID(2), bm25: -5, attributes: attributes()),
+            KeywordHit(fileID: FileID(3), chunkID: ChunkID(3), bm25: -4, attributes: attributes()),
+        ]
+        let ranked = ranker.rank(semantic: semantic, keyword: [], names: [], looseKeyword: loose, attributes: [:])
+        // File 2 is not boosted past file 1; file 3, found by nothing else, is added last.
+        #expect(ranked.map(\.fileID) == [FileID(1), FileID(2), FileID(3)])
+        #expect(ranked[1].sources == .semantic)
+    }
+
     @Test func nameOnlyMatchesHaveNoChunk() {
         let ranked = HybridRanker().rank(
             semantic: [], keyword: [], names: [KeywordHit(fileID: FileID(5), chunkID: nil, bm25: -1, attributes: attributes())],

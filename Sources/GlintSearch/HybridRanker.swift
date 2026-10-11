@@ -31,6 +31,10 @@ public struct HybridRanker: Sendable {
     public var semanticWeight: Double = 1
     public var keywordWeight: Double = 1
     public var nameWeight: Double = 1.2
+    /// Weight of keyword and name matches that contain only some of the query's words. They
+    /// only add files nothing else found, and rank low: boosting files already found reorders
+    /// them by weak evidence (SciFact MRR 0.80 -> 0.73).
+    public var looseKeywordWeight: Double = 0.25
     /// Semantic hits below this cosine similarity are dropped as noise.
     public var minimumSimilarity: Float = 0.25
     /// Semantic hits more than this below the best hit are dropped too (`nil`: off).
@@ -51,6 +55,8 @@ public struct HybridRanker: Sendable {
         semantic: [ScoredChunk],
         keyword: [KeywordHit],
         names: [KeywordHit],
+        looseKeyword: [KeywordHit] = [],
+        looseNames: [KeywordHit] = [],
         attributes: [FileID: FileAttributes],
         statistics: ScoreStatistics? = nil,
         now: Date = Date()
@@ -84,6 +90,7 @@ public struct HybridRanker: Sendable {
             files[hit.fileID, default: .empty(hit.fileID)].score += nameWeight / (k + Double(rank + 1))
             files[hit.fileID]?.sources.insert(.name)
         }
+        files.merge(looseFiles(keyword: looseKeyword, names: looseNames, excluding: files)) { current, _ in current }
 
         let ranked = files.values.map { file -> RankedFile in
             var file = file
@@ -100,6 +107,27 @@ public struct HybridRanker: Sendable {
 
     /// The lowest semantic score kept: calibrated against the library's score statistics when
     /// there are enough vectors, otherwise a margin below the best match.
+    /// Partial matches only add files nothing else found.
+    private func looseFiles(keyword: [KeywordHit], names: [KeywordHit], excluding files: [FileID: RankedFile]) -> [FileID: RankedFile] {
+        var loose: [FileID: RankedFile] = [:]
+        for (rank, hit) in keyword.enumerated() where files[hit.fileID] == nil {
+            guard let chunkID = hit.chunkID else { continue }
+            let score = keywordWeight * looseKeywordWeight / (k + Double(rank + 1))
+            var file = loose[hit.fileID, default: .empty(hit.fileID)]
+            if score > file.score {
+                file.bestChunk = chunkID
+                file.score = score
+            }
+            file.sources.insert(.keyword)
+            loose[hit.fileID] = file
+        }
+        for (rank, hit) in names.enumerated() where files[hit.fileID] == nil {
+            loose[hit.fileID, default: .empty(hit.fileID)].score += nameWeight * looseKeywordWeight / (k + Double(rank + 1))
+            loose[hit.fileID]?.sources.insert(.name)
+        }
+        return loose
+    }
+
     private func semanticFloor(_ semantic: [ScoredChunk], statistics: ScoreStatistics?) -> Float {
         var floor = minimumSimilarity
         if let minimumZScore, let statistics, statistics.deviation > 0, statistics.count >= calibrationMinimumRows {

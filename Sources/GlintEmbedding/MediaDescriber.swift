@@ -57,7 +57,7 @@ struct MediaDescriber: Sendable {
     /// Words describing any input; text passes through unchanged.
     func describe(_ input: EmbeddingInput) -> String {
         switch input {
-        case .text(let text):
+        case .text(let text), .document(_, let text):
             return text
         case .image(let image):
             let words = labels(for: image).map(\.label)

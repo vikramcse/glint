@@ -48,6 +48,8 @@ public struct VideoClip: Sendable {
 /// Anything an `EmbeddingProvider` can encode.
 public enum EmbeddingInput: Sendable {
     case text(String)
+    /// A text chunk of a named file; models that support it embed the title with the text.
+    case document(title: String, text: String)
     case image(CGImage)
     case audio(AudioClip)
     case video(VideoClip)
@@ -56,7 +58,7 @@ public enum EmbeddingInput: Sendable {
     /// Every modality present in the input, including nested interleaved parts.
     public var modalities: Set<Modality> {
         switch self {
-        case .text: [.text]
+        case .text, .document: [.text]
         case .image: [.image]
         case .audio: [.audio]
         case .video(let clip): clip.audio == nil ? [.video] : [.video, .audio]

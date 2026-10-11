@@ -4,7 +4,7 @@
 //                    [--model gemma|apple|pipeline] [--model-dir D] [--only kind,kind] [--out report.json]
 //   glint-eval sample <dir>                     write <dir>/corpus and <dir>/queries.json
 //   glint-eval run <dir> [--queries q.json] [--model gemma|apple|hashing] [--model-dir D] [--dimensions N]
-//                  [--baseline report.json] [--out report.json] [--margin M|off] [--z K|off]
+//                  [--baseline report.json] [--out report.json] [--margin M|off] [--z K|off] [--titles] [--loose-keywords N|all]
 //                  [--text-bits 8|16] [--media-bits 8|16]
 //   glint-eval query <text>... --model-dir D [--index index.sqlite] [--dimensions N] [--idle-unload S]
 //                    run queries against a real index (read-only) and print every
@@ -166,6 +166,8 @@ case "run":
         var runner = EvalRunner(corpus: corpus, queries: set.queries, provider: provider)
         if let margin = option("--margin", in: arguments) { runner.similarityMargin = .some(Float(margin)) }
         if let z = option("--z", in: arguments) { runner.minimumZScore = .some(Float(z)) }
+        if arguments.contains("--titles") { runner.indexerOptions.documentTitles = true }
+        if let loose = option("--loose-keywords", in: arguments) { runner.looseKeywordLimit = .some(Int(loose)) }
         let report = try await runner.run()
         let failures = EvalGates.failures(report: report, baseline: baseline)
         printReport(report, failures: failures)

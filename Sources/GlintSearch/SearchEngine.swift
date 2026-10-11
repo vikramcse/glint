@@ -42,6 +42,12 @@ public actor SearchEngine {
 
     /// Maximum files returned per query.
     public let resultLimit: Int
+    /// With a model loaded, how many partial (any-word) keyword matches the final phase keeps;
+    /// they also count for less in the ranking (`HybridRanker.looseKeywordWeight`). Partial
+    /// matches of common words ("score", "error") otherwise flood natural-language queries and
+    /// push the real match down (SciFact: MRR 0.61 -> 0.80, Recall@10 0.82 -> 0.93 with them
+    /// limited). `nil` keeps them all at full weight, as without a model.
+    public let looseKeywordLimit: Int?
 
     public init(
         reader: IndexReader,
@@ -52,8 +58,10 @@ public actor SearchEngine {
         gate: FeatureGateBox,
         ranker: HybridRanker = HybridRanker(),
         resultLimit: Int = 60,
+        looseKeywordLimit: Int? = 3,
         now: @escaping @Sendable () -> Date = Date.init
     ) {
+        self.looseKeywordLimit = looseKeywordLimit
         self.reader = reader
         self.vectorIndex = vectorIndex
         self.encoder = encoder
@@ -112,7 +120,9 @@ public actor SearchEngine {
         defer { Signposts.search.endInterval(Signposts.Name.keywordSearch, state) }
         guard !query.isEmpty else { return .empty(query, phase: .keyword) }
 
-        let (chunks, names) = try await keywordHits(for: query, prefix: true)
+        let hits = try await keywordHits(for: query, prefix: true)
+        let chunks = hits.chunks + hits.looseChunks
+        let names = hits.names + hits.looseNames
         let ranked = ranker.rank(semantic: [], keyword: chunks, names: names, attributes: attributes(chunks + names), now: now())
         let items = try await hydrate(ranked, terms: FTSQuery(query.text).terms)
         return SearchResults(query: query, phase: .keyword, items: items, elapsedMilliseconds: stopwatch.milliseconds)
@@ -128,7 +138,18 @@ public actor SearchEngine {
 
         // Once a model is loaded the last word is matched whole: by now the user has stopped
         // typing, and semantic search covers related words better than a prefix would.
-        let (chunks, names) = try await keywordHits(for: query, prefix: encoder == nil)
+        let hits = try await keywordHits(for: query, prefix: encoder == nil)
+        var chunks = hits.chunks
+        var names = hits.names
+        var looseChunks: [KeywordHit] = []
+        var looseNames: [KeywordHit] = []
+        if encoder == nil || looseKeywordLimit == nil {
+            chunks += hits.looseChunks
+            names += hits.looseNames
+        } else if let limit = looseKeywordLimit {
+            looseChunks = Array(hits.looseChunks.prefix(limit))
+            looseNames = Array(hits.looseNames.prefix(limit))
+        }
         var semantic: [ScoredChunk] = []
         var statistics: ScoreStatistics?
         if let encoder {
@@ -138,8 +159,8 @@ public actor SearchEngine {
         }
         try Task.checkCancellation()
         let ranked = ranker.rank(
-            semantic: semantic, keyword: chunks, names: names, attributes: attributes(chunks + names), statistics: statistics,
-            now: now())
+            semantic: semantic, keyword: chunks, names: names, looseKeyword: looseChunks, looseNames: looseNames,
+            attributes: attributes(chunks + names + looseChunks + looseNames), statistics: statistics, now: now())
         let items = try await hydrate(ranked, terms: FTSQuery(query.text).terms)
         return SearchResults(query: query, phase: .merged, items: items, elapsedMilliseconds: stopwatch.milliseconds)
     }
@@ -205,26 +226,37 @@ public actor SearchEngine {
 
     // MARK: Helpers
 
-    private func keywordHits(for query: SearchQuery, prefix: Bool) async throws -> ([KeywordHit], [KeywordHit]) {
-        if let keywordCache, keywordCache.query == query, keywordCache.prefix == prefix {
-            return (keywordCache.chunks, keywordCache.names)
-        }
+    /// Keyword matches: `chunks` and `names` match every query word; `loose` lists match only
+    /// some (filled when few files match them all and the query has several words).
+    fileprivate struct KeywordHits {
+        var chunks: [KeywordHit] = []
+        var names: [KeywordHit] = []
+        var looseChunks: [KeywordHit] = []
+        var looseNames: [KeywordHit] = []
+    }
+
+    private func keywordHits(for query: SearchQuery, prefix: Bool) async throws -> KeywordHits {
+        if let keywordCache, keywordCache.query == query, keywordCache.prefix == prefix { return keywordCache.hits }
         let fts = FTSQuery(query.text, allowsPrefix: prefix)
-        guard let all = fts.all else { return ([], []) }
+        guard let all = fts.all else { return KeywordHits() }
         let fetchLimit = resultLimit * 3
-        var chunks = try await reader.chunkMatches(all, limit: fetchLimit)
-        var names = try await reader.nameMatches(all, limit: fetchLimit)
-        // Natural-language queries rarely match every word; fall back to any word.
-        if chunks.count + names.count < 5, fts.terms.count > 1, let any = fts.any {
-            let seen = Set(chunks.compactMap(\.chunkID))
-            chunks += try await reader.chunkMatches(any, limit: fetchLimit).filter { !seen.contains($0.chunkID ?? ChunkID(-1)) }
-            let seenNames = Set(names.map(\.fileID))
-            names += try await reader.nameMatches(any, limit: fetchLimit).filter { !seenNames.contains($0.fileID) }
+        var hits = KeywordHits()
+        hits.chunks = try await reader.chunkMatches(all, limit: fetchLimit)
+        hits.names = try await reader.nameMatches(all, limit: fetchLimit)
+        // Natural-language queries rarely match every word; also look for any word.
+        if hits.chunks.count + hits.names.count < 5, fts.terms.count > 1, let any = fts.any {
+            let seen = Set(hits.chunks.compactMap(\.chunkID))
+            hits.looseChunks = try await reader.chunkMatches(any, limit: fetchLimit).filter { !seen.contains($0.chunkID ?? ChunkID(-1)) }
+            let seenNames = Set(hits.names.map(\.fileID))
+            hits.looseNames = try await reader.nameMatches(any, limit: fetchLimit).filter { !seenNames.contains($0.fileID) }
         }
-        chunks = chunks.filter { query.filter.matches(fileID: $0.fileID, attributes: $0.attributes) }
-        names = names.filter { query.filter.matches(fileID: $0.fileID, attributes: $0.attributes) }
-        keywordCache = KeywordCache(query: query, prefix: prefix, chunks: chunks, names: names)
-        return (chunks, names)
+        let allowed = { (hit: KeywordHit) in query.filter.matches(fileID: hit.fileID, attributes: hit.attributes) }
+        hits.chunks = hits.chunks.filter(allowed)
+        hits.names = hits.names.filter(allowed)
+        hits.looseChunks = hits.looseChunks.filter(allowed)
+        hits.looseNames = hits.looseNames.filter(allowed)
+        keywordCache = KeywordCache(query: query, prefix: prefix, hits: hits)
+        return hits
     }
 
     private func attributes(_ hits: [KeywordHit]) -> [FileID: FileAttributes] {
@@ -262,6 +294,5 @@ public actor SearchEngine {
 private struct KeywordCache {
     let query: SearchQuery
     let prefix: Bool
-    let chunks: [KeywordHit]
-    let names: [KeywordHit]
+    let hits: SearchEngine.KeywordHits
 }

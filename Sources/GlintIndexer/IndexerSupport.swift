@@ -50,6 +50,8 @@ public struct IndexerOptions: Sendable, Hashable {
     /// Fuse a chunk's keyword text (OCR) into its image or video input, so screenshots are
     /// found by what they say as well as what they show.
     public var fuseTextIntoMedia: Bool
+    /// Embed text chunks with their file's name as the document title.
+    public var documentTitles: Bool
     /// How long to wait between watcher events before applying them.
     public var watcherLatency: TimeInterval
 
@@ -65,6 +67,7 @@ public struct IndexerOptions: Sendable, Hashable {
         maxChunksPerFile: Int = 4_000,
         videoOnlyOnPower: Bool = false,
         fuseTextIntoMedia: Bool = true,
+        documentTitles: Bool = false,
         watcherLatency: TimeInterval = 1
     ) {
         self.concurrentFiles = concurrentFiles
@@ -78,6 +81,7 @@ public struct IndexerOptions: Sendable, Hashable {
         self.maxChunksPerFile = maxChunksPerFile
         self.videoOnlyOnPower = videoOnlyOnPower
         self.fuseTextIntoMedia = fuseTextIntoMedia
+        self.documentTitles = documentTitles
         self.watcherLatency = watcherLatency
     }
 

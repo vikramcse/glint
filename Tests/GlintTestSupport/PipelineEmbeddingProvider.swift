@@ -31,7 +31,7 @@ public struct PipelineEmbeddingProvider: EmbeddingProvider {
 
     private static func bucket(_ input: EmbeddingInput) -> Int {
         switch input {
-        case .text(let text): abs(text.hashValue)
+        case .text(let text), .document(_, let text): abs(text.hashValue)
         case .image: 1
         case .audio: 2
         case .video: 3

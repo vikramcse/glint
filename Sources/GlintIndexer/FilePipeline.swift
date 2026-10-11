@@ -145,7 +145,7 @@ struct FilePipeline: Sendable {
                     result.media = FileMedia(duration: chunk.preview.duration, waveform: chunk.preview.waveform)
                 }
                 let index = result.writes.count
-                let overflow = composedInput(for: chunk).flatMap { windows.append(index, $0) }
+                let overflow = composedInput(for: chunk, record: record).flatMap { windows.append(index, $0) }
                 result.writes.append(
                     ChunkWrite(
                         ordinal: chunk.ordinal, locator: chunk.locator, text: chunk.text,
@@ -232,12 +232,15 @@ struct FilePipeline: Sendable {
         return FileManager.default.fileExists(atPath: thumbnails.url(forRelativePath: path).path) ? path : nil
     }
 
-    private func composedInput(for chunk: Chunk) -> EmbeddingInput? {
+    private func composedInput(for chunk: Chunk, record: FileRecord) -> EmbeddingInput? {
         guard let input = chunk.input else { return nil }
+        if options.documentTitles, case .text(let text) = input {
+            return .document(title: (record.name as NSString).deletingPathExtension, text: text)
+        }
         guard options.fuseTextIntoMedia, let text = chunk.text, !text.isEmpty else { return input }
         switch input {
         case .image, .video: return .interleaved([input, .text(String(text.prefix(600)))])
-        case .text, .audio, .interleaved: return input
+        case .text, .document, .audio, .interleaved: return input
         }
     }
 

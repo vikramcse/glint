@@ -33,9 +33,14 @@ struct EG2Processor: @unchecked Sendable {
         var item = Item(ids: [Int32(Self.bosToken)])
         let parts: [EmbeddingInput] =
             if case .interleaved(let parts) = input { parts } else { [input] }
-        let hasText = parts.contains { if case .text = $0 { true } else { false } }
+        let hasText = parts.contains {
+            switch $0 {
+            case .text, .document: true
+            default: false
+            }
+        }
         if hasText {
-            append(text: purpose == .query ? Self.queryPrompt : Self.documentPrompt, to: &item)
+            append(text: prompt(for: parts, purpose: purpose), to: &item)
         }
         for part in parts { try append(part, to: &item) }
         if item.ids.count > maxTokens {
@@ -52,13 +57,22 @@ struct EG2Processor: @unchecked Sendable {
         return item
     }
 
+    /// The task prompt: the model guide's `title: {title | "none"} | text: ` for documents.
+    private func prompt(for parts: [EmbeddingInput], purpose: EmbeddingPurpose) -> String {
+        guard purpose != .query else { return Self.queryPrompt }
+        for case .document(let title, _) in parts where !title.isEmpty {
+            return "title: \(title) | text: "
+        }
+        return Self.documentPrompt
+    }
+
     private func append(text: String, to item: inout Item) {
         item.ids += tokenizer.encode(text)
     }
 
     private func append(_ part: EmbeddingInput, to item: inout Item) throws {
         switch part {
-        case .text(let text):
+        case .text(let text), .document(_, let text):
             append(text: text, to: &item)
         case .image(let image):
             guard let processed = imageProcessor.process(image) else { throw EmbeddingError.encodingFailed }

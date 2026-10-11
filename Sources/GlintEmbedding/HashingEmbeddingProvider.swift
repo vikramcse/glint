@@ -22,7 +22,7 @@ public struct HashingEmbeddingProvider: EmbeddingProvider {
 
     private static func text(of input: EmbeddingInput) -> String? {
         switch input {
-        case .text(let text): text
+        case .text(let text), .document(_, let text): text
         case .interleaved(let parts):
             parts.compactMap { part -> String? in
                 if case .text(let text) = part { text } else { nil }

@@ -209,7 +209,10 @@ actor EG2Runtime {
         var textIndices: [Int] = []
         var mediaIndices: [Int] = []
         for (index, input) in inputs.enumerated() {
-            if case .text = input { textIndices.append(index) } else { mediaIndices.append(index) }
+            switch input {
+            case .text, .document: textIndices.append(index)
+            default: mediaIndices.append(index)
+            }
         }
         // Media runs in small batches: the GPU is underused one image at a time, while large
         // batches of 2,520-patch images cost a lot of memory.

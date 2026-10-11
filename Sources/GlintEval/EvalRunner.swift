@@ -13,6 +13,9 @@ struct EvalRunner {
     let provider: any EmbeddingProvider
     /// Overrides the model's similarity margin when set (`.some(nil)` turns it off), for tuning.
     var similarityMargin: Float??
+    var indexerOptions = IndexerOptions()
+    /// Partial keyword matches kept in the final phase (`.some(nil)`: all, at full weight).
+    var looseKeywordLimit: Int??
     /// Overrides the model's minimum z-score when set (`.some(nil)` turns it off).
     var minimumZScore: Float??
 
@@ -29,13 +32,14 @@ struct EvalRunner {
         let thumbnails = ThumbnailStore(directory: paths.thumbnails)
         let indexer = Indexer(
             writer: writer, extractors: ExtractorRegistry.standard(transcriber: nil).extractors, provider: provider,
-            vectorIndex: vectorIndex, gate: gate, thumbnails: thumbnails, features: features, power: FixedPowerMonitor()
+            vectorIndex: vectorIndex, gate: gate, thumbnails: thumbnails, features: features, power: FixedPowerMonitor(),
+            options: indexerOptions
         )
         let engine = SearchEngine(
             reader: try IndexReader(url: paths.database), vectorIndex: vectorIndex,
             encoder: MarginOverride(
                 base: GatedQueryEncoder(provider: provider, gate: gate), margin: similarityMargin, zScore: minimumZScore),
-            thumbnails: thumbnails, gate: features
+            thumbnails: thumbnails, gate: features, looseKeywordLimit: looseKeywordLimit ?? 3
         )
 
         let indexing = Stopwatch()
