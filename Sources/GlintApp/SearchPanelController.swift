@@ -99,11 +99,18 @@ final class SearchPanelController {
     }
 
     /// Grows and shrinks downward from a fixed top edge as results come and go, like Spotlight.
+    /// On a short screen the panel stays on it: it grows upward once its bottom edge reaches the
+    /// screen's and never gets taller than the screen. A frame that ran off the screen would be
+    /// moved back by AppKit, re-measured and resized again, forever.
     private func resize(toHeight height: CGFloat) {
-        let height = ceil(height)
+        var height = ceil(height)
         var frame = panel.frame
-        guard abs(frame.height - height) > 0.5 else { return }
-        let top = frame.maxY
+        var top = frame.maxY
+        if let visible = (panel.screen ?? NSScreen.main)?.visibleFrame {
+            height = min(height, visible.height)
+            top = min(max(top, visible.minY + height), visible.maxY)
+        }
+        guard abs(frame.height - height) > 0.5 || abs(frame.maxY - top) > 0.5 else { return }
         frame.size = NSSize(width: SearchPanelController.width, height: height)
         frame.origin.y = top - height
         panel.setFrame(frame, display: panel.isVisible)
