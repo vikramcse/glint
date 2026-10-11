@@ -227,8 +227,10 @@ struct ResultsArea: View {
                                 RoundedRectangle(cornerRadius: 10).fill(Color.accentColor.opacity(0.22))
                             }
                         }
-                        .onTapGesture(count: 2) { open(result) }
+                        .contentShape(.rect(cornerRadius: 10))
+                        // Select on the first click; a double-click before it would delay every single click.
                         .onTapGesture { model.selection = result.id }
+                        .simultaneousGesture(TapGesture(count: 2).onEnded { open(result) })
                         .onDrag { NSItemProvider(object: result.file.url as NSURL) }
                         .contextMenu { ResultContextMenu(result: result, model: model, services: services) }
                 }

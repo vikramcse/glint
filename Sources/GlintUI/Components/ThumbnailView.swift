@@ -38,6 +38,8 @@ struct ThumbnailView: View {
     var body: some View {
         framed
             .clipShape(.rect(cornerRadius: cornerRadius))
+            // Clipping hides a filled image's overflow but not from clicks, which would land on neighbours.
+            .contentShape(.rect(cornerRadius: cornerRadius))
             .accessibilityHidden(true)
             .task(id: url) {
                 guard let url else { return }
