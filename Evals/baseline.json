@@ -1,12 +1,12 @@
 {
   "corpusFiles" : 12,
-  "date" : "2026-10-11T13:35:18Z",
-  "indexingSeconds" : 0.165590084,
-  "latencyP50Milliseconds" : 2.793167,
-  "latencyP95Milliseconds" : 3.486042,
+  "date" : "2026-10-11T14:53:10Z",
+  "indexingSeconds" : 0.148694667,
+  "latencyP50Milliseconds" : 2.869333,
+  "latencyP95Milliseconds" : 3.40575,
   "model" : "apple.on-device-descriptors\/1@512",
   "negatives" : {
-    "averageReturned" : 2,
+    "averageReturned" : 2.3333333333333335,
     "emptyRate" : 0.3333333333333333,
     "queries" : 3
   },
@@ -15,7 +15,7 @@
       "id" : "flight-confirmation",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 3.081,
+      "latencyMilliseconds" : 2.890666,
       "mustPass" : true,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -26,8 +26,8 @@
       "top" : [
         "Screenshots\/flight.png",
         "work\/Acme pitch.pdf",
-        "notes\/standup-2026-09-14.txt",
         "Screenshots\/wifi.png",
+        "notes\/standup-2026-09-14.txt",
         "Screenshots\/receipt.png"
       ]
     },
@@ -35,7 +35,7 @@
       "id" : "hotel-receipt-goa",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 3.486042,
+      "latencyMilliseconds" : 3.40575,
       "mustPass" : true,
       "ndcgAt10" : 1,
       "precision" : 0.2857142857142857,
@@ -47,15 +47,15 @@
         "Screenshots\/receipt.png",
         "travel\/goa-itinerary.md",
         "work\/Acme pitch.pdf",
-        "Screenshots\/flight.png",
-        "notes\/product-launch.md"
+        "Screenshots\/wifi.png",
+        "Screenshots\/flight.png"
       ]
     },
     {
       "id" : "wifi-password",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 2.345291,
+      "latencyMilliseconds" : 2.483708,
       "mustPass" : true,
       "ndcgAt10" : 1,
       "precision" : 0.16666666666666666,
@@ -75,7 +75,7 @@
       "id" : "pricing-chart",
       "isNegative" : false,
       "kind" : "pdf",
-      "latencyMilliseconds" : 3.133167,
+      "latencyMilliseconds" : 3.374459,
       "mustPass" : true,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -86,18 +86,18 @@
       "top" : [
         "work\/Acme pitch.pdf",
         "notes\/product-launch.md",
+        "Screenshots\/wifi.png",
         "Screenshots\/receipt.png",
-        "work\/retro.txt",
-        "recipes\/pasta.txt"
+        "work\/retro.txt"
       ]
     },
     {
       "id" : "revenue-by-region",
       "isNegative" : false,
       "kind" : "pdf",
-      "latencyMilliseconds" : 3.241416,
+      "latencyMilliseconds" : 3.054125,
       "mustPass" : false,
-      "ndcgAt10" : 0.9639404333166532,
+      "ndcgAt10" : 0.944847956559586,
       "precision" : 0.2857142857142857,
       "recall" : 1,
       "recallAt10" : 1,
@@ -105,17 +105,17 @@
       "returned" : 7,
       "top" : [
         "work\/Acme pitch.pdf",
+        "Screenshots\/wifi.png",
         "Screenshots\/flight.png",
         "finance\/q3-summary.txt",
-        "Screenshots\/receipt.png",
-        "notes\/product-launch.md"
+        "Screenshots\/receipt.png"
       ]
     },
     {
       "id" : "client-deadline",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 3.017084,
+      "latencyMilliseconds" : 3.310625,
       "mustPass" : true,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -126,8 +126,8 @@
       "top" : [
         "notes\/standup-2026-09-14.txt",
         "work\/Acme pitch.pdf",
-        "Screenshots\/flight.png",
         "Screenshots\/wifi.png",
+        "Screenshots\/flight.png",
         "Screenshots\/receipt.png"
       ]
     },
@@ -135,7 +135,7 @@
       "id" : "tomato-recipe",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 3.028958,
+      "latencyMilliseconds" : 2.940959,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.125,
@@ -147,15 +147,15 @@
         "recipes\/pasta.txt",
         "recipes\/bread.txt",
         "work\/Acme pitch.pdf",
-        "Screenshots\/receipt.png",
-        "Screenshots\/flight.png"
+        "Screenshots\/wifi.png",
+        "Screenshots\/receipt.png"
       ]
     },
     {
       "id" : "baking",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 2.289375,
+      "latencyMilliseconds" : 2.472,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.5,
@@ -172,7 +172,7 @@
       "id" : "launch-plan",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 2.793167,
+      "latencyMilliseconds" : 2.873375,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -183,16 +183,16 @@
       "top" : [
         "notes\/product-launch.md",
         "work\/Acme pitch.pdf",
+        "Screenshots\/wifi.png",
         "Screenshots\/flight.png",
-        "work\/retro.txt",
-        "Screenshots\/receipt.png"
+        "work\/retro.txt"
       ]
     },
     {
       "id" : "goa-trip",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 2.843833,
+      "latencyMilliseconds" : 2.782708,
       "mustPass" : false,
       "ndcgAt10" : 0.8262346571285599,
       "precision" : 0.5,
@@ -209,14 +209,14 @@
       "id" : "flaky-ci",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 2.989083,
+      "latencyMilliseconds" : 3.148917,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.2,
+      "precision" : 0.16666666666666666,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 5,
+      "returned" : 6,
       "top" : [
         "work\/retro.txt",
         "work\/Acme pitch.pdf",
@@ -229,7 +229,7 @@
       "id" : "quarterly-results",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 2.37725,
+      "latencyMilliseconds" : 2.869333,
       "mustPass" : false,
       "ndcgAt10" : 0.5,
       "precision" : 0.125,
@@ -242,14 +242,14 @@
         "notes\/product-launch.md",
         "finance\/q3-summary.txt",
         "notes\/standup-2026-09-14.txt",
-        "Screenshots\/flight.png"
+        "Screenshots\/wifi.png"
       ]
     },
     {
       "id" : "matrix-code",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 2.503625,
+      "latencyMilliseconds" : 2.369458,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.16666666666666666,
@@ -269,7 +269,7 @@
       "id" : "none-elephant",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 2.111584,
+      "latencyMilliseconds" : 2.015083,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
@@ -287,7 +287,7 @@
       "id" : "none-guitar",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 2.454375,
+      "latencyMilliseconds" : 2.562459,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 1,
@@ -302,34 +302,35 @@
       "id" : "none-dentist",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 1.859333,
+      "latencyMilliseconds" : 1.947542,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
-      "returned" : 2,
+      "returned" : 3,
       "top" : [
+        "Screenshots\/wifi.png",
         "work\/Acme pitch.pdf",
         "Screenshots\/flight.png"
       ]
     }
   ],
   "overall" : {
-    "f1" : 0.3388278388278388,
+    "f1" : 0.33516483516483514,
     "mrr" : 0.9487179487179488,
-    "ndcgAt10" : 0.945398083880401,
-    "precision" : 0.22509157509157507,
+    "ndcgAt10" : 0.9439294318221652,
+    "precision" : 0.2225274725274725,
     "queries" : 13,
     "recall" : 0.9615384615384616,
     "recallAt10" : 0.9615384615384616
   },
   "perKind" : {
     "document" : {
-      "f1" : 0.3412698412698413,
+      "f1" : 0.3353174603174603,
       "mrr" : 0.9166666666666666,
       "ndcgAt10" : 0.91577933214107,
-      "precision" : 0.23779761904761904,
+      "precision" : 0.23363095238095238,
       "queries" : 8,
       "recall" : 0.9375,
       "recallAt10" : 0.9375
@@ -346,7 +347,7 @@
     "pdf" : {
       "f1" : 0.3472222222222222,
       "mrr" : 1,
-      "ndcgAt10" : 0.9819702166583266,
+      "ndcgAt10" : 0.972423978279793,
       "precision" : 0.21428571428571427,
       "queries" : 2,
       "recall" : 1,

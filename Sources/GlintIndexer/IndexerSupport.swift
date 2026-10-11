@@ -47,8 +47,8 @@ public struct IndexerOptions: Sendable, Hashable {
     public var maxChunksPerFile: Int
     /// Index video only on AC power.
     public var videoOnlyOnPower: Bool
-    /// Fuse a chunk's keyword text (OCR) into its image or video input, so screenshots are
-    /// found by what they say as well as what they show.
+    /// Fuse a video's transcript into its clip input. Images decide this themselves
+    /// (`ImageExtractor`): screenshots fuse their OCR text, camera photos don't.
     public var fuseTextIntoMedia: Bool
     /// Embed text chunks with their file's name as the document title.
     public var documentTitles: Bool

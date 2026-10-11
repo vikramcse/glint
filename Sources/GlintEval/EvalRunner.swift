@@ -26,6 +26,9 @@ struct EvalRunner {
     var ranker = HybridRanker()
     /// Lean each query's weights by how it reads (`QueryStyle`).
     var adaptsWeights = true
+    /// Writes, per query, where every relevant file ranks in the raw semantic and keyword lists
+    /// before any cutoff, to tell a model miss from a filter miss.
+    var diagnosePath: URL?
 
     func run() async throws -> EvalReport {
         let work = FileManager.default.temporaryDirectory.appendingPathComponent("glint-eval-\(UUID().uuidString)")
@@ -43,10 +46,12 @@ struct EvalRunner {
             vectorIndex: vectorIndex, gate: gate, thumbnails: thumbnails, features: features, power: FixedPowerMonitor(),
             options: indexerOptions
         )
+        let reader = try IndexReader(url: paths.database)
+        let queryEncoder = GatedQueryEncoder(provider: provider, gate: gate)
         let engine = SearchEngine(
-            reader: try IndexReader(url: paths.database), vectorIndex: vectorIndex,
+            reader: reader, vectorIndex: vectorIndex,
             encoder: MarginOverride(
-                base: GatedQueryEncoder(provider: provider, gate: gate), margin: similarityMargin, zScore: minimumZScore,
+                base: queryEncoder, margin: similarityMargin, zScore: minimumZScore,
                 robustZScore: minimumRobustZScore, confident: confidentSimilarity),
             thumbnails: thumbnails, gate: features, ranker: ranker, looseKeywordLimit: looseKeywordLimit ?? 3,
             adaptsWeights: adaptsWeights
@@ -67,6 +72,7 @@ struct EvalRunner {
         for query in queries {
             outcomes.append(try await outcome(of: query, engine: engine, root: root))
         }
+        try await writeDiagnostics(engine: engine, reader: reader, encoder: queryEncoder, root: root)
         return report(outcomes, corpusFiles: status.totalIndexed, indexingSeconds: indexingSeconds)
     }
 
@@ -92,6 +98,57 @@ struct EvalRunner {
             recall: wanted == 0 ? nil : Double(hits) / Double(wanted),
             isNegative: query.isNegative
         )
+    }
+
+    private func writeDiagnostics(engine: SearchEngine, reader: IndexReader, encoder: GatedQueryEncoder, root: String) async throws {
+        guard let diagnosePath else { return }
+        let diagnostics = try await diagnose(engine: engine, reader: reader, encoder: encoder, root: root)
+        try JSONEncoder.pretty.encode(diagnostics).write(to: diagnosePath)
+    }
+
+    /// Raw rankings before any cutoff, for every relevant file of every positive query.
+    private func diagnose(engine: SearchEngine, reader: IndexReader, encoder: GatedQueryEncoder, root: String) async throws
+        -> [QueryDiagnostic]
+    {
+        var results: [QueryDiagnostic] = []
+        for query in queries where !query.isNegative {
+            let embedding = try await encoder.encode(query: query.text)
+            let (hits, statistics) = try await engine.vectorIndex.searchWithStatistics(embedding, limit: 1_000_000, filter: .none)
+            var bestPerFile: [FileID: Float] = [:]
+            for hit in hits where bestPerFile[hit.fileID] == nil { bestPerFile[hit.fileID] = hit.score }
+            let semanticOrder = bestPerFile.sorted { $0.value > $1.value }
+            let fts = FTSQuery(query.text, allowsPrefix: false)
+            func ranks(_ match: String?, names: Bool) async throws -> [FileID: Int] {
+                guard let match else { return [:] }
+                let hits = names ? try await reader.nameMatches(match, limit: 5_000) : try await reader.chunkMatches(match, limit: 5_000)
+                var ranks: [FileID: Int] = [:]
+                for hit in hits where ranks[hit.fileID] == nil { ranks[hit.fileID] = ranks.count + 1 }
+                return ranks
+            }
+            let keywordAll = try await ranks(fts.all, names: false)
+            let keywordAny = try await ranks(fts.any, names: false)
+            let nameAny = try await ranks(fts.any, names: true)
+            let ids = semanticOrder.map(\.key)
+            let records = try await reader.files(ids)
+            let pathOf = Dictionary(uniqueKeysWithValues: records.map { ($0.key, relativePath($0.value.path, root: root)) })
+            let fileByPath = Dictionary(pathOf.map { ($0.value, $0.key) }, uniquingKeysWith: { first, _ in first })
+            let semanticRank = Dictionary(uniqueKeysWithValues: ids.enumerated().map { ($0.element, $0.offset + 1) })
+            let relevant = query.relevant.filter { $0.value > 0 }.keys.map { path -> RelevantDiagnostic in
+                let id = fileByPath[path]
+                return RelevantDiagnostic(
+                    path: path, semanticRank: id.flatMap { semanticRank[$0] }, cosine: id.flatMap { bestPerFile[$0] },
+                    keywordAllRank: id.flatMap { keywordAll[$0] }, keywordAnyRank: id.flatMap { keywordAny[$0] },
+                    nameRank: id.flatMap { nameAny[$0] })
+            }
+            results.append(
+                QueryDiagnostic(
+                    id: query.id, text: query.text, bestCosine: semanticOrder.first?.value,
+                    top: semanticOrder.prefix(10).map { pathOf[$0.key] ?? "?" },
+                    topCosines: semanticOrder.prefix(10).map(\.value), mean: statistics?.mean, deviation: statistics?.deviation,
+                    median: statistics?.median, robustDeviation: statistics?.robustDeviation, keywordAllCount: keywordAll.count,
+                    keywordAnyCount: keywordAny.count, relevant: relevant))
+        }
+        return results
     }
 
     private func report(_ outcomes: [QueryOutcome], corpusFiles: Int, indexingSeconds: Double) -> EvalReport {
@@ -167,4 +224,29 @@ private struct MarginOverride: QueryEncoding {
     var confidentSimilarity: Float? { confident ?? base.confidentSimilarity }
     var limitsLooseKeywords: Bool { base.limitsLooseKeywords }
     func encode(query: String) async throws -> Embedding { try await base.encode(query: query) }
+}
+
+/// Where a query's relevant files sit before any cutoff.
+struct QueryDiagnostic: Codable {
+    var id: String
+    var text: String
+    var bestCosine: Float?
+    var top: [String]
+    var topCosines: [Float]
+    var mean: Float?
+    var deviation: Float?
+    var median: Float?
+    var robustDeviation: Float?
+    var keywordAllCount: Int
+    var keywordAnyCount: Int
+    var relevant: [RelevantDiagnostic]
+}
+
+struct RelevantDiagnostic: Codable {
+    var path: String
+    var semanticRank: Int?
+    var cosine: Float?
+    var keywordAllRank: Int?
+    var keywordAnyRank: Int?
+    var nameRank: Int?
 }

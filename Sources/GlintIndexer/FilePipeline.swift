@@ -239,8 +239,8 @@ struct FilePipeline: Sendable {
         }
         guard options.fuseTextIntoMedia, let text = chunk.text, !text.isEmpty else { return input }
         switch input {
-        case .image, .video: return .interleaved([input, .text(String(text.prefix(600)))])
-        case .text, .document, .audio, .interleaved: return input
+        case .video: return .interleaved([input, .text(String(text.prefix(600)))])
+        case .text, .document, .image, .audio, .interleaved: return input
         }
     }
 

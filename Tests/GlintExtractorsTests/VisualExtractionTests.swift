@@ -104,6 +104,30 @@ struct ImageExtractorTests {
 
     init() throws { directory = try TemporaryDirectory() }
 
+    @Test func fusesWordsOnlyWhenTheyReadLikeText() {
+        // A photo of a train coach without camera metadata: a few garbled signs.
+        #expect(!ImageExtractor.readsLikeText("Ja석 ENTRY CIR 23381| 2338I1 65-72 0อลง•oibE 2D.6.3 LIFT HERE"))
+        // A small rendered screenshot: short lines, but words.
+        #expect(ImageExtractor.readsLikeText("Flight confirmation\nIndiGo 6E 2341\nBLR to GOI · 12 Dec\nBooking ref QX7P2M"))
+        #expect(!ImageExtractor.readsLikeText(""))
+        // A screenshot: sentences, even with UI chrome around them.
+        #expect(ImageExtractor.readsLikeText("5:02 4G Virtual Machines built for Apple silicon and AI agents, lightweight and fast"))
+        // Long but garbled: handwriting the recognizer could not read.
+        #expect(
+            !ImageExtractor.readsLikeText(
+                Array(repeating: "TpiTh.T47,A TrTR TTP*YI DKVn5'I1 laL8*JN 3'1411ATT4 word", count: 12).joined(separator: " ")))
+    }
+
+    @Test func screenshotsEmbedTheirWords() async throws {
+        let url = try Fixtures.writeTextImage("FLIGHT CONFIRMATION FOR YOUR TRIP TO GOA DEPARTING MONDAY MORNING", in: directory.url)
+        let chunks = try await collect(ImageExtractor(options: ExtractionOptions()), url)
+        if case .interleaved(let parts)? = chunks.first?.input {
+            #expect(parts.count == 2)
+        } else {
+            Issue.record("expected image and words")
+        }
+    }
+
     @Test func recognizesRenderedWords() async throws {
         let url = try Fixtures.writeTextImage("FLIGHT CONFIRMATION", in: directory.url)
         for level in [ExtractionOptions.OCRLevel.accurate, .fast] {
