@@ -79,6 +79,10 @@ enum SampleCorpus {
         EvalQuery(id: "flaky-ci", text: "flaky tests in continuous integration", relevant: ["work/retro.txt": 2]),
         EvalQuery(id: "quarterly-results", text: "quarterly financial results", relevant: ["finance/q3-summary.txt": 2]),
         EvalQuery(id: "matrix-code", text: "matrix vector multiply", relevant: ["code/vector_scan.swift": 2]),
+        // Negative queries: nothing in the corpus matches, so the right answer is no results.
+        EvalQuery(id: "none-elephant", text: "elephant safari", relevant: [:]),
+        EvalQuery(id: "none-guitar", text: "guitar chords for a love song", relevant: [:]),
+        EvalQuery(id: "none-dentist", text: "dentist appointment", relevant: [:]),
     ]
 
     // MARK: Writers

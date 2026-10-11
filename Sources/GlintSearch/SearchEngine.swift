@@ -38,7 +38,7 @@ public actor SearchEngine {
     private let gate: FeatureGateBox
     private var ranker: HybridRanker
     private let now: @Sendable () -> Date
-    private var keywordCache: (query: SearchQuery, chunks: [KeywordHit], names: [KeywordHit])?
+    private var keywordCache: (query: SearchQuery, prefix: Bool, chunks: [KeywordHit], names: [KeywordHit])?
 
     /// Maximum files returned per query.
     public let resultLimit: Int
@@ -61,7 +61,11 @@ public actor SearchEngine {
         self.thumbnails = thumbnails
         self.gate = gate
         self.ranker = ranker
-        if let encoder { self.ranker.minimumSimilarity = encoder.minimumSimilarity }
+        if let encoder {
+            self.ranker.minimumSimilarity = encoder.minimumSimilarity
+            self.ranker.similarityMargin = encoder.similarityMargin
+            self.ranker.minimumZScore = encoder.minimumZScore
+        }
         self.resultLimit = resultLimit
         self.now = now
     }
@@ -75,6 +79,8 @@ public actor SearchEngine {
         encoder = newEncoder
         exampleEncoder = newExampleEncoder
         ranker.minimumSimilarity = newEncoder.minimumSimilarity
+        ranker.similarityMargin = newEncoder.similarityMargin
+        ranker.minimumZScore = newEncoder.minimumZScore
         vectorIndex = newIndex
         keywordCache = nil
         try await loadVectors()
@@ -106,7 +112,7 @@ public actor SearchEngine {
         defer { Signposts.search.endInterval(Signposts.Name.keywordSearch, state) }
         guard !query.isEmpty else { return .empty(query, phase: .keyword) }
 
-        let (chunks, names) = try await keywordHits(for: query)
+        let (chunks, names) = try await keywordHits(for: query, prefix: true)
         let ranked = ranker.rank(semantic: [], keyword: chunks, names: names, attributes: attributes(chunks + names), now: now())
         let items = try await hydrate(ranked, terms: FTSQuery(query.text).terms)
         return SearchResults(query: query, phase: .keyword, items: items, elapsedMilliseconds: stopwatch.milliseconds)
@@ -120,15 +126,20 @@ public actor SearchEngine {
         defer { Signposts.search.endInterval(Signposts.Name.mergedResults, state) }
         guard !query.isEmpty else { return .empty(query) }
 
-        let (chunks, names) = try await keywordHits(for: query)
+        // Once a model is loaded the last word is matched whole: by now the user has stopped
+        // typing, and semantic search covers related words better than a prefix would.
+        let (chunks, names) = try await keywordHits(for: query, prefix: encoder == nil)
         var semantic: [ScoredChunk] = []
+        var statistics: ScoreStatistics?
         if let encoder {
             let embedding = try await encoder.encode(query: query.text)
             try Task.checkCancellation()
-            semantic = try await vectorIndex.search(embedding, limit: resultLimit * 4, filter: query.filter)
+            (semantic, statistics) = try await vectorIndex.searchWithStatistics(embedding, limit: resultLimit * 4, filter: query.filter)
         }
         try Task.checkCancellation()
-        let ranked = ranker.rank(semantic: semantic, keyword: chunks, names: names, attributes: attributes(chunks + names), now: now())
+        let ranked = ranker.rank(
+            semantic: semantic, keyword: chunks, names: names, attributes: attributes(chunks + names), statistics: statistics,
+            now: now())
         let items = try await hydrate(ranked, terms: FTSQuery(query.text).terms)
         return SearchResults(query: query, phase: .merged, items: items, elapsedMilliseconds: stopwatch.milliseconds)
     }
@@ -163,6 +174,9 @@ public actor SearchEngine {
         let semantic = try await vectorIndex.search(query, limit: resultLimit * 4, filter: filter)
         var ranker = ranker
         ranker.recencyBoost = 0
+        // "Find similar" is for browsing neighbours, not deciding what matches.
+        ranker.similarityMargin = nil
+        ranker.minimumZScore = nil
         let ranked = ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], now: now())
         let items = try await hydrate(ranked, terms: [])
         return SearchResults(query: SearchQuery(text: "", filter: filter), phase: .merged, items: items, elapsedMilliseconds: 0)
@@ -191,9 +205,11 @@ public actor SearchEngine {
 
     // MARK: Helpers
 
-    private func keywordHits(for query: SearchQuery) async throws -> ([KeywordHit], [KeywordHit]) {
-        if let keywordCache, keywordCache.query == query { return (keywordCache.chunks, keywordCache.names) }
-        let fts = FTSQuery(query.text)
+    private func keywordHits(for query: SearchQuery, prefix: Bool) async throws -> ([KeywordHit], [KeywordHit]) {
+        if let keywordCache, keywordCache.query == query, keywordCache.prefix == prefix {
+            return (keywordCache.chunks, keywordCache.names)
+        }
+        let fts = FTSQuery(query.text, allowsPrefix: prefix)
         guard let all = fts.all else { return ([], []) }
         let fetchLimit = resultLimit * 3
         var chunks = try await reader.chunkMatches(all, limit: fetchLimit)
@@ -207,7 +223,7 @@ public actor SearchEngine {
         }
         chunks = chunks.filter { query.filter.matches(fileID: $0.fileID, attributes: $0.attributes) }
         names = names.filter { query.filter.matches(fileID: $0.fileID, attributes: $0.attributes) }
-        keywordCache = (query, chunks, names)
+        keywordCache = (query, prefix, chunks, names)
         return (chunks, names)
     }
 

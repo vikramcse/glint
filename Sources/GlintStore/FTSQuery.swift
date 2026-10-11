@@ -7,7 +7,9 @@ public struct FTSQuery: Sendable, Hashable {
     /// Whether the last term should match as a prefix (the user is still typing it).
     public let prefixLast: Bool
 
-    public init(_ text: String) {
+    /// - Parameter allowsPrefix: `false` matches whole words only, for when the user has
+    ///   stopped typing ("car" should not find "carefully").
+    public init(_ text: String, allowsPrefix: Bool = true) {
         let words = text.lowercased()
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
@@ -15,7 +17,7 @@ public struct FTSQuery: Sendable, Hashable {
         terms = meaningful.isEmpty ? words : meaningful
         let endsInWord = text.unicodeScalars.last.map(CharacterSet.alphanumerics.contains) ?? false
         // A one-letter prefix matches too much to be useful or fast.
-        prefixLast = endsInWord && (terms.last?.count ?? 0) >= 2
+        prefixLast = allowsPrefix && endsInWord && (terms.last?.count ?? 0) >= 2
     }
 
     public var isEmpty: Bool { terms.isEmpty }

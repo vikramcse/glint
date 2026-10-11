@@ -213,7 +213,7 @@ final class EG2AudioAttention: Module {
         let span = positions.dim(1)
         let scaled = positions.asType(.float32).expandedDimensions(axis: -1) * inverseTimescales
         var signal = concatenated([sin(scaled), cos(scaled)], axis: -1).asType(queries.dtype)
-        signal = relativeKProj(signal.asType(relativeKProj.weight.dtype)).reshaped(span, heads, headDim).asType(queries.dtype)
+        signal = relativeKProj(signal.asType(relativeKProj.inputType)).reshaped(span, heads, headDim).asType(queries.dtype)
 
         let q = queries.transposed(0, 3, 1, 2, 4)  // B N U W H
         let k = keys.transposed(0, 3, 1, 4, 2)  // B N U H C

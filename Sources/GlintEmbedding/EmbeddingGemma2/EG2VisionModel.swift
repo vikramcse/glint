@@ -248,7 +248,7 @@ final class EG2VisionPatchEmbedder: Module {
 
     /// `pixels`: (batch, patches, patchDim) in 0...1; `positions`: (batch, patches, 2).
     func callAsFunction(_ pixels: MLXArray, positions: MLXArray, padding: MLXArray) -> MLXArray {
-        let hidden = inputProjection((2 * (pixels - 0.5)).asType(inputProjection.weight.dtype))
+        let hidden = inputProjection((2 * (pixels - 0.5)).asType(inputProjection.inputType))
         // Gather each axis's embedding; padded positions (-1) are zeroed below.
         let clamped = maximum(positions, 0).asType(.int32)
         let x = take(positionTable[0], clamped[0..., 0..., 0].flattened(), axis: 0)

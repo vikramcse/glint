@@ -1,223 +1,311 @@
 {
   "corpusFiles" : 12,
-  "date" : "2026-10-10T18:08:30Z",
-  "indexingSeconds" : 5.58910125,
-  "latencyP50Milliseconds" : 8.451708,
-  "latencyP95Milliseconds" : 14.670125,
+  "date" : "2026-10-11T04:28:50Z",
+  "indexingSeconds" : 1.261218625,
+  "latencyP50Milliseconds" : 7.188,
+  "latencyP95Milliseconds" : 16.311625,
   "model" : "google.embeddinggemma-2\/2.0@512",
+  "negatives" : {
+    "averageReturned" : 1,
+    "emptyRate" : 0.3333333333333333,
+    "queries" : 3
+  },
   "outcomes" : [
     {
       "id" : "flight-confirmation",
+      "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 8.377834,
+      "latencyMilliseconds" : 7.992333,
       "mustPass" : true,
       "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
+      "returned" : 1,
       "top" : [
-        "Screenshots\/flight.png",
-        "Screenshots\/receipt.png"
+        "Screenshots\/flight.png"
       ]
     },
     {
       "id" : "hotel-receipt-goa",
+      "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 14.670125,
+      "latencyMilliseconds" : 16.311625,
       "mustPass" : true,
       "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
+      "returned" : 2,
       "top" : [
         "Screenshots\/receipt.png",
-        "travel\/goa-itinerary.md",
-        "Screenshots\/flight.png",
-        "Screenshots\/wifi.png"
+        "travel\/goa-itinerary.md"
       ]
     },
     {
       "id" : "wifi-password",
+      "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 8.017791,
+      "latencyMilliseconds" : 7.2985,
       "mustPass" : true,
       "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
+      "returned" : 1,
       "top" : [
-        "Screenshots\/wifi.png",
-        "Screenshots\/flight.png",
-        "Screenshots\/receipt.png"
+        "Screenshots\/wifi.png"
       ]
     },
     {
       "id" : "pricing-chart",
+      "isNegative" : false,
       "kind" : "pdf",
-      "latencyMilliseconds" : 8.451708,
+      "latencyMilliseconds" : 7.453208,
       "mustPass" : true,
       "ndcgAt10" : 1,
+      "precision" : 0.5,
+      "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
+      "returned" : 2,
       "top" : [
         "work\/Acme pitch.pdf",
-        "notes\/product-launch.md",
-        "notes\/standup-2026-09-14.txt",
-        "Screenshots\/wifi.png",
-        "work\/retro.txt"
+        "notes\/product-launch.md"
       ]
     },
     {
       "id" : "revenue-by-region",
+      "isNegative" : false,
       "kind" : "pdf",
-      "latencyMilliseconds" : 8.240042,
+      "latencyMilliseconds" : 7.609083,
       "mustPass" : false,
       "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
+      "returned" : 2,
       "top" : [
-        "work\/Acme pitch.pdf",
-        "finance\/q3-summary.txt",
-        "code\/vector_scan.swift"
-      ]
-    },
-    {
-      "id" : "client-deadline",
-      "kind" : "document",
-      "latencyMilliseconds" : 9.38925,
-      "mustPass" : true,
-      "ndcgAt10" : 1,
-      "recallAt10" : 1,
-      "reciprocalRank" : 1,
-      "top" : [
-        "notes\/standup-2026-09-14.txt",
-        "notes\/product-launch.md",
-        "work\/retro.txt",
         "work\/Acme pitch.pdf",
         "finance\/q3-summary.txt"
       ]
     },
     {
-      "id" : "tomato-recipe",
+      "id" : "client-deadline",
+      "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 8.201667,
-      "mustPass" : false,
+      "latencyMilliseconds" : 7.199,
+      "mustPass" : true,
       "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
+      "returned" : 1,
       "top" : [
-        "recipes\/pasta.txt",
-        "recipes\/bread.txt"
+        "notes\/standup-2026-09-14.txt"
+      ]
+    },
+    {
+      "id" : "tomato-recipe",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 7.433958,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "recipes\/pasta.txt"
       ]
     },
     {
       "id" : "baking",
+      "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 8.38525,
+      "latencyMilliseconds" : 7.04725,
       "mustPass" : false,
       "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
+      "returned" : 1,
       "top" : [
         "recipes\/bread.txt"
       ]
     },
     {
       "id" : "launch-plan",
+      "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 8.513834,
+      "latencyMilliseconds" : 6.975209,
       "mustPass" : false,
       "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
+      "returned" : 1,
       "top" : [
-        "notes\/product-launch.md",
-        "notes\/standup-2026-09-14.txt",
-        "work\/Acme pitch.pdf",
-        "work\/retro.txt",
-        "recipes\/bread.txt"
-      ]
-    },
-    {
-      "id" : "goa-trip",
-      "kind" : "document",
-      "latencyMilliseconds" : 8.56475,
-      "mustPass" : false,
-      "ndcgAt10" : 0.9639404333166532,
-      "recallAt10" : 1,
-      "reciprocalRank" : 1,
-      "top" : [
-        "travel\/goa-itinerary.md",
-        "Screenshots\/receipt.png",
-        "Screenshots\/flight.png",
-        "notes\/standup-2026-09-14.txt"
-      ]
-    },
-    {
-      "id" : "flaky-ci",
-      "kind" : "document",
-      "latencyMilliseconds" : 8.777167,
-      "mustPass" : false,
-      "ndcgAt10" : 1,
-      "recallAt10" : 1,
-      "reciprocalRank" : 1,
-      "top" : [
-        "work\/retro.txt",
-        "Screenshots\/flight.png",
-        "notes\/standup-2026-09-14.txt",
-        "Screenshots\/wifi.png",
         "notes\/product-launch.md"
       ]
     },
     {
-      "id" : "quarterly-results",
+      "id" : "goa-trip",
+      "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 8.918458,
+      "latencyMilliseconds" : 7.487666,
       "mustPass" : false,
-      "ndcgAt10" : 1,
+      "ndcgAt10" : 0.9639404333166532,
+      "precision" : 0.6666666666666666,
+      "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
+      "returned" : 3,
       "top" : [
-        "finance\/q3-summary.txt",
-        "work\/Acme pitch.pdf",
-        "work\/retro.txt",
-        "code\/vector_scan.swift",
-        "notes\/standup-2026-09-14.txt"
+        "travel\/goa-itinerary.md",
+        "Screenshots\/receipt.png",
+        "Screenshots\/flight.png"
+      ]
+    },
+    {
+      "id" : "flaky-ci",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 7.188,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "work\/retro.txt"
+      ]
+    },
+    {
+      "id" : "quarterly-results",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 7.056375,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "finance\/q3-summary.txt"
       ]
     },
     {
       "id" : "matrix-code",
+      "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 8.439833,
+      "latencyMilliseconds" : 7.101125,
       "mustPass" : false,
       "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
+      "returned" : 1,
       "top" : [
         "code\/vector_scan.swift"
+      ]
+    },
+    {
+      "id" : "none-elephant",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 7.062625,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 1,
+      "top" : [
+        "travel\/goa-itinerary.md"
+      ]
+    },
+    {
+      "id" : "none-guitar",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 7.033417,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 1,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 0,
+      "top" : [
+
+      ]
+    },
+    {
+      "id" : "none-dentist",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 6.975708,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 2,
+      "top" : [
+        "notes\/standup-2026-09-14.txt",
+        "Screenshots\/wifi.png"
       ]
     }
   ],
   "overall" : {
+    "f1" : 0.958974358974359,
     "mrr" : 1,
     "ndcgAt10" : 0.9972261871782041,
+    "precision" : 0.9358974358974359,
     "queries" : 13,
+    "recall" : 1,
     "recallAt10" : 1
   },
   "perKind" : {
     "document" : {
+      "f1" : 0.975,
       "mrr" : 1,
       "ndcgAt10" : 0.9954925541645816,
+      "precision" : 0.9583333333333334,
       "queries" : 8,
+      "recall" : 1,
       "recallAt10" : 1
     },
     "image" : {
+      "f1" : 1,
       "mrr" : 1,
       "ndcgAt10" : 1,
+      "precision" : 1,
       "queries" : 3,
+      "recall" : 1,
       "recallAt10" : 1
     },
     "pdf" : {
+      "f1" : 0.8333333333333333,
       "mrr" : 1,
       "ndcgAt10" : 1,
+      "precision" : 0.75,
       "queries" : 2,
+      "recall" : 1,
       "recallAt10" : 1
     }
   }

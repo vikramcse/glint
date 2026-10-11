@@ -33,6 +33,14 @@ public struct HybridRanker: Sendable {
     public var nameWeight: Double = 1.2
     /// Semantic hits below this cosine similarity are dropped as noise.
     public var minimumSimilarity: Float = 0.25
+    /// Semantic hits more than this below the best hit are dropped too (`nil`: off).
+    public var similarityMargin: Float?
+    /// Semantic hits fewer than this many standard deviations above the query's mean score
+    /// over the library are dropped (`nil`: off). Needs the statistics passed to `rank`, and
+    /// replaces `similarityMargin` once the library has `calibrationMinimumRows` vectors.
+    public var minimumZScore: Float?
+    /// Below this many vectors the library's score statistics are too noisy to calibrate with.
+    public var calibrationMinimumRows = 200
     /// Maximum relative boost for a file modified today, decaying with `recencyHalfLife`.
     public var recencyBoost: Double = 0.05
     public var recencyHalfLife: TimeInterval = 90 * 24 * 3_600
@@ -44,13 +52,20 @@ public struct HybridRanker: Sendable {
         keyword: [KeywordHit],
         names: [KeywordHit],
         attributes: [FileID: FileAttributes],
+        statistics: ScoreStatistics? = nil,
         now: Date = Date()
     ) -> [RankedFile] {
         var chunkScores: [ChunkID: (file: FileID, score: Double)] = [:]
         var similarity: [ChunkID: Float] = [:]
         var files: [FileID: RankedFile] = [:]
 
-        for (rank, hit) in semantic.filter({ $0.score >= minimumSimilarity }).enumerated() {
+        var floor = minimumSimilarity
+        if let minimumZScore, let statistics, statistics.deviation > 0, statistics.count >= calibrationMinimumRows {
+            floor = max(floor, statistics.mean + minimumZScore * statistics.deviation)
+        } else if let similarityMargin, let best = semantic.map(\.score).max() {
+            floor = max(floor, best - similarityMargin)
+        }
+        for (rank, hit) in semantic.filter({ $0.score >= floor }).enumerated() {
             chunkScores[hit.chunkID, default: (hit.fileID, 0)].score += semanticWeight / (k + Double(rank + 1))
             similarity[hit.chunkID] = hit.score
             files[hit.fileID, default: .empty(hit.fileID)].sources.insert(.semantic)

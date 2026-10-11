@@ -8,7 +8,7 @@ protocol VectorScanner {
     func scores(_ matrix: VectorMatrix, query: [Float]) -> [Float]
 }
 
-/// Single-pass GPU scan: one thread per row, half-precision rows, float accumulation.
+/// Single-pass GPU scan: one thread per row, 8-bit rows, float accumulation, then the row's scale.
 final class MetalVectorScanner: VectorScanner {
     private let device: any MTLDevice
     private let queue: any MTLCommandQueue
@@ -19,19 +19,22 @@ final class MetalVectorScanner: VectorScanner {
         #include <metal_stdlib>
         using namespace metal;
 
-        kernel void dot_rows(device const half4 *matrix [[buffer(0)]],
+        // Each row: `quads` char4 values, then one float scale.
+        kernel void dot_rows(device const char *matrix [[buffer(0)]],
                              constant float4 *query [[buffer(1)]],
                              device float *scores [[buffer(2)]],
                              constant uint &quads [[buffer(3)]],
                              constant uint &rows [[buffer(4)]],
                              uint gid [[thread_position_in_grid]]) {
             if (gid >= rows) { return; }
-            device const half4 *row = matrix + gid * quads;
+            device const char *start = matrix + gid * (quads * 4 + 4);
+            device const char4 *row = (device const char4 *)start;
             float4 acc = 0.0f;
             for (uint i = 0; i < quads; i++) {
                 acc += float4(row[i]) * query[i];
             }
-            scores[gid] = acc.x + acc.y + acc.z + acc.w;
+            float scale = *(device const float *)(start + quads * 4);
+            scores[gid] = (acc.x + acc.y + acc.z + acc.w) * scale;
         }
         """
 
@@ -55,14 +58,16 @@ final class MetalVectorScanner: VectorScanner {
     func scores(_ matrix: VectorMatrix, query: [Float]) -> [Float] {
         let rows = matrix.rows
         guard rows > 0 else { return [] }
-        guard matrix.dimension % 4 == 0, let matrixBuffer = matrix.buffer,
+        guard let matrixBuffer = matrix.buffer,
             let output = scoreBuffer(rows: rows),
             let commands = queue.makeCommandBuffer(),
             let encoder = commands.makeComputeCommandEncoder()
         else {
             return AccelerateVectorScanner().scores(matrix, query: query)
         }
-        var quads = UInt32(matrix.dimension / 4)
+        var quads = UInt32(matrix.paddedDimension / 4)
+        // The kernel reads whole quads; pad the query with zeros to match.
+        let query = query + [Float](repeating: 0, count: matrix.paddedDimension - query.count)
         var rowCount = UInt32(rows)
         encoder.setComputePipelineState(pipeline)
         encoder.setBuffer(matrixBuffer, offset: 0, index: 0)
@@ -90,7 +95,8 @@ final class MetalVectorScanner: VectorScanner {
     }
 }
 
-/// CPU scan: converts blocks of half rows to float and runs one BLAS matrix-vector multiply per block.
+/// CPU scan: converts blocks of 8-bit rows to float, runs one BLAS matrix-vector multiply per
+/// block, then applies each row's scale.
 struct AccelerateVectorScanner: VectorScanner {
     var blockRows = 2_048
 
@@ -103,16 +109,12 @@ struct AccelerateVectorScanner: VectorScanner {
         var start = 0
         while start < rows {
             let count = min(blockRows, rows - start)
-            let elements = count * dimension
-            let source = matrix.pointer + start * dimension
             block.withUnsafeMutableBufferPointer { floats in
-                var input = vImage_Buffer(
-                    data: UnsafeMutableRawPointer(source), height: 1, width: vImagePixelCount(elements),
-                    rowBytes: elements * MemoryLayout<Float16>.stride)
-                var output = vImage_Buffer(
-                    data: floats.baseAddress, height: 1, width: vImagePixelCount(elements),
-                    rowBytes: elements * MemoryLayout<Float>.stride)
-                vImageConvert_Planar16FtoPlanarF(&input, &output, 0)
+                for offset in 0..<count {
+                    vDSP_vflt8(
+                        matrix.values(of: start + offset), 1, floats.baseAddress.unsafelyUnwrapped + offset * dimension, 1,
+                        vDSP_Length(dimension))
+                }
             }
             scores.withUnsafeMutableBufferPointer { output in
                 block.withUnsafeBufferPointer { floats in
@@ -125,6 +127,7 @@ struct AccelerateVectorScanner: VectorScanner {
                         )
                     }
                 }
+                for row in start..<(start + count) { output[row] *= matrix.scale(of: row) }
             }
             start += count
         }

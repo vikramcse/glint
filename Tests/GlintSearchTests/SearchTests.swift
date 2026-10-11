@@ -102,6 +102,51 @@ struct TopKTests {
     }
 }
 
+@Suite("VectorMatrix")
+struct VectorMatrixTests {
+    /// Deterministic unit vectors with mixed signs.
+    private func vectors(_ count: Int, dimension: Int) -> [[Float]] {
+        var state: UInt64 = 42
+        return (0..<count).map { _ in
+            let raw = (0..<dimension).map { _ -> Float in
+                state = state &* 6_364_136_223_846_793_005 &+ 1
+                return Float(Int64(bitPattern: state >> 11) % 2_000) / 1_000 - 1
+            }
+            let norm = sqrt(raw.reduce(0) { $0 + $1 * $1 })
+            return raw.map { $0 / norm }
+        }
+    }
+
+    @Test func roundTripErrorIsSmall() {
+        let matrix = VectorMatrix(dimension: 6, device: nil)
+        for vector in vectors(20, dimension: 6) {
+            let row = matrix.append(vector)
+            let restored = matrix.row(row)
+            let worst = zip(vector, restored).map { abs($0 - $1) }.max() ?? 0
+            // Half a quantization step of the row's largest value.
+            #expect(worst <= (vector.map(abs).max() ?? 0) / 254 + 1e-6)
+        }
+        #expect(matrix.row(matrix.append([0, 0, 0, 0, 0, 0])) == [0, 0, 0, 0, 0, 0])
+    }
+
+    @Test(arguments: [6, 512])
+    func gpuAndCPUScansAgree(dimension: Int) throws {
+        let gpu = try #require(MetalVectorScanner())
+        let matrix = VectorMatrix(dimension: dimension, initialCapacity: 2, device: gpu.metalDevice)
+        let rows = vectors(300, dimension: dimension)
+        for row in rows { _ = matrix.append(row) }
+        matrix.removeBySwappingLast(7)
+        let query = vectors(1, dimension: dimension)[0]
+        let onGPU = gpu.scores(matrix, query: query)
+        let onCPU = AccelerateVectorScanner(blockRows: 64).scores(matrix, query: query)
+        #expect(onGPU.count == 299)
+        #expect(zip(onGPU, onCPU).allSatisfy { abs($0 - $1) < 1e-4 })
+        // Close to the exact float dot product.
+        let exact = zip(rows[0], query).reduce(0) { $0 + $1.0 * $1.1 }
+        #expect(abs(onGPU[0] - exact) < 0.01)
+    }
+}
+
 @Suite("HybridRanker")
 struct HybridRankerTests {
     @Test func fusesAndCollapsesToBestChunkPerFile() {
@@ -124,6 +169,51 @@ struct HybridRankerTests {
             semantic: [ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.05)], keyword: [], names: [], attributes: [:]
         )
         #expect(ranked.isEmpty)
+    }
+
+    @Test func dropsSemanticMatchesFarBelowTheBest() {
+        var ranker = HybridRanker()
+        ranker.minimumSimilarity = 0.6
+        ranker.similarityMargin = 0.05
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.73),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.69),
+            ScoredChunk(chunkID: ChunkID(3), fileID: FileID(3), score: 0.63),
+        ]
+        let keyword = [KeywordHit(fileID: FileID(4), chunkID: ChunkID(4), bm25: -1, attributes: attributes())]
+        let ranked = ranker.rank(semantic: semantic, keyword: keyword, names: [], attributes: [:])
+        // File 3 clears the absolute cutoff but not the margin; keyword matches are never dropped.
+        #expect(Set(ranked.map(\.fileID)) == [FileID(1), FileID(2), FileID(4)])
+
+        ranker.similarityMargin = nil
+        #expect(ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:]).count == 3)
+    }
+
+    @Test func calibratesAgainstTheLibraryOnceItIsLargeEnough() {
+        var ranker = HybridRanker()
+        ranker.minimumSimilarity = 0.6
+        ranker.similarityMargin = 0.05
+        ranker.minimumZScore = 2.75
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.73),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.70),
+            ScoredChunk(chunkID: ChunkID(3), fileID: FileID(3), score: 0.64),
+        ]
+        // mean 0.57, deviation 0.03: z = 5.3, 4.3, 2.3, so file 3 falls below 2.75.
+        let large = ScoreStatistics(mean: 0.57, deviation: 0.03, count: 500)
+        #expect(
+            ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: large).map(\.fileID)
+                == [FileID(1), FileID(2)])
+
+        // Too few vectors for stable statistics: the margin applies instead.
+        let small = ScoreStatistics(mean: 0.57, deviation: 0.03, count: 20)
+        #expect(
+            Set(ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: small).map(\.fileID))
+                == [FileID(1), FileID(2)])
+        let tight = [semantic[0], ScoredChunk(chunkID: ChunkID(4), fileID: FileID(4), score: 0.66)]
+        // z = 3.0 passes calibration, but on a small library the margin (0.73 - 0.05) drops it.
+        #expect(ranker.rank(semantic: tight, keyword: [], names: [], attributes: [:], statistics: large).count == 2)
+        #expect(ranker.rank(semantic: tight, keyword: [], names: [], attributes: [:], statistics: small).count == 1)
     }
 
     @Test func nameOnlyMatchesHaveNoChunk() {

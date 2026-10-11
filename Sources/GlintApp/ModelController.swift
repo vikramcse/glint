@@ -96,7 +96,10 @@ final class ModelController: ModelControlling {
     private func activate(directory: URL) async {
         state = .loading
         do {
-            let provider = try await EmbeddingGemma2Provider(directory: directory, towers: .text, dimensions: settings.modelDimensions)
+            // After an hour without searching or indexing, give the model's memory back; the
+            // next search reloads it in a second or two.
+            let provider = try await EmbeddingGemma2Provider(
+                directory: directory, towers: .text, dimensions: settings.modelDimensions, idleUnload: .seconds(3_600))
             active = provider
             await switchTo(provider, name: provider.descriptor.displayName)
             state = .active

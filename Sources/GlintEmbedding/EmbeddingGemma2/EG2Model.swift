@@ -111,8 +111,11 @@ final class EG2Model: Module {
 
     /// The text path compiled into fused kernels. Compiled graphs are cached per input shape,
     /// so callers pad lengths to a few buckets (see `EG2Processor.bucketed`).
-    lazy var compiledText: @Sendable (MLXArray, MLXArray) -> MLXArray = compile(inputs: [self], outputs: []) {
-        [unowned self] ids, mask in self.embedText(ids, mask: mask)
+    ///
+    /// The returned function holds this model as an input, so the caller keeps it next to the
+    /// model (never inside it, which would form a cycle and leak the weights).
+    func compileText() -> @Sendable (MLXArray, MLXArray) -> MLXArray {
+        compile(inputs: [self], outputs: []) { [unowned self] ids, mask in self.embedText(ids, mask: mask) }
     }
 
     func imageFeatures(_ pixels: MLXArray, _ positions: MLXArray) throws -> MLXArray {
@@ -158,17 +161,26 @@ final class EG2Model: Module {
     // MARK: Loading
 
     /// Creates and loads the vision and/or audio parts (indexing needs them; search does not).
-    func attach(_ towers: EG2Towers, from directory: URL) throws {
+    /// - Parameter quantized: which of them to convert to 8-bit as they load.
+    func attach(_ towers: EG2Towers, from directory: URL, quantized: EG2Towers = []) throws {
         let missing = towers.subtracting(loadedTowers)
         guard !missing.isEmpty else { return }
         createParts(missing)
-        try loadWeights(from: directory, towers: missing)
+        try loadWeights(from: directory, towers: missing, quantized: quantized)
     }
 
-    /// Converts the text tower's linear and embedding layers to affine 8-bit (group 64).
-    func quantizeText() {
-        quantize(model: languageModel, groupSize: 64, bits: 8)
-        eval(self)
+    /// Converts a part to affine 8-bit, group 64. Lazy: nothing is computed until the part
+    /// is evaluated. The text tower converts every linear and embedding layer; media towers
+    /// convert linear layers whose input width is a multiple of the group.
+    private func quantize8(_ part: Module) {
+        if part === languageModel {
+            quantize(model: part, groupSize: 64, bits: 8)
+        } else {
+            quantize(model: part, groupSize: 64, bits: 8) { _, module in
+                guard let linear = module as? Linear else { return false }
+                return linear.weight.dim(-1) % 64 == 0
+            }
+        }
     }
 
     /// Drops the vision and/or audio parts and frees their GPU memory.
@@ -187,7 +199,12 @@ final class EG2Model: Module {
 
     /// Loads weights from `model*.safetensors` in `directory` into the text model and whichever
     /// media parts exist, each verified on its own (`towers` limits which ones are loaded).
-    func loadWeights(from directory: URL, towers: EG2Towers = .all) throws {
+    ///
+    /// Safetensors load lazily, so weights of towers not asked for are never read. Parts in
+    /// `quantized` are converted to 8-bit before they are evaluated, so each bf16 weight is
+    /// read, converted and freed in turn instead of the whole bf16 part sitting in memory
+    /// next to its 8-bit copy.
+    func loadWeights(from directory: URL, towers: EG2Towers = .all, quantized: EG2Towers = []) throws {
         let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "safetensors" }
         guard !files.isEmpty else { throw EG2Error.missingWeights }
@@ -206,18 +223,34 @@ final class EG2Model: Module {
                 }
             }
         }
+        // Each part drops its own references to the source arrays before evaluating, so a
+        // bf16 weight is freed as soon as its 8-bit version exists.
         if towers.contains(.text) {
             try update(parameters: ModuleParameters.unflattened(text), verify: [.noUnusedKeys])
-            eval(self)
+            text.removeAll()
+            if quantized.contains(.text) { quantize8(languageModel) }
+            Self.evalLayerByLayer(self)
         }
         if towers.contains(.vision), let part = media.vision {
             try part.update(parameters: ModuleParameters.unflattened(vision), verify: [.noUnusedKeys])
-            eval(part)
+            vision.removeAll()
+            if quantized.contains(.vision) { quantize8(part) }
+            Self.evalLayerByLayer(part)
         }
         if towers.contains(.audio), let part = media.audio {
             try part.update(parameters: ModuleParameters.unflattened(audio), verify: [.noUnusedKeys])
-            eval(part)
+            audio.removeAll()
+            if quantized.contains(.audio) { quantize8(part) }
+            Self.evalLayerByLayer(part)
         }
+    }
+
+    /// Evaluates one layer at a time, so at most one layer's bf16 weights are in memory
+    /// while it is converted, rather than the whole tower's.
+    private static func evalLayerByLayer(_ module: Module) {
+        for (_, layer) in module.leafModules().flattened() { eval(layer) }
+        eval(module)
+        Memory.clearCache()
     }
 
     /// Mirrors the reference `sanitize`: drops unused towers and rotary caches, and converts
@@ -261,4 +294,10 @@ enum EG2Error: GlintError, Equatable {
         case .inputTooLong(let tokens): "Input of \(tokens) tokens exceeds the model window"
         }
     }
+}
+
+extension Linear {
+    /// The type inputs are cast to before this layer. A quantized layer's `weight` holds packed
+    /// integers, so its scales carry the real compute type.
+    var inputType: DType { (self as? QuantizedLinear)?.scales.dtype ?? weight.dtype }
 }

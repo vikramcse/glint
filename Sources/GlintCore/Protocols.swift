@@ -38,11 +38,17 @@ public protocol QueryEncoding: Sendable {
     var space: VectorSpace { get }
     /// Cosine similarity below which semantic matches are dropped as noise.
     var minimumSimilarity: Float { get }
+    /// Semantic matches further than this below the query's best match are dropped (`nil`: off).
+    var similarityMargin: Float? { get }
+    /// Semantic matches below this z-score over the library are dropped (`nil`: off).
+    var minimumZScore: Float? { get }
     func encode(query: String) async throws -> Embedding
 }
 
 extension QueryEncoding {
     public var minimumSimilarity: Float { 0.25 }
+    public var similarityMargin: Float? { nil }
+    public var minimumZScore: Float? { nil }
 }
 
 /// Embeds an example file for "find similar" when the file is not in the index yet.

@@ -1,3 +1,4 @@
+import Accelerate
 import Foundation
 import GlintCore
 import Metal
@@ -68,11 +69,22 @@ public actor FlatVectorIndex: VectorIndex {
     }
 
     public func search(_ query: Embedding, limit: Int, filter: SearchFilter) async throws -> [ScoredChunk] {
-        guard query.dimension == space.dimension, matrix.rows > 0, limit > 0 else { return [] }
+        try await searchWithStatistics(query, limit: limit, filter: filter).hits
+    }
+
+    /// Like `search`, plus the mean and spread of the query's score over every stored row,
+    /// which tells how far a hit stands out from the library as a whole.
+    public func searchWithStatistics(
+        _ query: Embedding, limit: Int, filter: SearchFilter
+    ) async throws -> (hits: [ScoredChunk], statistics: ScoreStatistics?) {
+        guard query.dimension == space.dimension, matrix.rows > 0, limit > 0 else { return ([], nil) }
         let state = Signposts.search.beginInterval(Signposts.Name.vectorScan)
         defer { Signposts.search.endInterval(Signposts.Name.vectorScan, state) }
 
         let scores = scanner.scores(matrix, query: query.values)
+        var mean: Float = 0
+        var deviation: Float = 0
+        vDSP_normalize(scores, 1, nil, 1, &mean, &deviation, vDSP_Length(scores.count))
         let allowed = allowedFiles(for: filter)
         var top = TopK<Int>(limit)
         for row in 0..<scores.count {
@@ -81,7 +93,8 @@ public actor FlatVectorIndex: VectorIndex {
             if let allowed, !allowed.contains(fileIDs[row]) { continue }
             top.insert(row, score: score)
         }
-        return top.sorted().map { ScoredChunk(chunkID: chunkIDs[$0.element], fileID: fileIDs[$0.element], score: $0.score) }
+        let hits = top.sorted().map { ScoredChunk(chunkID: chunkIDs[$0.element], fileID: fileIDs[$0.element], score: $0.score) }
+        return (hits, ScoreStatistics(mean: mean, deviation: deviation, count: scores.count))
     }
 
     /// The vectors stored for one file (used by "find similar").
@@ -112,5 +125,19 @@ public actor FlatVectorIndex: VectorIndex {
         matrix.removeBySwappingLast(row)
         chunkIDs.removeLast()
         fileIDs.removeLast()
+    }
+}
+
+/// Distribution of one query's similarity over the whole library.
+public struct ScoreStatistics: Sendable, Hashable {
+    public var mean: Float
+    public var deviation: Float
+    /// Rows the statistics were computed over.
+    public var count: Int
+
+    public init(mean: Float, deviation: Float, count: Int) {
+        self.mean = mean
+        self.deviation = deviation
+        self.count = count
     }
 }

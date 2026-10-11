@@ -27,7 +27,12 @@ public enum ModelCatalog {
         modalities: [.text, .image, .audio, .video],
         license: "Apache-2.0",
         allowsCommercialUse: true,
-        minimumSimilarity: 0.60
+        minimumSimilarity: 0.60,
+        // Tuned with glint-eval. The margin (0.04–0.06 keeps sample recall at 1.0 while precision
+        // rises from 0.46 to 0.94) applies to small libraries; from 200 vectors the z-score takes
+        // over (COCO photo benchmark: category F1 0.55 -> 0.59, negative queries 35 -> 3.4 results).
+        similarityMargin: 0.05,
+        minimumZScore: 2.75
     )
 
     /// Deterministic text-only hashing model for tests and the eval harness's smoke mode.

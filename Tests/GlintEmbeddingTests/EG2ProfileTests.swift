@@ -67,12 +67,13 @@ struct EG2ProfileTests {
         print("graph build \(Self.ms(start) / 20) ms")
         eval(outputs)
 
+        let compiledText = model.compileText()
         for length in [16, 32, 48] {
             let ids = MLXArray([Int32](repeating: 1_000, count: length), [1, length])
             let mask = MLXArray.ones([1, length], type: Int32.self)
-            eval(model.compiledText(ids, mask))
+            eval(compiledText(ids, mask))
             start = ContinuousClock.now
-            for _ in 0..<20 { eval(model.compiledText(ids, mask)) }
+            for _ in 0..<20 { eval(compiledText(ids, mask)) }
             print("compiled length \(length): \(Self.ms(start) / 20) ms")
         }
         for length in [8, 16, 24, 33, 47] {

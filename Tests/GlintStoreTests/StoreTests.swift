@@ -257,6 +257,10 @@ struct FTSQueryTests {
         #expect(FTSQuery("a").all == "\"a\"")
     }
 
+    @Test func wholeWordsOnlyWhenPrefixIsOff() {
+        #expect(FTSQuery("car", allowsPrefix: false).all == "\"car\"")
+    }
+
     @Test func quotesAreNeutralized() {
         #expect(FTSQuery("\"); DROP TABLE files; --").terms == ["drop", "table", "files"])
         #expect(FTSQuery("   ").isEmpty)

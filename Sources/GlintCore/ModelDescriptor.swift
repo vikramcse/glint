@@ -21,6 +21,16 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
     /// Cosine similarity below which a semantic match is noise for this model. Models differ:
     /// EmbeddingGemma 2 scores unrelated text around 0.5–0.65, the built-in model near 0.
     public var minimumSimilarity: Float?
+    /// Semantic matches scoring more than this below a query's best match are dropped. Scores
+    /// from one model bunch together (EmbeddingGemma 2 puts unrelated photos within ~0.1 of a
+    /// real match), so the gap from the best match separates matches better than any fixed
+    /// cutoff. `nil` keeps everything above `minimumSimilarity`.
+    public var similarityMargin: Float?
+    /// Semantic matches fewer than this many standard deviations above the query's mean score
+    /// over the library are dropped. Adapts to each query, so it separates real matches from
+    /// the model's crowded background better than a fixed cutoff or margin; used instead of
+    /// `similarityMargin` once the library is large enough for stable statistics.
+    public var minimumZScore: Float?
 
     public init(
         id: String,
@@ -33,7 +43,9 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
         allowsCommercialUse: Bool,
         downloadSize: Int64? = nil,
         checksum: String? = nil,
-        minimumSimilarity: Float? = nil
+        minimumSimilarity: Float? = nil,
+        similarityMargin: Float? = nil,
+        minimumZScore: Float? = nil
     ) {
         self.id = id
         self.version = version
@@ -46,6 +58,8 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
         self.downloadSize = downloadSize
         self.checksum = checksum
         self.minimumSimilarity = minimumSimilarity
+        self.similarityMargin = similarityMargin
+        self.minimumZScore = minimumZScore
     }
 
     /// The vector space stored vectors are tagged with. Includes the version so a new model

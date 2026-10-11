@@ -11,6 +11,10 @@ struct EvalRunner {
     let corpus: URL
     let queries: [EvalQuery]
     let provider: any EmbeddingProvider
+    /// Overrides the model's similarity margin when set (`.some(nil)` turns it off), for tuning.
+    var similarityMargin: Float?? = nil
+    /// Overrides the model's minimum z-score when set (`.some(nil)` turns it off).
+    var minimumZScore: Float?? = nil
 
     func run() async throws -> EvalReport {
         let work = FileManager.default.temporaryDirectory.appendingPathComponent("glint-eval-\(UUID().uuidString)")
@@ -29,7 +33,9 @@ struct EvalRunner {
         )
         let engine = SearchEngine(
             reader: try IndexReader(url: paths.database), vectorIndex: vectorIndex,
-            encoder: GatedQueryEncoder(provider: provider, gate: gate), thumbnails: thumbnails, gate: features
+            encoder: MarginOverride(
+                base: GatedQueryEncoder(provider: provider, gate: gate), margin: similarityMargin, zScore: minimumZScore),
+            thumbnails: thumbnails, gate: features
         )
 
         let indexing = Stopwatch()
@@ -48,7 +54,10 @@ struct EvalRunner {
             let stopwatch = Stopwatch()
             let results = try await engine.mergedResults(for: SearchQuery(text: query.text))
             let latency = stopwatch.milliseconds
-            let ranked = results.items.map { relativePath($0.file.path, root: root) }
+            let ignored = Set(query.ignored ?? [])
+            let ranked = results.items.map { relativePath($0.file.path, root: root) }.filter { !ignored.contains($0) }
+            let hits = ranked.filter { (query.relevant[$0] ?? 0) > 0 }.count
+            let wanted = query.relevant.values.filter { $0 > 0 }.count
             outcomes.append(
                 QueryOutcome(
                     id: query.id,
@@ -58,20 +67,32 @@ struct EvalRunner {
                     ndcgAt10: RetrievalMetrics.ndcg(ranked: ranked, relevant: query.relevant),
                     latencyMilliseconds: latency,
                     top: Array(ranked.prefix(5)),
-                    mustPass: query.mustPass ?? false
+                    mustPass: query.mustPass ?? false,
+                    returned: ranked.count,
+                    precision: ranked.isEmpty ? (query.isNegative ? 1 : 0) : Double(hits) / Double(ranked.count),
+                    recall: wanted == 0 ? nil : Double(hits) / Double(wanted),
+                    isNegative: query.isNegative
                 ))
         }
 
+        let negatives = outcomes.filter { $0.isNegative == true }
+        let positives = outcomes.filter { $0.isNegative != true }
         var perKind: [String: Scores] = [:]
-        for (kind, group) in Dictionary(grouping: outcomes, by: \.kind) { perKind[kind] = scores(group) }
+        for (kind, group) in Dictionary(grouping: positives, by: \.kind) { perKind[kind] = scores(group) }
         let latencies = outcomes.map(\.latencyMilliseconds)
         return EvalReport(
             model: provider.descriptor.space.description,
             date: Date(),
             corpusFiles: status.totalIndexed,
             indexingSeconds: indexingSeconds,
-            overall: scores(outcomes),
+            overall: scores(positives),
             perKind: perKind,
+            negatives: negatives.isEmpty
+                ? nil
+                : NegativeScores(
+                    queries: negatives.count,
+                    emptyRate: Double(negatives.filter { $0.returned == 0 }.count) / Double(negatives.count),
+                    averageReturned: Double(negatives.map { $0.returned ?? 0 }.reduce(0, +)) / Double(negatives.count)),
             latencyP50Milliseconds: RetrievalMetrics.percentile(latencies, 50),
             latencyP95Milliseconds: RetrievalMetrics.percentile(latencies, 95),
             outcomes: outcomes
@@ -84,12 +105,20 @@ struct EvalRunner {
             queries: outcomes.count,
             recallAt10: outcomes.map(\.recallAt10).reduce(0, +) / count,
             mrr: outcomes.map(\.reciprocalRank).reduce(0, +) / count,
-            ndcgAt10: outcomes.map(\.ndcgAt10).reduce(0, +) / count
+            ndcgAt10: outcomes.map(\.ndcgAt10).reduce(0, +) / count,
+            precision: outcomes.map { $0.precision ?? 0 }.reduce(0, +) / count,
+            recall: outcomes.map { $0.recall ?? 0 }.reduce(0, +) / count,
+            f1: outcomes.map { outcome in
+                let p = outcome.precision ?? 0
+                let r = outcome.recall ?? 0
+                return p + r > 0 ? 2 * p * r / (p + r) : 0
+            }.reduce(0, +) / count
         )
     }
 
     /// A query's media type is the kind of its best-graded relevant file.
     private func kind(of query: EvalQuery) -> String {
+        if query.isNegative { return "negative" }
         guard let best = query.relevant.max(by: { $0.value < $1.value })?.key else { return "unknown" }
         let url = corpus.appendingPathComponent(best)
         let type = (try? url.resourceValues(forKeys: [.contentTypeKey]))?.contentType
@@ -100,4 +129,17 @@ struct EvalRunner {
         let prefix = root.hasSuffix("/") ? root : root + "/"
         return path.hasPrefix(prefix) ? String(path.dropFirst(prefix.count)) : path
     }
+}
+
+/// Wraps the model's query encoder with a different similarity margin or z-score.
+private struct MarginOverride: QueryEncoding {
+    let base: any QueryEncoding
+    let margin: Float??
+    let zScore: Float??
+
+    var space: VectorSpace { base.space }
+    var minimumSimilarity: Float { base.minimumSimilarity }
+    var similarityMargin: Float? { margin ?? base.similarityMargin }
+    var minimumZScore: Float? { zScore ?? base.minimumZScore }
+    func encode(query: String) async throws -> Embedding { try await base.encode(query: query) }
 }

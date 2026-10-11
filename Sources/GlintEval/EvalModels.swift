@@ -7,8 +7,14 @@ struct EvalQuery: Codable, Sendable {
     var text: String
     /// Must stay in the top 10 on every build.
     var mustPass: Bool?
-    /// Path → grade (2 exact, 1 relevant).
+    /// Path → grade (2 exact, 1 relevant). Empty for a negative query: nothing in the corpus
+    /// matches, so the best answer is no results.
     var relevant: [String: Int]
+    /// Files that are neither right nor wrong (for example a tiny, distant car); they count
+    /// for nothing whether returned or not.
+    var ignored: [String]?
+
+    var isNegative: Bool { !relevant.values.contains { $0 > 0 } }
 }
 
 struct EvalQuerySet: Codable, Sendable {
@@ -21,6 +27,20 @@ struct Scores: Codable, Sendable, Hashable {
     var recallAt10: Double
     var mrr: Double
     var ndcgAt10: Double
+    /// Fraction of everything returned that is relevant (missing in older reports).
+    var precision: Double?
+    /// Fraction of relevant files returned at all, at any rank.
+    var recall: Double?
+    /// Harmonic mean of `precision` and `recall`, per query, averaged.
+    var f1: Double?
+}
+
+/// How often queries for things the corpus does not contain come back empty.
+struct NegativeScores: Codable, Sendable, Hashable {
+    var queries: Int
+    /// Fraction of negative queries that returned nothing.
+    var emptyRate: Double
+    var averageReturned: Double
 }
 
 /// Per-query outcome, kept in the report for debugging misses.
@@ -33,6 +53,11 @@ struct QueryOutcome: Codable, Sendable {
     var latencyMilliseconds: Double
     var top: [String]
     var mustPass: Bool
+    /// Results returned in all, and the fraction of them that are relevant.
+    var returned: Int?
+    var precision: Double?
+    var recall: Double?
+    var isNegative: Bool?
 }
 
 /// Everything one eval run produced.
@@ -43,6 +68,7 @@ struct EvalReport: Codable, Sendable {
     var indexingSeconds: Double
     var overall: Scores
     var perKind: [String: Scores]
+    var negatives: NegativeScores?
     var latencyP50Milliseconds: Double
     var latencyP95Milliseconds: Double
     var outcomes: [QueryOutcome]
@@ -53,7 +79,7 @@ struct EvalReport: Codable, Sendable {
 enum EvalGates {
     static func failures(report: EvalReport, baseline: EvalReport?) -> [String] {
         var failures: [String] = []
-        for outcome in report.outcomes where outcome.mustPass && outcome.recallAt10 == 0 {
+        for outcome in report.outcomes where outcome.mustPass && outcome.recallAt10 == 0 && outcome.isNegative != true {
             failures.append("must-pass query \(outcome.id) has no relevant result in the top 10")
         }
         guard let baseline else { return failures }
@@ -67,10 +93,12 @@ enum EvalGates {
 
     private static func compare(_ label: String, _ current: Scores, _ base: Scores, tolerance: Double) -> [String] {
         var failures: [String] = []
-        let pairs = [
+        var pairs = [
             ("Recall@10", current.recallAt10, base.recallAt10), ("MRR", current.mrr, base.mrr),
             ("nDCG@10", current.ndcgAt10, base.ndcgAt10),
         ]
+        if let now = current.precision, let before = base.precision { pairs.append(("Precision", now, before)) }
+        if let now = current.f1, let before = base.f1 { pairs.append(("F1", now, before)) }
         for (name, now, before) in pairs where before - now > tolerance + 1e-9 {
             failures.append(String(format: "%@ %@ dropped from %.3f to %.3f", label, name, before, now))
         }
