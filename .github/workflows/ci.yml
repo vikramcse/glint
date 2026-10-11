@@ -1,11 +1,13 @@
 name: CI
 
+# CI minutes are limited, so nothing runs on push or pull request. Run it on demand:
+#   git tag ci-<name> && git push origin ci-<name>   (runs on the tagged commit)
+#   a tag containing "perf" or "model" also runs those jobs on the self-hosted reference Macs
+#   gh workflow run CI --ref <branch>                 (or "Run workflow" in the Actions tab)
 on:
   push:
-    branches: [main]
-  pull_request:
-  schedule:
-    - cron: "0 3 * * *"  # nightly: full performance suite and evals on the reference Macs
+    tags: ["ci-*"]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -65,7 +67,7 @@ jobs:
     name: Performance budgets (M1 8 GB reference)
     # The dedicated reference Macs register as self-hosted runners with these labels.
     runs-on: [self-hosted, macOS, glint-perf-m1-8gb]
-    if: github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'perf')
+    if: contains(github.ref_name, 'perf')  # opt in with a tag such as ci-perf-<name>
     steps:
       - uses: actions/checkout@v4
       - run: GLINT_PERF=1 swift test -c release --filter GlintPerformanceTests
@@ -131,7 +133,7 @@ jobs:
     name: EmbeddingGemma 2 parity and evals (reference Mac)
     # Needs the 1.5 GB checkpoint and the Python reference; runs on the self-hosted reference Macs.
     runs-on: [self-hosted, macOS, glint-perf-m1-8gb]
-    if: github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'model')
+    if: contains(github.ref_name, 'model')  # opt in with a tag such as ci-model-<name>
     env:
       CHECKPOINT: ${{ vars.GLINT_EG2_DIR }}
       REFERENCE_PYTHON: ${{ vars.GLINT_REFERENCE_PYTHON }}
