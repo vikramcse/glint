@@ -5,7 +5,8 @@
 //   glint-eval sample <dir>                     write <dir>/corpus and <dir>/queries.json
 //   glint-eval run <dir> [--queries q.json] [--model gemma|apple|hashing] [--model-dir D] [--dimensions N]
 //                  [--baseline report.json] [--out report.json] [--margin M|off] [--z K|off] [--titles] [--loose-keywords N|all]
-//                  [--text-bits 8|16] [--media-bits 8|16]
+//                  [--text-bits 8|16] [--media-bits 8|16] [--fusion rrf|scores] [--per-file] [--adaptive on|off]
+//                  [--semantic-weight W] [--keyword-weight W]
 //   glint-eval query <text>... --model-dir D [--index index.sqlite] [--dimensions N] [--idle-unload S]
 //                    run queries against a real index (read-only) and print every
 //                    semantic score next to what the app would show
@@ -169,6 +170,14 @@ case "run":
         if let z = option("--robust-z", in: arguments) { runner.minimumRobustZScore = .some(Float(z)) }
         if arguments.contains("--titles") { runner.indexerOptions.documentTitles = true }
         if let loose = option("--loose-keywords", in: arguments) { runner.looseKeywordLimit = .some(Int(loose)) }
+        if let fusion = option("--fusion", in: arguments) { runner.ranker.fusion = fusion == "rrf" ? .reciprocalRank : .scores }
+        if arguments.contains("--per-file") { runner.ranker.fusesPerFile = true }
+        if let adaptive = option("--adaptive", in: arguments) { runner.adaptsWeights = adaptive != "off" }
+        if let weight = option("--semantic-weight", in: arguments).flatMap(Double.init) { runner.ranker.semanticWeight = weight }
+        if let weight = option("--keyword-weight", in: arguments).flatMap(Double.init) {
+            runner.ranker.keywordWeight = weight
+            runner.ranker.nameWeight = weight * 1.2
+        }
         let report = try await runner.run()
         let failures = EvalGates.failures(report: report, baseline: baseline)
         printReport(report, failures: failures)

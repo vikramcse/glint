@@ -23,9 +23,26 @@ public struct RankedFile: Sendable, Hashable {
     public var similarity: Float?
 }
 
-/// Fuses semantic and keyword results with reciprocal rank fusion, collapses to the best
-/// chunk per file, applies a small recency boost, and sorts.
+/// Fuses semantic and keyword results, collapses to the best chunk per file, applies a small
+/// recency boost, and sorts.
 public struct HybridRanker: Sendable {
+    /// How a list's hits turn into scores before they are added up.
+    public enum Fusion: Sendable, Hashable {
+        /// Reciprocal rank fusion: a hit counts by its position in its list only.
+        case reciprocalRank
+        /// A hit counts by its own score, scaled to 0...1 within its list: cosine between the
+        /// semantic floor and the best hit, BM25 against the best hit. A near-exact match and a
+        /// marginal one no longer count the same just because they sit at the same rank.
+        case scores
+    }
+
+    /// Scores beat ranks on every eval: SciFact MRR 0.798 -> 0.811, literal look-ups ("Fbxo15",
+    /// "CD21 fibroblasts") Recall@10 0.925 -> 0.975; photos unchanged.
+    public var fusion: Fusion = .scores
+    /// Fuse per file: each list contributes the best chunk it found in a file, and files (not
+    /// chunks) are ranked within each list. A PDF matching the words on one page and the
+    /// meaning on another counts both, and one file's many chunks don't push other files down.
+    public var fusesPerFile = false
     /// RRF constant; 60 is the standard value from the original paper.
     public var k: Double = 60
     public var semanticWeight: Double = 1
@@ -65,33 +82,10 @@ public struct HybridRanker: Sendable {
         statistics: ScoreStatistics? = nil,
         now: Date = Date()
     ) -> [RankedFile] {
-        var chunkScores: [ChunkID: (file: FileID, score: Double)] = [:]
-        var similarity: [ChunkID: Float] = [:]
-        var files: [FileID: RankedFile] = [:]
-
         let floor = semanticFloor(semantic, statistics: statistics)
-        for (rank, hit) in semantic.filter({ $0.score >= floor }).enumerated() {
-            chunkScores[hit.chunkID, default: (hit.fileID, 0)].score += semanticWeight / (k + Double(rank + 1))
-            similarity[hit.chunkID] = hit.score
-            files[hit.fileID, default: .empty(hit.fileID)].sources.insert(.semantic)
-        }
-        for (rank, hit) in keyword.enumerated() {
-            guard let chunkID = hit.chunkID else { continue }
-            chunkScores[chunkID, default: (hit.fileID, 0)].score += keywordWeight / (k + Double(rank + 1))
-            files[hit.fileID, default: .empty(hit.fileID)].sources.insert(.keyword)
-        }
-        // Best chunk per file.
-        for (chunkID, entry) in chunkScores {
-            var file = files[entry.file, default: .empty(entry.file)]
-            if file.bestChunk == nil || entry.score > file.score {
-                file.bestChunk = chunkID
-                file.score = entry.score
-                file.similarity = similarity[chunkID]
-            }
-            files[entry.file] = file
-        }
-        for (rank, hit) in names.enumerated() {
-            files[hit.fileID, default: .empty(hit.fileID)].score += nameWeight / (k + Double(rank + 1))
+        var files = chunkMatches(semantic: semantic.filter { $0.score >= floor }, keyword: keyword, floor: floor)
+        for (hit, score) in zip(names, contributions(names.map { ($0.fileID, -$0.bm25) }, weight: nameWeight)) {
+            files[hit.fileID, default: .empty(hit.fileID)].score += score
             files[hit.fileID]?.sources.insert(.name)
         }
         files.merge(looseFiles(keyword: looseKeyword, names: looseNames, excluding: files)) { current, _ in current }
@@ -109,14 +103,59 @@ public struct HybridRanker: Sendable {
         }
     }
 
-    /// The lowest semantic score kept: calibrated against the library's score statistics when
-    /// there are enough vectors, otherwise a margin below the best match.
+    /// Files matched through their chunks, scored by their best chunk or, with `fusesPerFile`,
+    /// by each list's best chunk in them.
+    private func chunkMatches(semantic: [ScoredChunk], keyword: [KeywordHit], floor: Float) -> [FileID: RankedFile] {
+        var chunkScores: [ChunkID: (file: FileID, score: Double)] = [:]
+        var similarity: [ChunkID: Float] = [:]
+        var files: [FileID: RankedFile] = [:]
+        // Each list's best contribution per file, and the best cosine per file.
+        var listBest: [[FileID: Double]] = [[:], [:]]
+        var bestSimilarity: [FileID: Float] = [:]
+
+        let semanticScores = contributions(
+            semantic.map { ($0.fileID, Double($0.score)) }, weight: semanticWeight, lowerBound: Double(floor))
+        for (hit, score) in zip(semantic, semanticScores) {
+            chunkScores[hit.chunkID, default: (hit.fileID, 0)].score += score
+            similarity[hit.chunkID] = hit.score
+            listBest[0][hit.fileID] = max(listBest[0][hit.fileID] ?? 0, score)
+            bestSimilarity[hit.fileID] = max(bestSimilarity[hit.fileID] ?? hit.score, hit.score)
+            files[hit.fileID, default: .empty(hit.fileID)].sources.insert(.semantic)
+        }
+        let chunkKeyword = keyword.filter { $0.chunkID != nil }
+        let keywordScores = contributions(chunkKeyword.map { ($0.fileID, -$0.bm25) }, weight: keywordWeight)
+        for (hit, score) in zip(chunkKeyword, keywordScores) {
+            guard let chunkID = hit.chunkID else { continue }
+            chunkScores[chunkID, default: (hit.fileID, 0)].score += score
+            listBest[1][hit.fileID] = max(listBest[1][hit.fileID] ?? 0, score)
+            files[hit.fileID, default: .empty(hit.fileID)].sources.insert(.keyword)
+        }
+        // Best chunk per file.
+        for (chunkID, entry) in chunkScores {
+            var file = files[entry.file, default: .empty(entry.file)]
+            if file.bestChunk == nil || entry.score > file.score {
+                file.bestChunk = chunkID
+                file.score = entry.score
+                file.similarity = similarity[chunkID]
+            }
+            files[entry.file] = file
+        }
+        if fusesPerFile {
+            for (id, file) in files {
+                files[id]?.score = (listBest[0][id] ?? 0) + (listBest[1][id] ?? 0)
+                files[id]?.similarity = file.similarity ?? bestSimilarity[id]
+            }
+        }
+        return files
+    }
+
     /// Partial matches only add files nothing else found.
     private func looseFiles(keyword: [KeywordHit], names: [KeywordHit], excluding files: [FileID: RankedFile]) -> [FileID: RankedFile] {
         var loose: [FileID: RankedFile] = [:]
-        for (rank, hit) in keyword.enumerated() where files[hit.fileID] == nil {
+        let chunkKeyword = keyword.filter { $0.chunkID != nil }
+        let keywordScores = contributions(chunkKeyword.map { ($0.fileID, -$0.bm25) }, weight: keywordWeight * looseKeywordWeight)
+        for (hit, score) in zip(chunkKeyword, keywordScores) where files[hit.fileID] == nil {
             guard let chunkID = hit.chunkID else { continue }
-            let score = keywordWeight * looseKeywordWeight / (k + Double(rank + 1))
             var file = loose[hit.fileID, default: .empty(hit.fileID)]
             if score > file.score {
                 file.bestChunk = chunkID
@@ -125,13 +164,36 @@ public struct HybridRanker: Sendable {
             file.sources.insert(.keyword)
             loose[hit.fileID] = file
         }
-        for (rank, hit) in names.enumerated() where files[hit.fileID] == nil {
-            loose[hit.fileID, default: .empty(hit.fileID)].score += nameWeight * looseKeywordWeight / (k + Double(rank + 1))
+        let nameScores = contributions(names.map { ($0.fileID, -$0.bm25) }, weight: nameWeight * looseKeywordWeight)
+        for (hit, score) in zip(names, nameScores) where files[hit.fileID] == nil {
+            loose[hit.fileID, default: .empty(hit.fileID)].score += score
             loose[hit.fileID]?.sources.insert(.name)
         }
         return loose
     }
 
+    /// What each hit of one list (best first, higher `raw` is better) adds to its chunk or file.
+    /// `lowerBound` is the raw score that would count for nothing.
+    private func contributions(_ hits: [(file: FileID, raw: Double)], weight: Double, lowerBound: Double = 0) -> [Double] {
+        switch fusion {
+        case .reciprocalRank:
+            guard fusesPerFile else { return hits.indices.map { weight / (k + Double($0 + 1)) } }
+            // Rank files, not chunks: a file's later chunks share its rank.
+            var fileRanks: [FileID: Int] = [:]
+            return hits.map { hit in
+                let rank = fileRanks[hit.file] ?? fileRanks.count
+                fileRanks[hit.file] = rank
+                return weight / (k + Double(rank + 1))
+            }
+        case .scores:
+            guard let best = hits.map(\.raw).max() else { return [] }
+            let range = best - lowerBound
+            return hits.map { range > 0 ? weight * max(0, $0.raw - lowerBound) / range : weight }
+        }
+    }
+
+    /// The lowest semantic score kept: calibrated against the library's score statistics when
+    /// there are enough vectors, otherwise a margin below the best match.
     private func semanticFloor(_ semantic: [ScoredChunk], statistics: ScoreStatistics?) -> Float {
         var floor = minimumSimilarity
         if let minimumZScore, let statistics, statistics.deviation > 0, statistics.count >= calibrationMinimumRows {

@@ -48,6 +48,8 @@ public actor SearchEngine {
     /// push the real match down (SciFact: MRR 0.61 -> 0.80, Recall@10 0.82 -> 0.93 with them
     /// limited). `nil` keeps them all at full weight, as without a model or with a weaker one.
     public let looseKeywordLimit: Int?
+    /// Leans each query's fusion towards keywords or meaning by how it reads (`QueryStyle`).
+    public let adaptsWeights: Bool
 
     public init(
         reader: IndexReader,
@@ -59,9 +61,11 @@ public actor SearchEngine {
         ranker: HybridRanker = HybridRanker(),
         resultLimit: Int = 60,
         looseKeywordLimit: Int? = 3,
+        adaptsWeights: Bool = true,
         now: @escaping @Sendable () -> Date = Date.init
     ) {
         self.looseKeywordLimit = looseKeywordLimit
+        self.adaptsWeights = adaptsWeights
         self.reader = reader
         self.vectorIndex = vectorIndex
         self.encoder = encoder
@@ -160,6 +164,13 @@ public actor SearchEngine {
             (semantic, statistics) = try await vectorIndex.searchWithStatistics(embedding, limit: resultLimit * 4, filter: query.filter)
         }
         try Task.checkCancellation()
+        var ranker = ranker
+        if adaptsWeights {
+            let weights = QueryStyle(query.text).weights
+            ranker.semanticWeight *= weights.semantic
+            ranker.keywordWeight *= weights.keyword
+            ranker.nameWeight *= weights.keyword
+        }
         let ranked = ranker.rank(
             semantic: semantic, keyword: chunks, names: names, looseKeyword: looseChunks, looseNames: looseNames,
             attributes: attributes(chunks + names + looseChunks + looseNames), statistics: statistics, now: now())

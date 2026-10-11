@@ -286,6 +286,78 @@ struct HybridRankerTests {
             ) + ranker.rank(semantic: [], keyword: [], names: [hits[1]], attributes: [FileID(2): hits[1].attributes], now: now)
         #expect(ranked[1].score > ranked[0].score)
     }
+
+    @Test func scoreFusionWeighsHowStrongAMatchIs() {
+        var ranker = HybridRanker()
+        ranker.fusion = .reciprocalRank
+        ranker.minimumSimilarity = 0.3
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.80),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.78),
+        ]
+        // Almost the same meaning, but file 2's keyword match is ten times as strong.
+        let keyword = [
+            KeywordHit(fileID: FileID(2), chunkID: ChunkID(2), bm25: -10, attributes: attributes()),
+            KeywordHit(fileID: FileID(1), chunkID: ChunkID(1), bm25: -1, attributes: attributes()),
+        ]
+        // By rank alone each file wins one list: a tie, broken by file ID.
+        #expect(ranker.rank(semantic: semantic, keyword: keyword, names: [], attributes: [:]).map(\.fileID) == [FileID(1), FileID(2)])
+
+        ranker.fusion = .scores
+        let ranked = ranker.rank(semantic: semantic, keyword: keyword, names: [], attributes: [:])
+        #expect(ranked.map(\.fileID) == [FileID(2), FileID(1)])
+        // Cosine scales from the 0.3 floor to the best hit, BM25 against the best hit.
+        #expect(abs(ranked[0].score - (0.48 / 0.5 + 1)) < 0.001)
+        #expect(abs(ranked[1].score - (1 + 0.1)) < 0.001)
+    }
+
+    @Test func perFileFusionCountsMatchesOnDifferentPages() {
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(10), fileID: FileID(1), score: 0.9),
+            ScoredChunk(chunkID: ChunkID(11), fileID: FileID(1), score: 0.89),
+            ScoredChunk(chunkID: ChunkID(20), fileID: FileID(2), score: 0.85),
+            ScoredChunk(chunkID: ChunkID(30), fileID: FileID(3), score: 0.8),
+        ]
+        // File 3 matches the words on another page than the one that matched the meaning.
+        let keyword = [KeywordHit(fileID: FileID(3), chunkID: ChunkID(31), bm25: -3, attributes: attributes())]
+        var ranker = HybridRanker()
+        ranker.fusion = .reciprocalRank
+        let perChunk = ranker.rank(semantic: semantic, keyword: keyword, names: [], attributes: [:])
+        #expect(perChunk.first?.fileID == FileID(1))
+
+        ranker.fusesPerFile = true
+        let ranked = ranker.rank(semantic: semantic, keyword: keyword, names: [], attributes: [:])
+        #expect(ranked.map(\.fileID) == [FileID(3), FileID(1), FileID(2)])
+        #expect(ranked[0].sources == [.semantic, .keyword])
+        #expect(ranked[0].similarity == 0.8)
+        // File 1's second chunk shares its rank, so file 2 ranks second in the semantic list.
+        #expect(abs(ranked[2].score - 1 / 62) < 1e-9)
+    }
+}
+
+@Suite("QueryStyle")
+struct QueryStyleTests {
+    @Test(arguments: ["IMG_4821", "invoice 2024-0413", "report.pdf", "\"exact phrase\"", "iPhone backup", "v2 slides"])
+    func literal(_ text: String) {
+        #expect(QueryStyle(text) == .literal)
+    }
+
+    @Test(arguments: ["apple", "baseball bat", "flight confirmation", "the receipt from Goa"])
+    func balanced(_ text: String) {
+        #expect(QueryStyle(text) == .balanced)
+    }
+
+    @Test(arguments: [
+        "that photo of my dog at the lake", "5% of perinatal mortality is due to low birth weight.",
+    ])
+    func descriptive(_ text: String) {
+        #expect(QueryStyle(text) == .descriptive)
+    }
+
+    @Test func fullStopIsNotAFileName() {
+        #expect(!QueryStyle.looksLikeIdentifier("weight."))
+        #expect(QueryStyle.looksLikeIdentifier("notes.md"))
+    }
 }
 
 @Suite("Snippet")

@@ -20,6 +20,10 @@ struct EvalRunner {
     var minimumZScore: Float??
     /// Overrides the model's minimum robust z-score when set (`.some(nil)` turns it off).
     var minimumRobustZScore: Float??
+    /// Ranker settings under test (fusion, per-file fusion, weights).
+    var ranker = HybridRanker()
+    /// Lean each query's weights by how it reads (`QueryStyle`).
+    var adaptsWeights = true
 
     func run() async throws -> EvalReport {
         let work = FileManager.default.temporaryDirectory.appendingPathComponent("glint-eval-\(UUID().uuidString)")
@@ -42,7 +46,8 @@ struct EvalRunner {
             encoder: MarginOverride(
                 base: GatedQueryEncoder(provider: provider, gate: gate), margin: similarityMargin, zScore: minimumZScore,
                 robustZScore: minimumRobustZScore),
-            thumbnails: thumbnails, gate: features, looseKeywordLimit: looseKeywordLimit ?? 3
+            thumbnails: thumbnails, gate: features, ranker: ranker, looseKeywordLimit: looseKeywordLimit ?? 3,
+            adaptsWeights: adaptsWeights
         )
 
         let indexing = Stopwatch()
