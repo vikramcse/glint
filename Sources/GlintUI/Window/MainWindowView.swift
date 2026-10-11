@@ -84,7 +84,8 @@ public struct MainWindowView: View {
     }
 
     private var title: String {
-        switch sidebar {
+        if let name = model.similarExampleName { return String(localized: "Similar to \(name)") }
+        return switch sidebar {
         case .kind(let kind): kind.sectionTitle
         case .source(let id): services.status.sources.first { $0.id == id }?.displayName ?? String(localized: "Folder")
         case .saved(let id): library.savedSearches.first { $0.id == id }?.name ?? String(localized: "Saved Search")
@@ -125,6 +126,16 @@ public struct MainWindowView: View {
     }
 
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
+        if model.isFindingSimilar {
+            ToolbarItem {
+                Button {
+                    model.clear()
+                } label: {
+                    Label("Clear Similar", systemImage: "xmark.circle")
+                }
+                .help(Text("Go back to the library"))
+            }
+        }
         ToolbarItem {
             Picker(selection: layoutBinding) {
                 Label("Grid", systemImage: "square.grid.2x2").tag(ResultsLayout.grid)
@@ -186,7 +197,7 @@ struct ResultsArea: View {
     let services: GlintServices
     @Binding var layout: ResultsLayout
 
-    private var isBrowsing: Bool { model.currentQuery.isEmpty && model.similarTo == nil }
+    private var isBrowsing: Bool { model.currentQuery.isEmpty && !model.isFindingSimilar }
     private var items: [SearchResult] { isBrowsing ? library.items : model.displayOrder }
 
     var body: some View {

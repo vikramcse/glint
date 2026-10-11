@@ -54,7 +54,7 @@ public struct SearchPanelView: View {
     }
 
     private var showsBody: Bool {
-        !model.results.isEmpty || model.similarTo != nil || !model.currentQuery.isEmpty || services.status.status.sourceCount == 0
+        !model.results.isEmpty || model.isFindingSimilar || !model.currentQuery.isEmpty || services.status.status.sourceCount == 0
     }
 
     // MARK: Field
@@ -65,8 +65,8 @@ public struct SearchPanelView: View {
                 .font(.system(size: 20, weight: .medium))
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
-            if let example = model.similarTo {
-                TokenChip(title: String(localized: "Similar to \(example.file.name)")) { model.clear() }
+            if let name = model.similarExampleName {
+                TokenChip(title: String(localized: "Similar to \(name)")) { model.clear() }
             }
             TextField(text: $model.text, prompt: Text("Search anything")) {
                 Text("Search")
@@ -169,7 +169,7 @@ public struct SearchPanelView: View {
             model.moveSelection(by: -1)
             return .handled
         case .escape:
-            if model.text.isEmpty, model.similarTo == nil {
+            if model.text.isEmpty, !model.isFindingSimilar {
                 services.actions?.dismissPanel()
             } else {
                 model.clear()

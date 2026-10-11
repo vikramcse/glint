@@ -16,8 +16,8 @@ private struct LineExtractor: ContentExtractor {
         AsyncThrowingStream { continuation in
             do {
                 let text = file.kind == .audio ? "voice memo" : try String(contentsOf: file.url, encoding: .utf8)
-                if text.contains("CRASH") { throw CocoaError(.fileReadCorruptFile) }
                 if text.contains("SLOW") { Thread.sleep(forTimeInterval: 1.5) }
+                if text.contains("CRASH") { throw CocoaError(.fileReadCorruptFile) }
                 for (index, line) in text.split(separator: "\n").enumerated() {
                     continuation.yield(
                         Chunk(ordinal: index, locator: .text(start: 0, end: line.count), text: String(line), input: .text(String(line))))
@@ -156,6 +156,30 @@ struct IndexerIntegrationTests {
             try await Task.sleep(for: .milliseconds(100))
         }
         #expect(try await harness.names(for: "flight confirmation").contains("later.txt"))
+        await harness.indexer.stop()
+    }
+
+    /// A file still being copied in is claimed half-written; when the copy finishes, the newer
+    /// version must be indexed, not lost under the stale commit or failure of the first.
+    @Test(arguments: ["SLOW first half", "SLOW CRASH truncated"])
+    func fileChangedWhileIndexingIsIndexedAgain(partial: String) async throws {
+        let harness = try Harness()
+        await harness.indexer.start()
+        try await harness.indexer.addSource(harness.library)
+        try harness.write("copying.txt", partial)
+        // Let the watcher queue it and a worker start on it, then finish the "copy".
+        try await Task.sleep(for: .milliseconds(600))
+        try harness.write("copying.txt", "complete red kettle")
+
+        let deadline = ContinuousClock.now + .seconds(15)
+        while ContinuousClock.now < deadline {
+            if try await harness.names(for: "kettle").contains("copying.txt") { break }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        #expect(try await harness.names(for: "kettle").contains("copying.txt"))
+        let status = await harness.indexer.currentStatus()
+        #expect(status.failed == 0)
+        #expect(status.pending == 0)
         await harness.indexer.stop()
     }
 

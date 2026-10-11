@@ -46,6 +46,7 @@ public struct FileRecord: Sendable, Hashable, Identifiable {
     public var waveform: [Float]?
 
     public var url: URL { URL(fileURLWithPath: path) }
+    public var version: FileVersion { FileVersion(size: size, modified: modified) }
     public var attributes: FileAttributes { FileAttributes(kind: kind, modified: modified, path: path) }
     public var fileRef: FileRef {
         FileRef(id: id, url: url, kind: kind, contentType: contentType, size: size, modified: modified)
@@ -80,6 +81,18 @@ public struct ChunkWrite: Sendable {
     }
 }
 
+/// The size and modification date a file had when it was claimed. A file still being copied
+/// in is claimed half-written; results for that version must not overwrite the newer one.
+public struct FileVersion: Sendable, Hashable {
+    public var size: Int64
+    public var modified: Date
+
+    public init(size: Int64, modified: Date) {
+        self.size = size
+        self.modified = modified
+    }
+}
+
 /// One file's complete index update, committed atomically (possibly with other files).
 public struct FileCommit: Sendable {
     public var fileID: FileID
@@ -87,13 +100,19 @@ public struct FileCommit: Sendable {
     public var space: VectorSpace
     public var chunks: [ChunkWrite]
     public var media: FileMedia
+    /// The version that was indexed; the commit is dropped if the file changed since.
+    public var version: FileVersion?
 
-    public init(fileID: FileID, contentHash: String, space: VectorSpace, chunks: [ChunkWrite], media: FileMedia = FileMedia()) {
+    public init(
+        fileID: FileID, contentHash: String, space: VectorSpace, chunks: [ChunkWrite], media: FileMedia = FileMedia(),
+        version: FileVersion? = nil
+    ) {
         self.fileID = fileID
         self.contentHash = contentHash
         self.space = space
         self.chunks = chunks
         self.media = media
+        self.version = version
     }
 }
 

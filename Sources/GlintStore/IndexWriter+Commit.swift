@@ -5,15 +5,17 @@ import GlintCore
 
 extension IndexWriter {
     /// Replaces a file's chunks and vectors and marks it indexed, in one transaction.
-    /// Returns the committed vectors, or an empty array if the file vanished meanwhile.
+    /// Returns the committed vectors, or an empty array if the file vanished or changed
+    /// from `version` meanwhile (it stays pending, so the newer version is indexed next).
     public func commit(
         fileID: FileID,
         contentHash: String,
         space: VectorSpace,
         chunks: [ChunkWrite],
-        media: FileMedia = FileMedia()
+        media: FileMedia = FileMedia(),
+        version: FileVersion? = nil
     ) throws -> [CommittedVector] {
-        let file = FileCommit(fileID: fileID, contentHash: contentHash, space: space, chunks: chunks, media: media)
+        let file = FileCommit(fileID: fileID, contentHash: contentHash, space: space, chunks: chunks, media: media, version: version)
         return try db.transaction { try write(file) }
     }
 
@@ -32,7 +34,7 @@ extension IndexWriter {
     /// Writes one file's rows. Must run inside a transaction.
     private func write(_ file: FileCommit) throws -> [CommittedVector] {
         let fileID = file.fileID
-        guard try db.scalarInt("SELECT 1 FROM files WHERE id = ?", [.int(fileID.rawValue)]) != nil else { return [] }
+        guard try isCurrent(fileID, version: file.version) else { return [] }
         try db.run("DELETE FROM chunks WHERE file_id = ?", [.int(fileID.rawValue)])
         var committed: [CommittedVector] = []
         for chunk in file.chunks {
@@ -76,7 +78,9 @@ extension IndexWriter {
     }
 
     /// Copies chunks, vectors and display data from `source` to `target` and marks it indexed.
-    public func copyIndex(from source: FileID, to target: FileID, contentHash: String, space: VectorSpace) throws -> [CommittedVector] {
+    public func copyIndex(
+        from source: FileID, to target: FileID, contentHash: String, space: VectorSpace, version: FileVersion? = nil
+    ) throws -> [CommittedVector] {
         let chunks = try db.query(
             """
             SELECT c.ordinal, c.locator, c.text, c.thumb, v.data FROM chunks c
@@ -97,6 +101,6 @@ extension IndexWriter {
             try db.query("SELECT duration, waveform FROM files WHERE id = ?", [.int(source.rawValue)]) { row in
                 FileMedia(duration: row.isNull(0) ? nil : row.double(0), waveform: row.blob(1).map(VectorCodec.decodeWaveform))
             }.first ?? FileMedia()
-        return try commit(fileID: target, contentHash: contentHash, space: space, chunks: chunks, media: media)
+        return try commit(fileID: target, contentHash: contentHash, space: space, chunks: chunks, media: media, version: version)
     }
 }

@@ -57,13 +57,14 @@ struct FilePipeline: Sendable {
         try Task.checkCancellation()
 
         if let duplicate = try await writer.indexedDuplicate(contentHash: hash, space: space, excluding: record.id) {
-            let vectors = try await writer.copyIndex(from: duplicate, to: record.id, contentHash: hash, space: space)
+            let vectors = try await writer.copyIndex(
+                from: duplicate, to: record.id, contentHash: hash, space: space, version: record.version)
             try await publish(vectors, for: record)
             return .deduplicated
         }
 
         guard let extractor = extractors.first(where: { $0.canExtract(record.contentType) }) else {
-            try await writer.markFailed(record.id, category: .unsupported)
+            try await writer.markFailed(record.id, category: .unsupported, version: record.version)
             return .failed(.unsupported)
         }
         let extractState = Signposts.indexing.beginInterval(Signposts.Name.extractFile)
@@ -75,7 +76,9 @@ struct FilePipeline: Sendable {
         clock = Stopwatch()
         let commitState = Signposts.indexing.beginInterval(Signposts.Name.commitFile)
         let vectors = try await committer.commit(
-            FileCommit(fileID: record.id, contentHash: hash, space: space, chunks: streamed.writes, media: streamed.media))
+            FileCommit(
+                fileID: record.id, contentHash: hash, space: space, chunks: streamed.writes, media: streamed.media,
+                version: record.version))
         Signposts.indexing.endInterval(Signposts.Name.commitFile, commitState)
         try await publish(vectors, for: record)
         await time(.commit, record, seconds: clock.seconds)
@@ -94,7 +97,7 @@ struct FilePipeline: Sendable {
         Log.indexer.notice(
             "Indexing failed (\(category.rawValue, privacy: .public), \(errorType, privacy: .public)) for \(record.path, privacy: .private)"
         )
-        try? await writer.markFailed(record.id, category: category)
+        try? await writer.markFailed(record.id, category: category, version: record.version)
         return .failed(category)
     }
 

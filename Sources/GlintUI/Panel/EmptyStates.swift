@@ -42,6 +42,12 @@ struct PanelEmptyState: View {
                     Button("Learn About Pro") { services.actions?.showUpgrade(.lockedResult) }
                 }
             }
+        case .failed(let message):
+            ContentUnavailableView {
+                Label("Search Failed", systemImage: "exclamationmark.triangle")
+            } description: {
+                Text(message)
+            }
         }
     }
 }

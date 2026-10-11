@@ -184,6 +184,36 @@ struct SearchModelTests {
         #expect(model.emptyState(status: IndexStatus(locked: 3, sourceCount: 1)) == .noResults(lockedKinds: true))
     }
 
+    @Test func droppedFileShowsSimilarResultsEvenAfterTyping() async throws {
+        let (engine, directory) = try await makeEngine()
+        _ = directory
+        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trial(daysLeft: 3, endsAt: .now)) })
+        model.text = "beach"
+        await waitUntil { model.phase == .merged }
+        model.findSimilar(toFileAt: URL(fileURLWithPath: "/lib/beach.jpg"))
+        await waitUntil { !model.isMerging }
+        #expect(model.text.isEmpty)
+        #expect(model.isFindingSimilar)
+        #expect(model.similarExampleName == "beach.jpg")
+        #expect(model.results.map(\.file.name).contains("Beach trip.mov"))
+        #expect(!model.results.map(\.file.name).contains("beach.jpg"))
+
+        model.clear()
+        #expect(!model.isFindingSimilar)
+    }
+
+    @Test func droppedFileThatCannotBeReadSaysSo() async throws {
+        let (engine, directory) = try await makeEngine()
+        _ = directory
+        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trial(daysLeft: 3, endsAt: .now)) })
+        model.findSimilar(toFileAt: URL(fileURLWithPath: "/elsewhere/holiday.jpg"))
+        await waitUntil { !model.isMerging }
+        guard case .failed = model.emptyState(status: IndexStatus(sourceCount: 1)) else {
+            Issue.record("Expected a failure state, got \(String(describing: model.emptyState(status: IndexStatus(sourceCount: 1))))")
+            return
+        }
+    }
+
     @Test func findSimilarRequiresPro() async throws {
         let (engine, directory) = try await makeEngine()
         _ = directory

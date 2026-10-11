@@ -32,6 +32,7 @@ public enum SearchEmptyState: Hashable, Sendable {
     case start
     case stillIndexing(pending: Int)
     case noResults(lockedKinds: Bool)
+    case failed(String)
 }
 
 /// Drives a search field and its results: keyword results on every keystroke, semantic
@@ -53,6 +54,8 @@ public final class SearchModel {
     public private(set) var phase: SearchPhase?
     public private(set) var isMerging = false
     public private(set) var similarTo: SearchResult?
+    /// A file dropped from outside the results that "find similar" compares with.
+    public private(set) var similarToFile: URL?
     public private(set) var errorMessage: String?
 
     @ObservationIgnored private let engine: SearchEngine
@@ -101,6 +104,7 @@ public final class SearchModel {
         text = ""
         tokens = []
         similarTo = nil
+        similarToFile = nil
         results = []
         phase = nil
     }
@@ -111,6 +115,7 @@ public final class SearchModel {
         keywordTask?.cancel()
         mergeTask?.cancel()
         similarTo = nil
+        similarToFile = nil
         errorMessage = nil
 
         let query = currentQuery
@@ -163,35 +168,48 @@ public final class SearchModel {
 
     // MARK: Find similar
 
+    /// Whether the results are "find similar" results rather than a query's.
+    public var isFindingSimilar: Bool { similarTo != nil || similarToFile != nil }
+
+    /// The name of the file "find similar" compares with.
+    public var similarExampleName: String? { similarTo?.file.name ?? similarToFile?.lastPathComponent }
+
     public func findSimilar(to result: SearchResult) {
         guard entitlements().allows(.findSimilar) else { return }
-        run(similarTo: result) { engine in try await engine.similar(to: result.id) }
+        run(similarTo: result, file: nil) { engine in try await engine.similar(to: result.id) }
     }
 
     public func findSimilar(toFileAt url: URL) {
         guard entitlements().allows(.findSimilar) else { return }
-        run(similarTo: nil) { engine in try await engine.similar(toFileAt: url) }
+        run(similarTo: nil, file: url) { engine in try await engine.similar(toFileAt: url) }
     }
 
-    private func run(similarTo example: SearchResult?, _ operation: @escaping @Sendable (SearchEngine) async throws -> SearchResults) {
+    private func run(
+        similarTo example: SearchResult?, file: URL?, _ operation: @escaping @Sendable (SearchEngine) async throws -> SearchResults
+    ) {
+        // Clearing the text starts a new (empty) query; do it before taking this run's generation.
+        text = ""
         generation += 1
         let current = generation
         keywordTask?.cancel()
         mergeTask?.cancel()
-        text = ""
         similarTo = example
+        similarToFile = file
+        errorMessage = nil
+        results = []
         isMerging = true
         let engine = engine
         mergeTask = Task { [weak self] in
             do {
                 let results = try await operation(engine)
                 guard let self, current == self.generation else { return }
-                self.similarTo = example
                 self.apply(results)
+                self.isMerging = false
             } catch {
-                self?.errorMessage = ErrorPresenter.message(for: error)
+                guard let self, current == self.generation, !(error is CancellationError) else { return }
+                self.errorMessage = ErrorPresenter.message(for: error)
+                self.isMerging = false
             }
-            self?.isMerging = false
         }
     }
 
@@ -236,7 +254,8 @@ public final class SearchModel {
     public func emptyState(status: IndexStatus) -> SearchEmptyState? {
         guard results.isEmpty, !isMerging || phase == .merged else { return nil }
         if status.sourceCount == 0 { return .noSources }
-        if currentQuery.isEmpty, similarTo == nil { return .start }
+        if let errorMessage { return .failed(errorMessage) }
+        if currentQuery.isEmpty, !isFindingSimilar { return .start }
         if status.pending > 0 { return .stillIndexing(pending: status.pending) }
         return .noResults(lockedKinds: status.locked > 0)
     }
