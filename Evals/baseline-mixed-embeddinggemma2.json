@@ -1,0 +1,4240 @@
+{
+  "corpusFiles" : 1800,
+  "date" : "2026-10-11T15:16:18Z",
+  "indexingSeconds" : 153.883760875,
+  "latencyP50Milliseconds" : 42.113667,
+  "latencyP95Milliseconds" : 74.848292,
+  "model" : "google.embeddinggemma-2\/2.0@512",
+  "negatives" : {
+    "averageReturned" : 7.181818181818182,
+    "emptyRate" : 0,
+    "queries" : 22
+  },
+  "outcomes" : [
+    {
+      "id" : "cap-76417",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 66.590292,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.0625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 16,
+      "top" : [
+        "76417.jpg",
+        "421455.jpg",
+        "Cranial neural crest and the building of the vertebrate head.txt",
+        "The DHR96 nuclear receptor regulates xenobiotic responses in Drosophila.txt",
+        "The quest to overcome resistance to EGFR-targeted therapies in cancer.txt"
+      ]
+    },
+    {
+      "id" : "cap-506178",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 29.32125,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.058823529411764705,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 17,
+      "top" : [
+        "506178.jpg",
+        "491366.jpg",
+        "300341.jpg",
+        "457078.jpg",
+        "169076.jpg"
+      ]
+    },
+    {
+      "id" : "cap-151000",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 30.984792,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.07692307692307693,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 13,
+      "top" : [
+        "151000.jpg",
+        "66771.jpg",
+        "518770.jpg",
+        "42528.jpg",
+        "300341.jpg"
+      ]
+    },
+    {
+      "id" : "cap-407646",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 52.187792,
+      "mustPass" : false,
+      "ndcgAt10" : 0.4306765580733931,
+      "precision" : 0.05263157894736842,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.25,
+      "returned" : 19,
+      "top" : [
+        "451435.jpg",
+        "151629.jpg",
+        "376900.jpg",
+        "407646.jpg",
+        "261732.jpg"
+      ]
+    },
+    {
+      "id" : "cap-250205",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 57.677375,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.058823529411764705,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 17,
+      "top" : [
+        "250205.jpg",
+        "544811.jpg",
+        "The last and the next hundred years of malariology.txt",
+        "2923.jpg",
+        "Hallmarks of Cancer The Next Generation.txt"
+      ]
+    },
+    {
+      "id" : "cap-18193",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 51.754625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05263157894736842,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 19,
+      "top" : [
+        "18193.jpg",
+        "Brief, four-session group CBT reduces binge eating behaviors among bariatric surgery candidates.txt",
+        "Activation of Serotonin 2C Receptors in Dopamine Neurons Inhibits Binge-like Eating in Mice.txt",
+        "Conditional Kif3a ablation causes abnormal hedgehog signaling topography, growth plate dysfunction, and excessive bone a.txt",
+        "275198.jpg"
+      ]
+    },
+    {
+      "id" : "cap-178744",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 45.244833,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.058823529411764705,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 17,
+      "top" : [
+        "178744.jpg",
+        "Changes in plasma copeptin, the c-terminal portion of arginine vasopressin during water deprivation and excess in health.txt",
+        "47828.jpg",
+        "472298.jpg",
+        "Feasibility assessment of desalination application in Australian traditional agriculture.txt"
+      ]
+    },
+    {
+      "id" : "cap-410712",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 50.67375,
+      "mustPass" : false,
+      "ndcgAt10" : 0.4306765580733931,
+      "precision" : 0.02564102564102564,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.25,
+      "returned" : 39,
+      "top" : [
+        "1532.jpg",
+        "544605.jpg",
+        "88218.jpg",
+        "410712.jpg",
+        "15440.jpg"
+      ]
+    },
+    {
+      "id" : "cap-559956",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 34.049416,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.09090909090909091,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 11,
+      "top" : [
+        "559956.jpg",
+        "158548.jpg",
+        "230166.jpg",
+        "410428.jpg",
+        "The influence of some metabolic inhibitors on phagocytic activity of mouse macrophages in vitro.txt"
+      ]
+    },
+    {
+      "id" : "cap-295797",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 29.810875,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.0625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 16,
+      "top" : [
+        "295797.jpg",
+        "28285.jpg",
+        "322968.jpg",
+        "Enhancing circadian clock function in cancer cells inhibits tumor growth.txt",
+        "565469.jpg"
+      ]
+    },
+    {
+      "id" : "cap-569059",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 31.019833,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 20,
+      "top" : [
+        "569059.jpg",
+        "68765.jpg",
+        "335658.jpg",
+        "239318.jpg",
+        "486040.jpg"
+      ]
+    },
+    {
+      "id" : "cap-107094",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 28.749875,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.058823529411764705,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 17,
+      "top" : [
+        "107094.jpg",
+        "309467.jpg",
+        "406611.jpg",
+        "451144.jpg",
+        "Does an arthroscopic suture bridge technique maintain repair integrity? a serial evaluation by ultrasonography.txt"
+      ]
+    },
+    {
+      "id" : "cap-262682",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 27.678417,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.04,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 25,
+      "top" : [
+        "262682.jpg",
+        "56127.jpg",
+        "298396.jpg",
+        "552883.jpg",
+        "248111.jpg"
+      ]
+    },
+    {
+      "id" : "cap-230166",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 22.296667,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.08333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 12,
+      "top" : [
+        "230166.jpg",
+        "410428.jpg",
+        "559956.jpg",
+        "Brief, four-session group CBT reduces binge eating behaviors among bariatric surgery candidates.txt",
+        "Activation of Serotonin 2C Receptors in Dopamine Neurons Inhibits Binge-like Eating in Mice.txt"
+      ]
+    },
+    {
+      "id" : "cap-377000",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 13.937542,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.047619047619047616,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 21,
+      "top" : [
+        "377000.jpg",
+        "360943.jpg",
+        "Relationship of physical activity and television watching with body weight and level of fatness among children results f.txt",
+        "166277.jpg",
+        "558073.jpg"
+      ]
+    },
+    {
+      "id" : "cap-45596",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 18.905,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 9,
+      "top" : [
+        "45596.jpg",
+        "455157.jpg",
+        "Cranial neural crest and the building of the vertebrate head.txt",
+        "Astrocyte-Mediated Distributed Plasticity at Hypothalamic Glutamate Synapses.txt",
+        "177861.jpg"
+      ]
+    },
+    {
+      "id" : "cap-457078",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 27.09825,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "457078.jpg",
+        "569059.jpg",
+        "Computer assisted learning in undergraduate medical education.txt",
+        "506178.jpg",
+        "[Pharmacokinetics and biotransformation of the antimycotic drug ciclopiroxolamine in animals and man after topical and s.txt"
+      ]
+    },
+    {
+      "id" : "cap-188439",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 62.8815,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "188439.jpg",
+        "CD44v6 is a marker of constitutive and reprogrammed cancer stem cells driving colon cancer metastasis.txt",
+        "Proteogenomics to discover the full coding content of genomes a computational perspective.txt",
+        "Full-length transcriptome assembly from RNA-Seq data without a reference genome.txt",
+        "Glucose tolerance and blood pressure long term follow up in middle aged men.txt"
+      ]
+    },
+    {
+      "id" : "cap-393569",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 72.33175,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05263157894736842,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 19,
+      "top" : [
+        "393569.jpg",
+        "453634.jpg",
+        "144798.jpg",
+        "Hallmarks of Cancer The Next Generation.txt",
+        "CDK inhibitors in cancer therapy what is next?.txt"
+      ]
+    },
+    {
+      "id" : "cap-60835",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 64.045625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.08333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 12,
+      "top" : [
+        "60835.jpg",
+        "169076.jpg",
+        "393569.jpg",
+        "How reliable are light traps in estimating biting rates of adult Anopheles gambiae s.l. (Diptera Culicidae) in the prese.txt",
+        "How do I perform a lumbar puncture and analyze the results to diagnose bacterial meningitis?.txt"
+      ]
+    },
+    {
+      "id" : "cap-253002",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 69.590416,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.037037037037037035,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 27,
+      "top" : [
+        "253002.jpg",
+        "98392.jpg",
+        "171298.jpg",
+        "Sulfasalazine in the treatment of spondylarthropathy. A randomized, multicenter, double-blind, placebo-controlled study.txt",
+        "Cytosolic viral sensor RIG-I is a 5'-triphosphate-dependent translocase on double-stranded RNA.txt"
+      ]
+    },
+    {
+      "id" : "cap-86582",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 54.895125,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 9,
+      "top" : [
+        "86582.jpg",
+        "239318.jpg",
+        "370478.jpg",
+        "399560.jpg",
+        "294855.jpg"
+      ]
+    },
+    {
+      "id" : "cap-449198",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 50.893875,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.09090909090909091,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 11,
+      "top" : [
+        "449198.jpg",
+        "1532.jpg",
+        "Novel syndromes associated with JC virus infection of neurons and meningeal cells no longer a gray area.txt",
+        "Population growth, urban sprawl and landscape integrity of Beijing City.txt",
+        "Nuclear HuR accumulation through phosphorylation by Cdk1.txt"
+      ]
+    },
+    {
+      "id" : "cap-533816",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 60.500042,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.07142857142857142,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 14,
+      "top" : [
+        "533816.jpg",
+        "1000.jpg",
+        "326248.jpg",
+        "[Pharmacokinetics and biotransformation of the antimycotic drug ciclopiroxolamine in animals and man after topical and s.txt",
+        "Sympathetic baroreflex gain in normotensive pregnant women.txt"
+      ]
+    },
+    {
+      "id" : "cap-370478",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 52.34875,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.0625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 16,
+      "top" : [
+        "370478.jpg",
+        "393569.jpg",
+        "294855.jpg",
+        "169076.jpg",
+        "Epidemiology of surgically managed pelvic organ prolapse and urinary incontinence.txt"
+      ]
+    },
+    {
+      "id" : "cap-239318",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 28.778875,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 20,
+      "top" : [
+        "239318.jpg",
+        "136600.jpg",
+        "486040.jpg",
+        "86582.jpg",
+        "569059.jpg"
+      ]
+    },
+    {
+      "id" : "cap-306437",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 26.377125,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.0625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 16,
+      "top" : [
+        "451084.jpg",
+        "306437.jpg",
+        "229553.jpg",
+        "558213.jpg",
+        "458325.jpg"
+      ]
+    },
+    {
+      "id" : "cap-205105",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 48.74175,
+      "mustPass" : false,
+      "ndcgAt10" : 0.3010299956639812,
+      "precision" : 0.05555555555555555,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.1111111111111111,
+      "returned" : 18,
+      "top" : [
+        "451435.jpg",
+        "407646.jpg",
+        "376900.jpg",
+        "151629.jpg",
+        "316404.jpg"
+      ]
+    },
+    {
+      "id" : "cap-109916",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 55.162958,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.043478260869565216,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 23,
+      "top" : [
+        "98018.jpg",
+        "109916.jpg",
+        "54654.jpg",
+        "292060.jpg",
+        "262682.jpg"
+      ]
+    },
+    {
+      "id" : "cap-327601",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 40.785917,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05555555555555555,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 18,
+      "top" : [
+        "327601.jpg",
+        "509699.jpg",
+        "42528.jpg",
+        "18193.jpg",
+        "295713.jpg"
+      ]
+    },
+    {
+      "id" : "cap-360943",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 29.73675,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.07692307692307693,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 13,
+      "top" : [
+        "360943.jpg",
+        "63552.jpg",
+        "25560.jpg",
+        "Dietary fat and obesity evidence from epidemiology.txt",
+        "435299.jpg"
+      ]
+    },
+    {
+      "id" : "cap-327780",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 29.024333,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.0625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 16,
+      "top" : [
+        "327780.jpg",
+        "Replication Fork Slowing and Reversal upon DNA Damage Require PCNA Polyubiquitination and ZRANB3 DNA Translocase Activit.txt",
+        "416885.jpg",
+        "358427.jpg",
+        "331817.jpg"
+      ]
+    },
+    {
+      "id" : "cap-421455",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 33.111,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.0625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 16,
+      "top" : [
+        "421455.jpg",
+        "42528.jpg",
+        "DNA Methylation mediated down-regulating of MicroRNA-33b and its role in gastric cancer.txt",
+        "Modelling and rescuing neurodevelopmental defect of Down syndrome using induced pluripotent stem cells from monozygotic.txt",
+        "Integration-free induced pluripotent stem cells model genetic and neural developmental features of down syndrome etiolog.txt"
+      ]
+    },
+    {
+      "id" : "cap-322959",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 28.627792,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05263157894736842,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 19,
+      "top" : [
+        "322959.jpg",
+        "273711.jpg",
+        "Intestinal microbiota metabolism of L-carnitine, a nutrient in red meat, promotes atherosclerosis.txt",
+        "331817.jpg",
+        "Levels of selection in evolution.txt"
+      ]
+    },
+    {
+      "id" : "cap-66771",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 31.980916,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05263157894736842,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 19,
+      "top" : [
+        "66771.jpg",
+        "How much alcohol and how often? Population based case-control study of alcohol consumption and risk of a major coronary.txt",
+        "404678.jpg",
+        "Drinking pattern and mortality the Italian Risk Factor and Life Expectancy pooling project.txt",
+        "Relationship of soft drink consumption to global overweight, obesity, and diabetes a cross-national analysis of 75 count.txt"
+      ]
+    },
+    {
+      "id" : "cap-458325",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 19.212083,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.045454545454545456,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 22,
+      "top" : [
+        "458325.jpg",
+        "306437.jpg",
+        "558213.jpg",
+        "229553.jpg",
+        "303818.jpg"
+      ]
+    },
+    {
+      "id" : "cap-491725",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 18.495209,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.0625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 16,
+      "top" : [
+        "491725.jpg",
+        "2923.jpg",
+        "Changes in plasma copeptin, the c-terminal portion of arginine vasopressin during water deprivation and excess in health.txt",
+        "475904.jpg",
+        "166259.jpg"
+      ]
+    },
+    {
+      "id" : "cap-124659",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 22.083458,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.043478260869565216,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 23,
+      "top" : [
+        "124659.jpg",
+        "97337.jpg",
+        "89045.jpg",
+        "457078.jpg",
+        "573094.jpg"
+      ]
+    },
+    {
+      "id" : "cap-544811",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 46.949666,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.07142857142857142,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 14,
+      "top" : [
+        "544811.jpg",
+        "250205.jpg",
+        "2923.jpg",
+        "Characteristics of Body Fat, Body Fat Percentage and Other Body Composition for Koreans from KNHANES IV.txt",
+        "Multiple risk behaviour increasing socio-economic gap over time?.txt"
+      ]
+    },
+    {
+      "id" : "cap-532901",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 55.350875,
+      "mustPass" : false,
+      "ndcgAt10" : 0.4306765580733931,
+      "precision" : 0.0625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.25,
+      "returned" : 16,
+      "top" : [
+        "552883.jpg",
+        "Perceived age as clinically useful biomarker of ageing cohort study.txt",
+        "16958.jpg",
+        "532901.jpg",
+        "322968.jpg"
+      ]
+    },
+    {
+      "id" : "cap-227399",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 44.522375,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.06666666666666667,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 15,
+      "top" : [
+        "184611.jpg",
+        "227399.jpg",
+        "Vesicular Glycolysis Provides On-Board Energy for Fast Axonal Transport.txt",
+        "545594.jpg",
+        "277005.jpg"
+      ]
+    },
+    {
+      "id" : "cap-216497",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 47.747334,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.045454545454545456,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 22,
+      "top" : [
+        "216497.jpg",
+        "97022.jpg",
+        "298396.jpg",
+        "56127.jpg",
+        "Open Babel An open chemical toolbox.txt"
+      ]
+    },
+    {
+      "id" : "cap-295713",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 46.298708,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "295713.jpg",
+        "456496.jpg",
+        "Hallmarks of Cancer The Next Generation.txt",
+        "327601.jpg",
+        "CDK inhibitors in cancer therapy what is next?.txt"
+      ]
+    },
+    {
+      "id" : "cap-32817",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 52.872625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.0625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 16,
+      "top" : [
+        "32817.jpg",
+        "564023.jpg",
+        "[Pharmacokinetics and biotransformation of the antimycotic drug ciclopiroxolamine in animals and man after topical and s.txt",
+        "263796.jpg",
+        "393569.jpg"
+      ]
+    },
+    {
+      "id" : "cap-632",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 56.439917,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.043478260869565216,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 23,
+      "top" : [
+        "632.jpg",
+        "393569.jpg",
+        "46048.jpg",
+        "63552.jpg",
+        "435299.jpg"
+      ]
+    },
+    {
+      "id" : "cap-569565",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 32.606333,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.08333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 12,
+      "top" : [
+        "569565.jpg",
+        "188439.jpg",
+        "1532.jpg",
+        "Past exposure to sun, skin phenotype, and risk of multiple sclerosis case-control study.txt",
+        "CD44v6 is a marker of constitutive and reprogrammed cancer stem cells driving colon cancer metastasis.txt"
+      ]
+    },
+    {
+      "id" : "cap-509699",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 59.414916,
+      "mustPass" : false,
+      "ndcgAt10" : 0.4306765580733931,
+      "precision" : 0.07692307692307693,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.25,
+      "returned" : 13,
+      "top" : [
+        "97337.jpg",
+        "25560.jpg",
+        "169076.jpg",
+        "509699.jpg",
+        "297085.jpg"
+      ]
+    },
+    {
+      "id" : "cap-226802",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 57.821625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.09090909090909091,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 11,
+      "top" : [
+        "226802.jpg",
+        "Open Babel An open chemical toolbox.txt",
+        "Cranial neural crest and the building of the vertebrate head.txt",
+        "Genetic Variants at Newly Identified Lipid Loci Are Associated with Coronary Heart Disease in a Chinese Han Population.txt",
+        "Open Access Increases Citation Rate.txt"
+      ]
+    },
+    {
+      "id" : "cap-242060",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 41.813792,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 20,
+      "top" : [
+        "242060.jpg",
+        "331817.jpg",
+        "416885.jpg",
+        "404678.jpg",
+        "66771.jpg"
+      ]
+    },
+    {
+      "id" : "cap-451435",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 66.243375,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05263157894736842,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 19,
+      "top" : [
+        "451435.jpg",
+        "407646.jpg",
+        "151629.jpg",
+        "376900.jpg",
+        "261732.jpg"
+      ]
+    },
+    {
+      "id" : "cap-554579",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 61.161667,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05555555555555555,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 18,
+      "top" : [
+        "554579.jpg",
+        "140203.jpg",
+        "559956.jpg",
+        "509451.jpg",
+        "560880.jpg"
+      ]
+    },
+    {
+      "id" : "cap-1000",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 56.204125,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05555555555555555,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 18,
+      "top" : [
+        "1000.jpg",
+        "451435.jpg",
+        "The polycomb group protein Suz12 is required for embryonic stem cell differentiation.txt",
+        "Brief, four-session group CBT reduces binge eating behaviors among bariatric surgery candidates.txt",
+        "Involving family members in cancer care focus group considerations of patients and oncological providers.txt"
+      ]
+    },
+    {
+      "id" : "cap-308328",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 56.255167,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.07142857142857142,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 14,
+      "top" : [
+        "308328.jpg",
+        "184611.jpg",
+        "294855.jpg",
+        "Emtricitabine-tenofovir concentrations and pre-exposure prophylaxis efficacy in men who have sex with men.txt",
+        "The polycomb group protein Suz12 is required for embryonic stem cell differentiation.txt"
+      ]
+    },
+    {
+      "id" : "cap-441442",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 66.205292,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.07692307692307693,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 13,
+      "top" : [
+        "441442.jpg",
+        "275392.jpg",
+        "Risk factors at medical school for subsequent professional misconduct multicentre retrospective case-control study.txt",
+        "Validating a conceptual model for an inter-professional approach to shared decision making a mixed methods study.txt",
+        "47571.jpg"
+      ]
+    },
+    {
+      "id" : "cap-527695",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 51.578959,
+      "mustPass" : false,
+      "ndcgAt10" : 0.5,
+      "precision" : 0.06666666666666667,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.3333333333333333,
+      "returned" : 15,
+      "top" : [
+        "132116.jpg",
+        "358427.jpg",
+        "527695.jpg",
+        "549167.jpg",
+        "455267.jpg"
+      ]
+    },
+    {
+      "id" : "cap-451043",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 47.996667,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.05263157894736842,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 19,
+      "top" : [
+        "406611.jpg",
+        "451043.jpg",
+        "492968.jpg",
+        "97278.jpg",
+        "309467.jpg"
+      ]
+    },
+    {
+      "id" : "cap-297085",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 53.223791,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.047619047619047616,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 21,
+      "top" : [
+        "25560.jpg",
+        "297085.jpg",
+        "399560.jpg",
+        "169076.jpg",
+        "Relationship of physical activity and television watching with body weight and level of fatness among children results f.txt"
+      ]
+    },
+    {
+      "id" : "cap-18770",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 29.58075,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.06666666666666667,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 15,
+      "top" : [
+        "18770.jpg",
+        "206025.jpg",
+        "67315.jpg",
+        "169076.jpg",
+        "342367.jpg"
+      ]
+    },
+    {
+      "id" : "cap-181542",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 26.704875,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "181542.jpg",
+        "RFID system evaluation against radiated transient noise.txt",
+        "Estimation of nuclear DNA content in plants using flow cytometry.txt",
+        "SIRT1 deacetylase in SF1 neurons protects against metabolic imbalance.txt",
+        "Lung dendritic cells imprint T cell lung homing and promote lung immunity through the chemokine receptor CCR4.txt"
+      ]
+    },
+    {
+      "id" : "cap-273198",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 29.592583,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.047619047619047616,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 21,
+      "top" : [
+        "273198.jpg",
+        "566923.jpg",
+        "439623.jpg",
+        "140556.jpg",
+        "11197.jpg"
+      ]
+    },
+    {
+      "id" : "cat-apple",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 31.650708,
+      "mustPass" : false,
+      "ndcgAt10" : 0.4392327338684942,
+      "precision" : 0.42857142857142855,
+      "recall" : 0.5,
+      "recallAt10" : 0.5,
+      "reciprocalRank" : 0.5,
+      "returned" : 7,
+      "top" : [
+        "335658.jpg",
+        "406570.jpg",
+        "68765.jpg",
+        "562059.jpg",
+        "399560.jpg"
+      ]
+    },
+    {
+      "id" : "cat-backpack",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 44.715083,
+      "mustPass" : false,
+      "ndcgAt10" : 0.7239283371036452,
+      "precision" : 0.4444444444444444,
+      "recall" : 0.8,
+      "recallAt10" : 0.8,
+      "reciprocalRank" : 1,
+      "returned" : 9,
+      "top" : [
+        "370478.jpg",
+        "545594.jpg",
+        "265108.jpg",
+        "86582.jpg",
+        "184611.jpg"
+      ]
+    },
+    {
+      "id" : "cat-banana",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 26.463833,
+      "mustPass" : false,
+      "ndcgAt10" : 0.9457540871314698,
+      "precision" : 0.7142857142857143,
+      "recall" : 0.8333333333333334,
+      "recallAt10" : 0.8333333333333334,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "161820.jpg",
+        "550714.jpg",
+        "279769.jpg",
+        "356428.jpg",
+        "352618.jpg"
+      ]
+    },
+    {
+      "id" : "cat-bed",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 38.555417,
+      "mustPass" : false,
+      "ndcgAt10" : 0.37566986542073233,
+      "precision" : 0.5294117647058824,
+      "recall" : 0.6,
+      "recallAt10" : 0.26666666666666666,
+      "reciprocalRank" : 0.5,
+      "returned" : 17,
+      "top" : [
+        "How reliable are light traps in estimating biting rates of adult Anopheles gambiae s.l. (Diptera Culicidae) in the prese.txt",
+        "435299.jpg",
+        "How do I perform a lumbar puncture and analyze the results to diagnose bacterial meningitis?.txt",
+        "578545.jpg",
+        "Sudden infant death syndrome.txt"
+      ]
+    },
+    {
+      "id" : "cat-bench",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 41.088334,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6661373716409907,
+      "precision" : 0.7,
+      "recall" : 0.7,
+      "recallAt10" : 0.7,
+      "reciprocalRank" : 0.5,
+      "returned" : 10,
+      "top" : [
+        "Large-scale gene function analysis with the PANTHER classification system.txt",
+        "577182.jpg",
+        "417043.jpg",
+        "197870.jpg",
+        "295713.jpg"
+      ]
+    },
+    {
+      "id" : "cat-bicycle",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 41.677542,
+      "mustPass" : false,
+      "ndcgAt10" : 0.7255804225316207,
+      "precision" : 0.5714285714285714,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "573094.jpg",
+        "50145.jpg",
+        "Dietary status of trained female cyclists.txt",
+        "184611.jpg",
+        "185157.jpg"
+      ]
+    },
+    {
+      "id" : "cat-bird",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 38.214208,
+      "mustPass" : false,
+      "ndcgAt10" : 0.8838242945899706,
+      "precision" : 0.5,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 8,
+      "top" : [
+        "508602.jpg",
+        "Somatic sex identity is cell-autonomous in the chicken.txt",
+        "197870.jpg",
+        "250205.jpg",
+        "All dosage compensation is local Gene-by-gene regulation of sex-biased expression on the chicken Z chromosome.txt"
+      ]
+    },
+    {
+      "id" : "cat-boat",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 51.025458,
+      "mustPass" : false,
+      "ndcgAt10" : 0.8446413126763991,
+      "precision" : 0.625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 8,
+      "top" : [
+        "472298.jpg",
+        "475904.jpg",
+        "491725.jpg",
+        "178744.jpg",
+        "56127.jpg"
+      ]
+    },
+    {
+      "id" : "cat-book",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 25.220666,
+      "mustPass" : false,
+      "ndcgAt10" : 0.5151910931343763,
+      "precision" : 0.5,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.3333333333333333,
+      "returned" : 8,
+      "top" : [
+        "ggplot2 Elegant Graphics for Data Analysis.txt",
+        "Model-based Geostatistics.txt",
+        "578545.jpg",
+        "Levels of selection in evolution.txt",
+        "99182.jpg"
+      ]
+    },
+    {
+      "id" : "cat-bowl",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 24.846416,
+      "mustPass" : false,
+      "ndcgAt10" : 0.5637884576902256,
+      "precision" : 0.8,
+      "recall" : 0.23529411764705882,
+      "recallAt10" : 0.23529411764705882,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "192871.jpg",
+        "132116.jpg",
+        "352618.jpg",
+        "351609.jpg",
+        "549167.jpg"
+      ]
+    },
+    {
+      "id" : "cat-broccoli",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 27.52575,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.75,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 8,
+      "top" : [
+        "358427.jpg",
+        "527695.jpg",
+        "549167.jpg",
+        "132116.jpg",
+        "455267.jpg"
+      ]
+    },
+    {
+      "id" : "cat-bus",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 22.261208,
+      "mustPass" : false,
+      "ndcgAt10" : 0.7716159024411761,
+      "precision" : 0.4375,
+      "recall" : 0.875,
+      "recallAt10" : 0.875,
+      "reciprocalRank" : 0.5,
+      "returned" : 16,
+      "top" : [
+        "545594.jpg",
+        "171298.jpg",
+        "303818.jpg",
+        "253002.jpg",
+        "106048.jpg"
+      ]
+    },
+    {
+      "id" : "cat-cake",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 23.856416,
+      "mustPass" : false,
+      "ndcgAt10" : 0.9563815921974483,
+      "precision" : 0.3333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 12,
+      "top" : [
+        "327780.jpg",
+        "109916.jpg",
+        "416885.jpg",
+        "242060.jpg",
+        "345469.jpg"
+      ]
+    },
+    {
+      "id" : "cat-car",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 20.972375,
+      "mustPass" : false,
+      "ndcgAt10" : 0.5895840823686347,
+      "precision" : 0.8181818181818182,
+      "recall" : 0.6,
+      "recallAt10" : 0.5333333333333333,
+      "reciprocalRank" : 0.5,
+      "returned" : 11,
+      "top" : [
+        "The DHR96 nuclear receptor regulates xenobiotic responses in Drosophila.txt",
+        "1532.jpg",
+        "421455.jpg",
+        "76417.jpg",
+        "526392.jpg"
+      ]
+    },
+    {
+      "id" : "cat-carrot",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 21.28925,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.75,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 4,
+      "top" : [
+        "116206.jpg",
+        "221872.jpg",
+        "314182.jpg",
+        "Original Article.txt"
+      ]
+    },
+    {
+      "id" : "cat-cat",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 21.111666,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6235748692616948,
+      "precision" : 0.75,
+      "recall" : 0.9230769230769231,
+      "recallAt10" : 0.6153846153846154,
+      "reciprocalRank" : 0.5,
+      "returned" : 16,
+      "top" : [
+        "Location Coding by Opponent Neural Populations in the Auditory Cortex.txt",
+        "399560.jpg",
+        "Antioxidant Defenses in the Rat Placenta in Late Gestation Increased Labyrinthine Expression of Superoxide Dismutases, G.txt",
+        "63552.jpg",
+        "166277.jpg"
+      ]
+    },
+    {
+      "id" : "cat-chair",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 21.487417,
+      "mustPass" : false,
+      "ndcgAt10" : 0.7257000163912448,
+      "precision" : 0.6666666666666666,
+      "recall" : 0.34782608695652173,
+      "recallAt10" : 0.34782608695652173,
+      "reciprocalRank" : 1,
+      "returned" : 12,
+      "top" : [
+        "42528.jpg",
+        "353970.jpg",
+        "57232.jpg",
+        "16958.jpg",
+        "509699.jpg"
+      ]
+    },
+    {
+      "id" : "cat-clock",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 21.048833,
+      "mustPass" : false,
+      "ndcgAt10" : 0.30286432717029693,
+      "precision" : 0.3333333333333333,
+      "recall" : 0.8333333333333334,
+      "recallAt10" : 0.6666666666666666,
+      "reciprocalRank" : 0.3333333333333333,
+      "returned" : 15,
+      "top" : [
+        "OVEREXPRESSION OF BOTH CLOCK AND BMAL1 INHIBITS ENTRY TO S PHASE IN HUMAN COLON CANCER CELLS.txt",
+        "Enhancing circadian clock function in cancer cells inhibits tumor growth.txt",
+        "289516.jpg",
+        "295797.jpg",
+        "217425.jpg"
+      ]
+    },
+    {
+      "id" : "cat-couch",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 8.718709,
+      "mustPass" : false,
+      "ndcgAt10" : 0.7915180599205879,
+      "precision" : 0.5333333333333333,
+      "recall" : 0.6666666666666666,
+      "recallAt10" : 0.6666666666666666,
+      "reciprocalRank" : 1,
+      "returned" : 15,
+      "top" : [
+        "89045.jpg",
+        "532901.jpg",
+        "181753.jpg",
+        "125778.jpg",
+        "124659.jpg"
+      ]
+    },
+    {
+      "id" : "cat-cow",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 8.811334,
+      "mustPass" : false,
+      "ndcgAt10" : 0.683286284108649,
+      "precision" : 0.3333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 9,
+      "top" : [
+        "Human and other faeces as breeding media of the trachoma vector Musca sorbens.txt",
+        "518213.jpg",
+        "137576.jpg",
+        "125806.jpg",
+        "Sporadic Creutzfeldt-Jakob disease in the United Kingdom analysis of epidemiological surveillance data for 1970-96.txt"
+      ]
+    },
+    {
+      "id" : "cat-cup",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 8.800458,
+      "mustPass" : false,
+      "ndcgAt10" : 0.14896415437351715,
+      "precision" : 0.4,
+      "recall" : 0.25,
+      "recallAt10" : 0.25,
+      "reciprocalRank" : 0.3333333333333333,
+      "returned" : 5,
+      "top" : [
+        "393014.jpg",
+        "BMP receptor ALK3 controls collecting system development.txt",
+        "166277.jpg",
+        "Changes in plasma copeptin, the c-terminal portion of arginine vasopressin during water deprivation and excess in health.txt",
+        "558854.jpg"
+      ]
+    },
+    {
+      "id" : "cat-dining-table",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 11.920167,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6528642754944294,
+      "precision" : 0.6,
+      "recall" : 0.4838709677419355,
+      "recallAt10" : 0.22580645161290322,
+      "reciprocalRank" : 1,
+      "returned" : 25,
+      "top" : [
+        "572678.jpg",
+        "404678.jpg",
+        "18380.jpg",
+        "298396.jpg",
+        "273711.jpg"
+      ]
+    },
+    {
+      "id" : "cat-dog",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 9.40125,
+      "mustPass" : false,
+      "ndcgAt10" : 0.7302992240408084,
+      "precision" : 0.5833333333333334,
+      "recall" : 0.875,
+      "recallAt10" : 0.875,
+      "reciprocalRank" : 0.5,
+      "returned" : 12,
+      "top" : [
+        "Human and other faeces as breeding media of the trachoma vector Musca sorbens.txt",
+        "452891.jpg",
+        "76417.jpg",
+        "170893.jpg",
+        "206831.jpg"
+      ]
+    },
+    {
+      "id" : "cat-donut",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 8.620791,
+      "mustPass" : false,
+      "ndcgAt10" : 0.9260446319296772,
+      "precision" : 0.3,
+      "recall" : 0.75,
+      "recallAt10" : 0.75,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "377814.jpg",
+        "345469.jpg",
+        "486438.jpg",
+        "206831.jpg",
+        "1532.jpg"
+      ]
+    },
+    {
+      "id" : "cat-fire-hydrant",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 9.301916,
+      "mustPass" : false,
+      "ndcgAt10" : 0.9578347709816888,
+      "precision" : 0.4166666666666667,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 12,
+      "top" : [
+        "439623.jpg",
+        "273198.jpg",
+        "569273.jpg",
+        "140556.jpg",
+        "566923.jpg"
+      ]
+    },
+    {
+      "id" : "cat-fork",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 10.148209,
+      "mustPass" : false,
+      "ndcgAt10" : 0.44091585574750664,
+      "precision" : 0.2727272727272727,
+      "recall" : 0.6,
+      "recallAt10" : 0.4,
+      "reciprocalRank" : 0.5,
+      "returned" : 11,
+      "top" : [
+        "Replication Fork Slowing and Reversal upon DNA Damage Require PCNA Polyubiquitination and ZRANB3 DNA Translocase Activit.txt",
+        "358427.jpg",
+        "Cell Stem Cell Review FoxO Transcription Factors and Stem Cell Homeostasis Insights from the Hematopoietic System.txt",
+        "Transcriptional regulation of neuronal genes and its effect on neural functions expression and function of forkhead tran.txt",
+        "Quantitative, genome-wide analysis of eukaryotic replication initiation and termination.txt"
+      ]
+    },
+    {
+      "id" : "cat-handbag",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 9.453083,
+      "mustPass" : false,
+      "ndcgAt10" : 0.2960819109658652,
+      "precision" : 0.1,
+      "recall" : 0.3333333333333333,
+      "recallAt10" : 0.3333333333333333,
+      "reciprocalRank" : 0.5,
+      "returned" : 10,
+      "top" : [
+        "86582.jpg",
+        "151000.jpg",
+        "294855.jpg",
+        "265108.jpg",
+        "370478.jpg"
+      ]
+    },
+    {
+      "id" : "cat-horse",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 43.338042,
+      "mustPass" : false,
+      "ndcgAt10" : 0.7406373704937698,
+      "precision" : 0.5,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 10,
+      "top" : [
+        "Human and other faeces as breeding media of the trachoma vector Musca sorbens.txt",
+        "319721.jpg",
+        "275392.jpg",
+        "441442.jpg",
+        "80659.jpg"
+      ]
+    },
+    {
+      "id" : "cat-keyboard",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 42.113667,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.625,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 8,
+      "top" : [
+        "68765.jpg",
+        "335658.jpg",
+        "239318.jpg",
+        "569059.jpg",
+        "248314.jpg"
+      ]
+    },
+    {
+      "id" : "cat-knife",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 33.89125,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6797310500037655,
+      "precision" : 0.6,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 5,
+      "top" : [
+        "Nonstructural protein 3-4A the Swiss army knife of hepatitis C virus.txt",
+        "116206.jpg",
+        "358427.jpg",
+        "223090.jpg",
+        "320664.jpg"
+      ]
+    },
+    {
+      "id" : "claim-508",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 50.977875,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "Combined Single-Cell Functional and Gene Expression Analysis Resolves Heterogeneity within Stem Cell Populations.txt",
+        "Hematopoietic stem cell self-renewal versus differentiation.txt",
+        "Cell Stem Cell Review FoxO Transcription Factors and Stem Cell Homeostasis Insights from the Hematopoietic System.txt",
+        "GATA-3 regulates hematopoietic stem cell maintenance and cell-cycle entry.txt",
+        "Centrifugal elutriation as a method for isolation of large numbers of functionally intact human peripheral blood monocyt.txt"
+      ]
+    },
+    {
+      "id" : "claim-1185",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 85.049083,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.09090909090909091,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 11,
+      "top" : [
+        "Kidney paired donation and optimizing the use of live donor organs.txt",
+        "Successful three-way kidney paired donation with cross-country live donor allograft transport.txt",
+        "Managing finances of shipping living donor kidneys for donor exchanges.txt",
+        "Immunotherapy of metastatic kidney cancer.txt",
+        "Economic implications of nighttime attending intensivist coverage in a medical intensive care unit.txt"
+      ]
+    },
+    {
+      "id" : "claim-437",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 74.536291,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 6,
+      "top" : [
+        "Landscape of genetic lesions in 944 patients with myelodysplastic syndromes.txt",
+        "Variations and Trends in Health Burden of Visual Impairment Due to Cataract A Global Analysis.txt",
+        "Obesity due to melanocortin 4 receptor (MC4R) deficiency is associated with increased linear growth and final height, fa.txt",
+        "Functional Consequences of Splicing of the Antisense Transcript COOLAIR on FLC Transcription.txt",
+        "Integration-free induced pluripotent stem cells model genetic and neural developmental features of down syndrome etiolog.txt"
+      ]
+    },
+    {
+      "id" : "claim-1049",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 50.109209,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "Ribosome-Mediated Specificity in Hox mRNA Translation and Vertebrate Tissue Patterning.txt",
+        "Tissue-specific alterations in the glucocorticoid sensitivity of immune cells following repeated social defeat in mice.txt",
+        "Niche-Independent Symmetrical Self-Renewal of a Mammalian Tissue Stem Cell.txt",
+        "Tissue-Specific Knockout of the Insulin Receptor in Pancreatic β Cells Creates an Insulin Secretory Defect Similar to th.txt",
+        "Atherosclerotic plaque rupture--pathologic basis of plaque stability and instability.txt"
+      ]
+    },
+    {
+      "id" : "claim-785",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 51.157709,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 6,
+      "top" : [
+        "Data analysis methods for detection of differential protein expression in two-dimensional gel electrophoresis.txt",
+        "The PneuCarriage Project A Multi-Centre Comparative Study to Identify the Best Serotyping Methods for Examining Pneumoco.txt",
+        "Gene expression analysis by cDNA microarray in oral squamous cell carcinoma.txt",
+        "Screening for concomitant diseases in peripheral vascular patients. Results of a systematic approach.txt",
+        "Results of screening for intracranial aneurysms in patients with coarctation of the aorta.txt"
+      ]
+    },
+    {
+      "id" : "claim-212",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 55.743167,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 9,
+      "top" : [
+        "DNA Methylation in the Human Cerebral Cortex Is Dynamically Regulated throughout the Life Span and Involves Differentiat.txt",
+        "Caloric restriction delays age-related methylation drift.txt",
+        "The Aging Epigenome.txt",
+        "Effects of a high-fat diet exposure in utero on the metabolic syndrome-like phenomenon in mouse offspring through epigen.txt",
+        "CD44v6 is a marker of constitutive and reprogrammed cancer stem cells driving colon cancer metastasis.txt"
+      ]
+    },
+    {
+      "id" : "claim-921",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 69.625125,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.07692307692307693,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 13,
+      "top" : [
+        "Effect of physical activity on cognitive function in older adults at risk for Alzheimer disease a randomized trial.txt",
+        "A neuroimaging investigation of the association between aerobic fitness, hippocampal volume, and memory performance in p.txt",
+        "High-intensity functional exercise program and protein-enriched energy supplement for older persons dependent in activit.txt",
+        "Relationship of physical activity and television watching with body weight and level of fatness among children results f.txt",
+        "Perceived age as clinically useful biomarker of ageing cohort study.txt"
+      ]
+    },
+    {
+      "id" : "claim-1144",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 52.947084,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.09090909090909091,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 11,
+      "top" : [
+        "Averting Obesity and Type 2 Diabetes in India through Sugar-Sweetened Beverage Taxation An Economic-Epidemiologic Modeli.txt",
+        "Relationship of soft drink consumption to global overweight, obesity, and diabetes a cross-national analysis of 75 count.txt",
+        "Interleukin-2 gene variation impairs regulatory T cell function and causes autoimmunity.txt",
+        "The role of oral antidiabetic agents why and when to use an early-phase insulin secretion agent in Type II diabetes mell.txt",
+        "Diabetes, metabolic syndrome, and breast cancer a review of the current evidence.txt"
+      ]
+    },
+    {
+      "id" : "claim-956",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 46.817792,
+      "mustPass" : false,
+      "ndcgAt10" : 0.38685280723454163,
+      "precision" : 0.125,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.2,
+      "returned" : 8,
+      "top" : [
+        "Key interactions by conserved polar amino acids located at the transmembrane helical boundaries in Class B GPCRs modulat.txt",
+        "Glucose Sensing in L Cells A Primary Cell Study.txt",
+        "Age-related behaviors have distinct transcriptional profiles in Caenorhabditis elegans.txt",
+        "CNS repair requires both effector and regulatory T cells with distinct temporal and spatial profiles.txt",
+        "The Extracellular Surface of the GLP-1 Receptor Is a Molecular Trigger for Biased Agonism.txt"
+      ]
+    },
+    {
+      "id" : "claim-208",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 52.950625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "Linkage Disequilibrium Mapping of CHEK2 Common Variation and Breast Cancer Risk.txt",
+        "Mosaic PPM1D mutations are associated with predisposition to breast and ovarian cancer.txt",
+        "High-Infiltration of Tumor-Associated Macrophages Predicts Unfavorable Clinical Outcome for Node-Negative Breast Cancer.txt",
+        "Diabetes, metabolic syndrome, and breast cancer a review of the current evidence.txt",
+        "Pregnancy characteristics and maternal risk of breast cancer.txt"
+      ]
+    },
+    {
+      "id" : "claim-385",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 83.078667,
+      "mustPass" : false,
+      "ndcgAt10" : 0.5706417189553201,
+      "precision" : 0.06060606060606061,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.3333333333333333,
+      "returned" : 33,
+      "top" : [
+        "Prostaglandin E2 promotes intestinal tumor growth via DNA methylation.txt",
+        "Amphiregulin enhances regulatory T cell-suppressive function via the epidermal growth factor receptor.txt",
+        "Epigenetic therapy activates type I interferon signaling in murine ovarian cancer to reduce immunosuppression and tumor.txt",
+        "Epigenetic Therapy Ties MYC Depletion to Reversing Immune Evasion and Treating Lung Cancer.txt",
+        "A phase I study of PF-04449913, an oral hedgehog inhibitor, in patients with advanced solid tumors.txt"
+      ]
+    },
+    {
+      "id" : "claim-415",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 57.953709,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "Reproductive period and risk of dementia in postmenopausal women.txt",
+        "Female Gender and Reproductive Factors Affecting Risk, Relapses and Progression in Multiple Sclerosis.txt",
+        "Hypoglycemic episodes and risk of dementia in older patients with type 2 diabetes mellitus.txt",
+        "Risk of death with atypical antipsychotic drug treatment for dementia meta-analysis of randomized placebo-controlled tri.txt",
+        "White matter hyperintensities are a core feature of Alzheimer's disease Evidence from the dominantly inherited Alzheimer.txt"
+      ]
+    },
+    {
+      "id" : "claim-294",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 60.367833,
+      "mustPass" : false,
+      "ndcgAt10" : 0.5,
+      "precision" : 0.08333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.3333333333333333,
+      "returned" : 12,
+      "top" : [
+        "A comprehensive genomic binding map of gene and chromatin regulatory proteins in Saccharomyces.txt",
+        "Histone Variant H2A.Z Marks the 5′ Ends of Both Active and Inactive Genes in Euchromatin.txt",
+        "Mapping Meiotic Single-Strand DNA Reveals a New Landscape of DNA Double-Strand Breaks in Saccharomyces cerevisiae.txt",
+        "Identification and distinct regulation of yeast TATA box-containing genes.txt",
+        "Histone acetylation and deacetylation in yeast.txt"
+      ]
+    },
+    {
+      "id" : "claim-70",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 29.087166,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2222222222222222,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 9,
+      "top" : [
+        "Exome sequencing identifies somatic gain-of-function PPM1D mutations in brainstem gliomas.txt",
+        "Mosaic PPM1D mutations are associated with predisposition to breast and ovarian cancer.txt",
+        "Activation of lysosomal function during dendritic cell maturation.txt",
+        "HER-2 neu induces p53 ubiquitination via Akt-mediated MDM2 phosphorylation.txt",
+        "Regulation of p53 in response to DNA damage.txt"
+      ]
+    },
+    {
+      "id" : "claim-354",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 25.0895,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Deregulation of Scribble Promotes Mammary Tumorigenesis and Reveals a Role for Cell Polarity in Carcinoma.txt",
+        "MEG3 imprinted gene contribution in tumorigenesis.txt",
+        "Downregulation of TAP1 in B lymphocytes by cellular and Epstein-Barr virus-encoded interleukin-10.txt",
+        "CRISPR Interference Limits Horizontal Gene Transfer in Staphylococci by Targeting DNA.txt",
+        "The Epithelial-Mesenchymal Transition Generates Cells with Properties of Stem Cells.txt"
+      ]
+    },
+    {
+      "id" : "claim-1146",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 46.378292,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "Patient Outcomes with Teaching Versus Nonteaching Healthcare A Systematic Review.txt",
+        "Incidence and Trends of Sepsis in US Hospitals Using Clinical vs Claims Data, 2009-2014.txt",
+        "Patent ductus arteriosus are current neonatal treatment options better or worse than no treatment at all?.txt",
+        "Adult T-cell leukemia lymphoma in London clinical experience of 21 cases.txt",
+        "Glucocorticoid with cyclophosphamide for paraquat-induced lung fibrosis.txt"
+      ]
+    },
+    {
+      "id" : "claim-338",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 54.981667,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "Dexamethasone and risk of nausea and vomiting and postoperative bleeding after tonsillectomy in children a randomized tr.txt",
+        "Dexamethasone decreases vomiting by children after tonsillectomy.txt",
+        "Mental Health Conditions Among Patients Seeking and Undergoing Bariatric Surgery A Meta-analysis.txt",
+        "Targeting A20 Decreases Glioma Stem Cell Survival and Tumor Growth.txt",
+        "Clinical outcomes following institution of the Canadian universal leukoreduction program for red blood cell transfusions.txt"
+      ]
+    },
+    {
+      "id" : "claim-1179",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 48.033459,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "Immune signaling by RIG-I-like receptors.txt",
+        "GRSF1 Regulates RNA Processing in Mitochondrial RNA Granules.txt",
+        "Control of central and peripheral tolerance by Aire.txt",
+        "In vivo electroporation in the embryonic mouse central nervous system.txt",
+        "RNase H and Postreplication Repair Protect Cells from Ribonucleotides Incorporated in DNA.txt"
+      ]
+    },
+    {
+      "id" : "claim-823",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 43.478125,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.25,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 4,
+      "top" : [
+        "N348I in the Connection Domain of HIV-1 Reverse Transcriptase Confers Zidovudine and Nevirapine Resistance.txt",
+        "Nephrin mutations cause childhood- and adult-onset focal segmental glomerulosclerosis.txt",
+        "Mutations in the nuclear bile acid receptor FXR cause progressive familial intrahepatic cholestasis.txt",
+        "Relapse specific mutations in NT5C2 in childhood acute lymphoblastic leukemia.txt"
+      ]
+    },
+    {
+      "id" : "claim-380",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 56.128625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "Memory CD4+ T cells induce innate responses independently of pathogen.txt",
+        "LIN28B enhanced tumorigenesis in an autochthonous KRASG12V-driven lung carcinoma mouse model.txt",
+        "Streptococcus pneumoniae early response genes to human lung epithelial cells.txt",
+        "Large intestine-targeted nanoparticle-releasing oral vaccine to control genitorectal viral infection.txt",
+        "Differential role of CbpA and PspA in modulation of in vitro CXC chemokine responses of respiratory epithelial cells to.txt"
+      ]
+    },
+    {
+      "id" : "claim-298",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 44.109625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "At the gates of death.txt",
+        "Metabolic DNA as the origin of spontaneously released DNA?.txt",
+        "The Opa1-Dependent Mitochondrial Cristae Remodeling Pathway Controls Atrophic, Apoptotic, and Ischemic Tissue Damage.txt",
+        "Interplay between microtubule bundling and sorting factors ensures acentriolar spindle stability during C. elegans oocyt.txt",
+        "Glucose Metabolism Inhibits Apoptosis in Neurons and Cancer Cells by Redox Inactivation of Cytochrome c.txt"
+      ]
+    },
+    {
+      "id" : "claim-53",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 45.289791,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "ALDH1 is a marker of normal and malignant human mammary stem cells and a predictor of poor clinical outcome.txt",
+        "Epigenetic-induced repression of microRNA-205 is associated with MED1 activation and a poorer prognosis in localized pro.txt",
+        "Mosaic PPM1D mutations are associated with predisposition to breast and ovarian cancer.txt",
+        "Reduced expression of oestrogen receptor beta in invasive breast cancer and its re-expression using DNA methyl transfera.txt",
+        "Breast cancer and obesity an update.txt"
+      ]
+    },
+    {
+      "id" : "claim-49",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 30.335375,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "ADAR1 Forms a Complex with Dicer to Promote MicroRNA Processing and RNA-Induced Gene Silencing.txt",
+        "Exosomal levels of miRNA-21 from cerebrospinal fluids associated with poor prognosis and tumor recurrence of glioma pati.txt",
+        "Microenvironment-dependent growth of pre-neoplastic and malignant plasma cells in humanized mice.txt",
+        "MicroRNAs small RNAs with a big role in gene regulation.txt",
+        "A framework for improving microRNA prediction in non-human genomes.txt"
+      ]
+    },
+    {
+      "id" : "claim-233",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 34.896,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Somatic sex identity is cell-autonomous in the chicken.txt",
+        "All dosage compensation is local Gene-by-gene regulation of sex-biased expression on the chicken Z chromosome.txt",
+        "Developmental heterogeneity of cardiac fibroblasts does not predict pathological proliferation and activation.txt",
+        "Helicobacter hepaticus does not induce or potentiate colitis in interleukin-10-deficient mice.txt",
+        "The histone demethylases Jhdm1a 1b enhance somatic cell reprogramming in a vitamin-C-dependent manner.txt"
+      ]
+    },
+    {
+      "id" : "claim-1273",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 36.304167,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "Microtubule sliding activity of a kinesin-8 promotes spindle assembly and spindle length control.txt",
+        "KIF3A B a heterodimeric kinesin superfamily protein that works as a microtubule plus end-directed motor for membrane org.txt",
+        "Interplay between microtubule bundling and sorting factors ensures acentriolar spindle stability during C. elegans oocyt.txt",
+        "The Ran GTPase regulates mitotic spindle assembly.txt",
+        "A Role for NuSAP in Linking Microtubules to Mitotic Chromosomes.txt"
+      ]
+    },
+    {
+      "id" : "claim-314",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 42.433208,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "Broad antiretroviral defence by human APOBEC3G through lethal editing of nascent reverse transcripts.txt",
+        "The cytidine deaminase CEM15 induces hypermutation in newly synthesized HIV-1 DNA.txt",
+        "Engineered RNA viral synthesis of microRNAs.txt",
+        "Interferons Success in anti-viral immunotherapy.txt",
+        "Viral Infection of Engrafted Human Islets Leads to Diabetes.txt"
+      ]
+    },
+    {
+      "id" : "claim-1382",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 31.224417,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Control of Nutrient Stress-Induced Metabolic Reprogramming by PKCζ in Tumorigenesis.txt",
+        "Proteomic analysis reveals Warburg effect and anomalous metabolism of glutamine in pancreatic cancer cells.txt",
+        "Unravelling mechanisms of p53-mediated tumour suppression.txt",
+        "Pharmacological Blockade of ASCT2-dependent Glutamine Transport Leads To Anti-tumor Efficacy in Preclinical Models.txt",
+        "Female Gender and Reproductive Factors Affecting Risk, Relapses and Progression in Multiple Sclerosis.txt"
+      ]
+    },
+    {
+      "id" : "claim-501",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 42.703375,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 9,
+      "top" : [
+        "Headache, migraine, and structural brain lesions and function population based Epidemiology of Vascular Ageing-MRI study.txt",
+        "A diffusion tensor magnetic resonance imaging study of brain tissue from patients with migraine.txt",
+        "Ankle brachial index as a predictor of cognitive impairment in the general population ten-year follow-up of the Edinburg.txt",
+        "Chronic daily headache in Taipei, Taiwan prevalence, follow-up and outcome predictors.txt",
+        "Biofeedback and relaxation in the treatment of migraine headaches comparative effectiveness and physiological correlates.txt"
+      ]
+    },
+    {
+      "id" : "claim-525",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 74.848292,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "Histone Methylation-Dependent Mechanisms Impose Ligand Dependency for Gene Activation by Nuclear Receptors.txt",
+        "Histone chaperones and nucleosome assembly.txt",
+        "Histone Demethylase Expression Enhances Human Somatic Cell Nuclear Transfer Efficiency and Promotes Derivation of Plurip.txt",
+        "Histone acetylation and deacetylation in yeast.txt",
+        "KDM5B regulates embryonic stem cell self-renewal and represses cryptic intragenic transcription.txt"
+      ]
+    },
+    {
+      "id" : "claim-1337",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 111.811875,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 5,
+      "top" : [
+        "FBW7 ubiquitin ligase a tumour suppressor at the crossroads of cell division, growth and differentiation.txt",
+        "Replication Fork Slowing and Reversal upon DNA Damage Require PCNA Polyubiquitination and ZRANB3 DNA Translocase Activit.txt",
+        "Expression of optineurin, a glaucoma-linked gene, is influenced by elevated intraocular pressure.txt",
+        "ATPase-Dependent Control of the Mms21 SUMO Ligase during DNA Repair.txt",
+        "The role of protein clearance mechanisms in organismal ageing and age-related diseases.txt"
+      ]
+    },
+    {
+      "id" : "claim-589",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 120.987625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "ADHD medications and risk of serious cardiovascular events in young and middle-aged adults.txt",
+        "Aging, habitual exercise, and dynamic arterial compliance.txt",
+        "Association Between ADHD and Obesity A Systematic Review and Meta-Analysis.txt",
+        "Validity of the World Health Organization Adult ADHD Self-Report Scale (ASRS) Screener in a representative sample of hea.txt",
+        "Haematopoietic stem cells do not asymmetrically segregate chromosomes or retain BrdU.txt"
+      ]
+    },
+    {
+      "id" : "claim-1278",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 131.752833,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.05,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 20,
+      "top" : [
+        "Immunotherapy of metastatic kidney cancer.txt",
+        "Is autoimmunity the Achilles' heel of cancer immunotherapy?.txt",
+        "Efficacy of PD-1 or PD-L1 inhibitors and PD-L1 expression status in cancer meta-analysis.txt",
+        "Immune cell promotion of metastasis.txt",
+        "A framework for understanding and targeting residual disease in oncogene-driven solid cancers.txt"
+      ]
+    },
+    {
+      "id" : "claim-700",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 61.063792,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 7,
+      "top" : [
+        "Local, Efflux-Dependent Auxin Gradients as a Common Module for Plant Organ Formation.txt",
+        "Generation of cell polarity in plants links endocytosis, auxin distribution and cell fate decisions.txt",
+        "The VTI family of SNARE proteins is necessary for plant viability and mediates different protein transport pathways.txt",
+        "TAA1-Mediated Auxin Biosynthesis Is Essential for Hormone Crosstalk and Plant Development.txt",
+        "Developmental heterogeneity of cardiac fibroblasts does not predict pathological proliferation and activation.txt"
+      ]
+    },
+    {
+      "id" : "claim-1216",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 61.220292,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Tmem27 a cleaved and shed plasma membrane protein that stimulates pancreatic beta cell proliferation.txt",
+        "A simple two-step protocol for the purification of human pancreatic beta cells.txt",
+        "Regulation of immune responses by extracellular vesicles.txt",
+        "ADAM13 disintegrin and cysteine-rich domains bind to the second heparin-binding domain of fibronectin.txt",
+        "Cleavage of GSDMD by inflammatory caspases determines pyroptotic cell death.txt"
+      ]
+    },
+    {
+      "id" : "claim-569",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 62.324125,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 9,
+      "top" : [
+        "Central memory and effector memory T cell subsets function, generation, and maintenance.txt",
+        "Early life compartmentalization of human T cell differentiation and regulatory function in mucosal and lymphoid tissues.txt",
+        "A local macrophage chemokine network sustains protective tissue-resident memory CD4 T cells.txt",
+        "Noncognate interaction with MHC class II molecules is essential for maintenance of T cell metabolism to establish optima.txt",
+        "Maintaining the norm T-cell homeostasis.txt"
+      ]
+    },
+    {
+      "id" : "claim-775",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 83.612417,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "Nonoverlapping functions of DNA polymerases mu, lambda, and terminal deoxynucleotidyltransferase during immunoglobulin V.txt",
+        "Ionizing radiation-induced long-term expression of senescence markers in mice is independent of p53 and immune status.txt",
+        "A gradient of template dependence defines distinct biological roles for family X polymerases in nonhomologous end joinin.txt",
+        "Increased susceptibility to UV-induced skin carcinogenesis in polymerase eta-deficient mice.txt",
+        "Surfactant Protein B Suppresses Lung Cancer Progression by Inhibiting Secretory Phospholipase A2 Activity and Arachidoni.txt"
+      ]
+    },
+    {
+      "id" : "claim-613",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 56.804833,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Increasing microtubule acetylation rescues axonal transport and locomotor deficits caused by LRRK2 Roc-COR domain mutati.txt",
+        "Increased in vivo amyloid-β42 production, exchange, and loss in presenilin mutation carriers.txt",
+        "Increased CDK1 activity determines the timing of kinetochore-microtubule attachments in meiosis I.txt",
+        "Distinct functions of nucleotide-binding hydrolysis sites in the four AAA modules of cytoplasmic dynein.txt",
+        "The coordination of cyclic microtubule association dissociation and tail swing of cytoplasmic dynein.txt"
+      ]
+    },
+    {
+      "id" : "claim-1012",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 49.952083,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.25,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 4,
+      "top" : [
+        "Radioiodine treatment of multinodular non-toxic goitre.txt",
+        "Magnetic resonance imaging for volume estimation of large multinodular goitres a comparison with scintigraphy.txt",
+        "131-I radioiodine therapy for hyperthyroidism in patients with Graves' disease, uninodular goitre and multinodular goitr.txt",
+        "Radiotherapy plus concomitant and adjuvant temozolomide for glioblastoma.txt"
+      ]
+    },
+    {
+      "id" : "claim-1303",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 58.106166,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Activation of fast skeletal muscle troponin as a potential therapeutic approach for treating neuromuscular diseases.txt",
+        "KLF4-dependent phenotypic modulation of smooth muscle cells has a key role in atherosclerotic plaque pathogenesis.txt",
+        "Gene expression in human skeletal muscle alternative normalization method and effect of repeated biopsies.txt",
+        "The Combination of Exercise and Respiratory Training Improves Respiratory Muscle Function in Pulmonary Hypertension.txt",
+        "Intimal smooth muscle cell proliferation after balloon catheter injury. The role of basic fibroblast growth factor.txt"
+      ]
+    },
+    {
+      "id" : "claim-141",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 33.836208,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.3333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "Congruent Visual Speech Enhances Cortical Entrainment to Continuous Auditory Speech in Noise-Free Conditions.txt",
+        "Auditory Cortex Tracks Both Auditory and Visual Stimulus Dynamics Using Low-Frequency Neuronal Phase Modulation.txt",
+        "Location Coding by Opponent Neural Populations in the Auditory Cortex.txt",
+        "A Functional Neuroimaging Study of Sound Localization Visual Cortex Activity Predicts Performance in Early-Blind Individ.txt",
+        "The effect of information related to fat content and taste on consumer responses to a reduced-fat frankfurter and a redu.txt"
+      ]
+    },
+    {
+      "id" : "claim-831",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 40.591208,
+      "mustPass" : false,
+      "ndcgAt10" : 0.5,
+      "precision" : 0.07142857142857142,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.3333333333333333,
+      "returned" : 14,
+      "top" : [
+        "Regulation of Hippo pathway transcription factor TEAD by p38 MAPK-induced cytoplasmic translocation.txt",
+        "P446L-importin-beta inhibits nuclear envelope assembly by sequestering nuclear envelope assembly factors to the microtub.txt",
+        "A genetic screen identifies an LKB1–MARK signalling axis controlling the Hippo–YAP pathway.txt",
+        "Nuclear HuR accumulation through phosphorylation by Cdk1.txt",
+        "Regulated nucleo cytoplasmic exchange of HOG1 MAPK requires the importin beta homologs NMD5 and XPO1.txt"
+      ]
+    },
+    {
+      "id" : "claim-1132",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 54.632917,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "T cell receptor-proximal signals are sustained in peripheral microclusters and terminated in the central supramolecular.txt",
+        "Full activation of the T cell receptor requires both clustering and conformational changes at CD3.txt",
+        "Recruitment of Nck by CD3ϵ Reveals a Ligand-Induced Conformational Change Essential for T Cell Receptor Signaling and Sy.txt",
+        "Nef is physically recruited into the immunological synapse and potentiates T cell activation early after TCR engagement.txt",
+        "T-cell activation.txt"
+      ]
+    },
+    {
+      "id" : "claim-1014",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 49.7945,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Mechanisms of Life Span Extension by Rapamycin in the Fruit Fly Drosophila melanogaster.txt",
+        "Original Article.txt",
+        "Dexamethasone decreases vomiting by children after tonsillectomy.txt",
+        "Human and other faeces as breeding media of the trachoma vector Musca sorbens.txt",
+        "Rapamycin passes the torch a new generation of mTOR inhibitors.txt"
+      ]
+    },
+    {
+      "id" : "claim-1270",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 56.137916,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 9,
+      "top" : [
+        "Self-harm in prisons in England and Wales an epidemiological study of prevalence, risk factors, clustering, and subseque.txt",
+        "The Incidence and Repetition of Hospital-Treated Deliberate Self Harm Findings from the World's First National Registry.txt",
+        "An analysis of age and gender influences on the relative risk for suicide and psychotropic drug self-poisoning.txt",
+        "Prison health care a review of the literature.txt",
+        "Mental health in prison populations. A review--with special emphasis on a study of Danish prisoners on remand.txt"
+      ]
+    },
+    {
+      "id" : "claim-295",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 68.398459,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.07142857142857142,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 14,
+      "top" : [
+        "IL-23–responsive innate lymphoid cells are increased in inflammatory bowel disease.txt",
+        "The Transcription Factor T-bet Regulates Intestinal Inflammation Mediated by Interleukin-7 Receptor+ Innate Lymphoid Cel.txt",
+        "Microbiome-driven allergic lung inflammation is ameliorated by short-chain fatty acids.txt",
+        "The dendritic cell lineage ontogeny and function of dendritic cells and their subsets in the steady state and the inflam.txt",
+        "Podoplanin-Rich Stromal Networks Induce Dendritic Cell Motility via Activation of the C-type Lectin Receptor CLEC-2.txt"
+      ]
+    },
+    {
+      "id" : "claim-636",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 48.387584,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "PTEN Regulates PI(3,4)P2 Signaling Downstream of Class I PI3K.txt",
+        "Phosphatidylinositol 4,5-Bisphosphate Functions as a Second Messenger that Regulates Cytoskeleton–Plasma Membrane Adhesi.txt",
+        "Teratogen-Induced Oxidative Stress Targets Glyceraldehyde-3-Phosphate Dehydrogenase in the Organogenesis Stage Mouse Emb.txt",
+        "Phospholipid synthesis and lipid composition of subcellular membranes in the unicellular eukaryote Saccharomyces cerevis.txt",
+        "Genetic Variants at Newly Identified Lipid Loci Are Associated with Coronary Heart Disease in a Chinese Han Population.txt"
+      ]
+    },
+    {
+      "id" : "claim-179",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 40.785542,
+      "mustPass" : false,
+      "ndcgAt10" : 0.9047172294870752,
+      "precision" : 0.3076923076923077,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 13,
+      "top" : [
+        "Birth Size and Breast Cancer Risk Re-analysis of Individual Participant Data from 32 Studies.txt",
+        "Pregnancy characteristics and maternal risk of breast cancer.txt",
+        "Intrauterine environments and breast cancer risk meta-analysis and systematic review.txt",
+        "Intrauterine factors and risk of breast cancer a systematic review and meta-analysis of current evidence.txt",
+        "Role of birthweight in the etiology of breast cancer.txt"
+      ]
+    },
+    {
+      "id" : "claim-623",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 33.681584,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.125,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 8,
+      "top" : [
+        "Past exposure to sun, skin phenotype, and risk of multiple sclerosis case-control study.txt",
+        "Female Gender and Reproductive Factors Affecting Risk, Relapses and Progression in Multiple Sclerosis.txt",
+        "Antibodies specific for Epstein-Barr virus nuclear antigen-1 cross-react with human heterogeneous nuclear ribonucleoprot.txt",
+        "Estimation of the dietary requirement for vitamin D in healthy adults.txt",
+        "2017 revisions of McDonald criteria shorten the time to diagnosis of multiple sclerosis in clinically isolated syndromes.txt"
+      ]
+    },
+    {
+      "id" : "claim-597",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 35.624583,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2727272727272727,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 11,
+      "top" : [
+        "The effect of mass screening on incidence and mortality of squamous and adenocarcinoma of cervix uteri.txt",
+        "Mass screening programmes and trends in cervical cancer in Finland and the Netherlands.txt",
+        "Effect of screening on cervical cancer mortality in England and Wales analysis of trends with an age period cohort model.txt",
+        "Human papillomavirus testing for the detection of high-grade cervical intraepithelial neoplasia and cancer final results.txt",
+        "Human papillomavirus and Papanicolaou tests to screen for cervical cancer.txt"
+      ]
+    },
+    {
+      "id" : "claim-36",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 37.675917,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.18181818181818182,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 11,
+      "top" : [
+        "Randomized trial of folic acid supplementation and serum homocysteine levels.txt",
+        "Folic acid improves endothelial function in coronary artery disease via mechanisms largely independent of homocysteine l.txt",
+        "Hyperhomocysteinemia and atherosclerotic vascular disease pathophysiology, screening, and treatment. off.txt",
+        "Homocysteine and the risk of ischemic stroke in a triethnic cohort the NOrthern MAnhattan Study.txt",
+        "Gene--nutrition interactions in coronary artery disease correlation between the MTHFR C677T polymorphism and folate and.txt"
+      ]
+    },
+    {
+      "id" : "claim-1062",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 28.33425,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "GAPDH Mediates Nitrosylation of Nuclear Proteins.txt",
+        "Histone protein deacetylase inhibitors increase suppressive functions of human FOXP3+ Tregs.txt",
+        "Histone deacetylase 5 interacts with Krüppel-like factor 2 and inhibits its transcriptional activity in endothelium.txt",
+        "Histone chaperones and nucleosome assembly.txt",
+        "The diverse functions of GAPDH views from different subcellular compartments.txt"
+      ]
+    },
+    {
+      "id" : "claim-533",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 16.995625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "Influence of smoking and plasma factors on patency of femoropopliteal vein grafts.txt",
+        "Open Access Increases Citation Rate.txt",
+        "Statin prophylaxis and inflammatory mediators following cardiopulmonary bypass a systematic review.txt",
+        "Hyperhomocysteinemia and atherosclerotic vascular disease pathophysiology, screening, and treatment. off.txt",
+        "Folic acid improves endothelial function in coronary artery disease via mechanisms largely independent of homocysteine l.txt"
+      ]
+    },
+    {
+      "id" : "claim-907",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 19.038542,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Prostaglandin E2 promotes intestinal tumor growth via DNA methylation.txt",
+        "Doxycycline induces apoptosis in PANC-1 pancreatic cancer cells.txt",
+        "Epidermal growth factor receptor expression identifies functionally and molecularly distinct tumor-initiating cells in h.txt",
+        "Hematopoietic stem cell quiescence promotes error-prone DNA repair and mutagenesis.txt",
+        "Enhancing circadian clock function in cancer cells inhibits tumor growth.txt"
+      ]
+    },
+    {
+      "id" : "claim-216",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 25.186375,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.034482758620689655,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 29,
+      "top" : [
+        "CX3CR1 is required for airway inflammation by promoting T helper cell survival and maintenance in inflamed lung.txt",
+        "CCR6 regulates the migration of inflammatory and regulatory T cells.txt",
+        "Blimp-1 attenuates Th1 differentiation by repression of ifng, tbx21, and bcl6 gene expression.txt",
+        "Noncognate interaction with MHC class II molecules is essential for maintenance of T cell metabolism to establish optima.txt",
+        "Kinetics of early T cell receptor signaling regulate the pathway of lytic granule delivery to the secretory domain.txt"
+      ]
+    },
+    {
+      "id" : "claim-723",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 19.505875,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "The Ly49Q receptor plays a crucial role in neutrophil polarization and migration by regulating raft trafficking.txt",
+        "Fate mapping reveals origins and dynamics of monocytes and tissue macrophages under homeostasis.txt",
+        "Recent developments and complexities in neutrophil transmigration.txt",
+        "Distinct functions of nucleotide-binding hydrolysis sites in the four AAA modules of cytoplasmic dynein.txt",
+        "Phosphatidylinositol 4,5-Bisphosphate Functions as a Second Messenger that Regulates Cytoskeleton–Plasma Membrane Adhesi.txt"
+      ]
+    },
+    {
+      "id" : "claim-3",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 39.756333,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.07692307692307693,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 13,
+      "top" : [
+        "Rare and common variants twenty arguments.txt",
+        "Rare Variants Create Synthetic Genome-Wide Associations.txt",
+        "High-throughput sequencing reveals extensive variation in human-specific L1 content in individual human genomes.txt",
+        "Integrated maps in quail (Coturnix japonica) confirm the high degree of synteny conservation with chicken (Gallus gallus.txt",
+        "Haplotype estimation using sequencing reads.txt"
+      ]
+    },
+    {
+      "id" : "claim-1194",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 53.9065,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Folding and Self-Assembly of the TatA Translocation Pore Based on a Charge Zipper Mechanism.txt",
+        "A minimal Tat system from a gram-positive organism a bifunctional TatA subunit participates in discrete TatAC and TatA c.txt",
+        "SMC complexes differentially compact mitotic chromosomes according to genomic context.txt",
+        "Purification and activation properties of UreD-UreF-urease apoprotein complexes.txt",
+        "Histone structure and nucleosome stability.txt"
+      ]
+    },
+    {
+      "id" : "claim-936",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 52.412833,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "Altered recognition of antigen is a mechanism of CD8+ T cell tolerance in cancer.txt",
+        "Altered TCR signaling from geometrically repatterned immunological synapses.txt",
+        "Local changes in lipid environment of TCR microclusters regulate membrane binding by the CD3ε cytoplasmic domain.txt",
+        "Nef is physically recruited into the immunological synapse and potentiates T cell activation early after TCR engagement.txt",
+        "Biochemical differences in the alphabeta T cell receptor.CD3 surface complex between CD8+ and CD4+ human mature T lympho.txt"
+      ]
+    },
+    {
+      "id" : "claim-1204",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 61.126542,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "Genome-wide maps of histone modifications unwind in vivo chromatin states of the hair follicle lineage.txt",
+        "Quiescent and active hippocampal neural stem cells with distinct morphologies respond selectively to physiological and p.txt",
+        "Assaying proliferation and differentiation capacity of stem cells using disaggregated adult mouse epidermis.txt",
+        "Embryonic stem cells require Wnt proteins to prevent differentiation to epiblast stem cells.txt",
+        "Induction of cell cycle entry eliminates human leukemia stem cells in a mouse model of AML.txt"
+      ]
+    },
+    {
+      "id" : "claim-1370",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 50.784,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05263157894736842,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 19,
+      "top" : [
+        "Association between maternal serum 25-hydroxyvitamin D level and pregnancy and neonatal outcomes systematic review and m.txt",
+        "Estimation of the dietary requirement for vitamin D in healthy adults.txt",
+        "Relationship between serum parathyroid hormone levels, vitamin D sufficiency, and calcium intake.txt",
+        "Effect of women's nutrition before and during early pregnancy on maternal and infant outcomes a systematic review.txt",
+        "Birth Size and Breast Cancer Risk Re-analysis of Individual Participant Data from 32 Studies.txt"
+      ]
+    },
+    {
+      "id" : "claim-163",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 47.350084,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.07692307692307693,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 13,
+      "top" : [
+        "Mental Health Conditions Among Patients Seeking and Undergoing Bariatric Surgery A Meta-analysis.txt",
+        "Recommendations for the presurgical psychosocial evaluation of bariatric surgery patients.txt",
+        "Brief, four-session group CBT reduces binge eating behaviors among bariatric surgery candidates.txt",
+        "Bariatric Surgery in the United Kingdom A Cohort Study of Weight Loss and Clinical Outcomes in Routine Clinical Care.txt",
+        "Suicides after pregnancy in Finland, 1987-94 register linkage study.txt"
+      ]
+    },
+    {
+      "id" : "claim-554",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 49.352125,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Neutrophil extracellular traps enriched in oxidized mitochondrial DNA are interferogenic and contribute to lupus-like di.txt",
+        "A novel mechanism of rapid nuclear neutrophil extracellular trap formation in response to Staphylococcus aureus.txt",
+        "Regulation of immune responses by extracellular vesicles.txt",
+        "Ketamine reduces LPS-induced HMGB1 via activation of the Nrf2 HO-1 pathway and NF-κB suppression.txt",
+        "Myeloperoxidase friend and foe.txt"
+      ]
+    },
+    {
+      "id" : "claim-729",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 64.702,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "Dissection of signaling cascades through gp130 in vivo reciprocal roles for STAT3- and SHP2-mediated signals in immune r.txt",
+        "Regulation of Hippo pathway transcription factor TEAD by p38 MAPK-induced cytoplasmic translocation.txt",
+        "A myeloid hypoxia-inducible factor 1α-Krüppel-like factor 2 pathway regulates gram-positive endotoxin-mediated sepsis.txt",
+        "Murine embryonic stem cell differentiation is promoted by SOCS-3 and inhibited by the zinc finger transcription factor K.txt",
+        "Control of CNS Cell-Fate Decisions by SHP-2 and Its Dysregulation in Noonan Syndrome.txt"
+      ]
+    },
+    {
+      "id" : "claim-839",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 58.1545,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "Aptamer-functionalized lipid nanoparticles targeting osteoblasts as a novel RNA interference–based bone anabolic strateg.txt",
+        "Large intestine-targeted nanoparticle-releasing oral vaccine to control genitorectal viral infection.txt",
+        "Green synthesis of silver nanoparticles and characterization of their inhibitory effects on AGEs formation using biophys.txt",
+        "Single-Construct Polycistronic Doxycycline-Inducible Vectors Improve Direct Cardiac Reprogramming and Can Be Used to Ide.txt",
+        "Adult T-cell leukemia lymphoma in London clinical experience of 21 cases.txt"
+      ]
+    },
+    {
+      "id" : "claim-137",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 47.792834,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.125,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 8,
+      "top" : [
+        "Effectiveness of screening older people for impaired vision in community setting systematic review of evidence from rand.txt",
+        "Developmental heterogeneity of cardiac fibroblasts does not predict pathological proliferation and activation.txt",
+        "Helicobacter hepaticus does not induce or potentiate colitis in interleukin-10-deficient mice.txt",
+        "Variations and Trends in Health Burden of Visual Impairment Due to Cataract A Global Analysis.txt",
+        "Economic impact of primary open-angle glaucoma in Australia.txt"
+      ]
+    },
+    {
+      "id" : "claim-660",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 61.682833,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 10,
+      "top" : [
+        "Insecticide impregnated curtains to control domestic transmission of cutaneous leishmaniasis in Venezuela cluster random.txt",
+        "“Rapid-Impact Interventions” How a Policy of Integrated Control for Africa's Neglected Tropical Diseases Could Benefit t.txt",
+        "Targeting oxidative stress to treat endometriosis.txt",
+        "Targeting arginine metabolism pathway to treat arginine-dependent cancers.txt",
+        "Advances in graft-versus-host disease biology and therapy.txt"
+      ]
+    },
+    {
+      "id" : "claim-72",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 41.932041,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "Regulation of ADMP and BMP2 4 7 at Opposite Embryonic Poles Generates a Self-Regulating Morphogenetic Field.txt",
+        "Activator Control of Nucleosome Occupancy in Activation and Repression of Transcription.txt",
+        "Nicotinic Acid Adenine Dinucleotide 2'-Phosphate (NAADP) Binding Proteins in T-Lymphocytes.txt",
+        "Negative effect of the transcriptional activator GAL4.txt",
+        "Prediction of Chemical-Protein Interactions Network with Weighted Network-Based Inference Method.txt"
+      ]
+    },
+    {
+      "id" : "claim-388",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 54.228916,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Regulatory and metabolic rewiring during laboratory evolution of ethanol tolerance in E. coli.txt",
+        "Dexamethasone decreases vomiting by children after tonsillectomy.txt",
+        "The ins and outs of DNA transfer in bacteria.txt",
+        "Effect of lipid restriction on mitochondrial free radical production and oxidative DNA damage.txt",
+        "Complex physiology and compound stress responses during fermentation of alkali-pretreated corn stover hydrolysate by an.txt"
+      ]
+    },
+    {
+      "id" : "claim-808",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 46.702167,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Quantitative, genome-wide analysis of eukaryotic replication initiation and termination.txt",
+        "Structural basis for sequence-specific recognition of DNA by TAL effectors.txt",
+        "Empirical statistical estimates for sequence similarity searches.txt",
+        "Translational control of intron splicing in eukaryotes.txt",
+        "Genome architecture, rearrangements and genomic disorders.txt"
+      ]
+    },
+    {
+      "id" : "claim-1259",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 62.967167,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Association between CYP2D6 polymorphisms and outcomes among women with early stage breast cancer treated with tamoxifen.txt",
+        "Unmet needs mediate the relationship between symptoms and quality of life in breast cancer survivors.txt",
+        "Patient-derived induced pluripotent stem cells in cancer research and precision oncology.txt",
+        "PD 0332991, a selective cyclin D kinase 4 6 inhibitor, preferentially inhibits proliferation of luminal estrogen recepto.txt",
+        "Sulfasalazine in the treatment of spondylarthropathy. A randomized, multicenter, double-blind, placebo-controlled study.txt"
+      ]
+    },
+    {
+      "id" : "claim-628",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 64.188375,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.08333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 12,
+      "top" : [
+        "HTLV-I II associated disease in England and Wales, 1993-7 retrospective review of serology requests.txt",
+        "CD8+ T cells are activated in an antigen-independent manner in HIV-infected individuals.txt",
+        "Adult T-cell leukemia lymphoma in London clinical experience of 21 cases.txt",
+        "Human T Cell Leukemia Virus Reactivation with Progression of Adult T-Cell Leukemia-Lymphoma.txt",
+        "A C-Type Lectin Collaborates with a CD45 Phosphatase Homolog to Facilitate West Nile Virus Infection of Mosquitoes.txt"
+      ]
+    },
+    {
+      "id" : "claim-1225",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 30.8715,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "Genome-wide association analyses in East Asians identify new susceptibility loci for colorectal cancer.txt",
+        "Lack of Absent in Melanoma 2 (AIM2) expression in tumor cells is closely associated with poor survival in colorectal can.txt",
+        "Chromosome 7 gain and DNA hypermethylation at the HOXA10 locus are associated with expression of a stem cell related HOX.txt",
+        "Colorectal Cancers from Distinct Ancestral Populations Show Variations in BRAF Mutation Frequency.txt",
+        "Trans-ancestry mutational landscape of hepatocellular carcinoma genomes.txt"
+      ]
+    },
+    {
+      "id" : "claim-1266",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 89.666666,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.05263157894736842,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 19,
+      "top" : [
+        "Pregnancy characteristics and maternal risk of breast cancer.txt",
+        "Intrauterine factors and risk of breast cancer a systematic review and meta-analysis of current evidence.txt",
+        "Intrauterine environments and breast cancer risk meta-analysis and systematic review.txt",
+        "Birth Size and Breast Cancer Risk Re-analysis of Individual Participant Data from 32 Studies.txt",
+        "Role of birthweight in the etiology of breast cancer.txt"
+      ]
+    },
+    {
+      "id" : "claim-913",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 40.2285,
+      "mustPass" : false,
+      "ndcgAt10" : 0.3154648767857287,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.125,
+      "returned" : 10,
+      "top" : [
+        "Up-regulation of PPAR-gamma mRNA expression in the liver of obese patients an additional reinforcing lipogenic mechanism.txt",
+        "The Role of PPARγ in Advanced Glycation End Products-Induced Inflammatory Response in Human Chondrocytes.txt",
+        "Peroxisome Proliferator Activated Receptor gamma (PPARγ) Agonist Rosiglitazone Ameliorate Airway Inflammation by Inhibit.txt",
+        "Characterization of the interaction between retinoic acid receptor retinoid X receptor (RAR RXR) heterodimers and transc.txt",
+        "Peroxisome proliferator-activated receptor alpha activation decreases metastatic potential of melanoma cells in vitro vi.txt"
+      ]
+    },
+    {
+      "id" : "claim-1180",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 37.338042,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "Immune signaling by RIG-I-like receptors.txt",
+        "Ribose 2′-O-methylation provides a molecular signature for the distinction of self and non-self mRNA dependent on the RN.txt",
+        "PRRSV receptors and their roles in virus infection.txt",
+        "Cytomegalovirus microRNAs Facilitate Persistent Virus Infection in Salivary Glands.txt",
+        "Role of chicken melanoma differentiation-associated gene 5 in induction and activation of innate and adaptive immune res.txt"
+      ]
+    },
+    {
+      "id" : "claim-130",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 48.239834,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.3333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 3,
+      "top" : [
+        "Open Access Increases Citation Rate.txt",
+        "Patent ductus arteriosus are current neonatal treatment options better or worse than no treatment at all?.txt",
+        "The impact of open versus closed format ICU admission practices on the outcome of high risk surgical patients a cohort a.txt"
+      ]
+    },
+    {
+      "id" : "claim-674",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 53.069208,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 9,
+      "top" : [
+        "LDL-cholesterol concentrations a genome-wide association study.txt",
+        "Serum plant and other noncholesterol sterols, cholesterol metabolism and 22-year mortality among middle-aged men.txt",
+        "How to control residual cardiovascular risk despite statin treatment focusing on HDL-cholesterol.txt",
+        "expression by oxidized linoleic.txt",
+        "Genetic Variants at Newly Identified Lipid Loci Are Associated with Coronary Heart Disease in a Chinese Han Population.txt"
+      ]
+    },
+    {
+      "id" : "claim-1274",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 80.006709,
+      "mustPass" : false,
+      "ndcgAt10" : 0.9060254355346824,
+      "precision" : 0.6,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "A view to a kill the bacterial type VI secretion system.txt",
+        "Biochemical analysis of TssK, a core component of the bacterial Type VI secretion system, reveals distinct oligomeric st.txt",
+        "PAAR-repeat proteins sharpen and diversify the Type VI secretion system spike.txt",
+        "Haemolysin coregulated protein is an exported receptor and chaperone of type VI secretion substrates.txt",
+        "Systems metabolic engineering of Escherichia coli for L-threonine production.txt"
+      ]
+    },
+    {
+      "id" : "claim-275",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 93.354958,
+      "mustPass" : false,
+      "ndcgAt10" : 0.9674679834891694,
+      "precision" : 0.1875,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 16,
+      "top" : [
+        "Mutations in the phosphatidylinositol-3-kinase pathway predict for antitumor activity of the inhibitor PX-866 whereas on.txt",
+        "Effective Use of PI3K and MEK Inhibitors to Treat Mutant K-Ras G12D and PIK3CA H1047R Murine Lung Cancers.txt",
+        "K-Ras(G12C) inhibitors allosterically control GTP affinity and effector interactions.txt",
+        "NVP-BEZ235, a dual PI3K mTOR inhibitor, prevents PI3K signaling and inhibits the growth of cancer cells with activating.txt",
+        "The quest to overcome resistance to EGFR-targeted therapies in cancer.txt"
+      ]
+    },
+    {
+      "id" : "claim-218",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 48.206584,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "CX3CR1 is required for airway inflammation by promoting T helper cell survival and maintenance in inflamed lung.txt",
+        "IL-1β, IL-4 and IL-12 control the fate of group 2 innate lymphoid cells in human airway inflammation in the lungs.txt",
+        "Innate lymphoid cells mediate influenza-induced airway hyper-reactivity independently of adaptive immunity.txt",
+        "MicroRNA-21 is up-regulated in allergic airway inflammation and regulates IL-12p35 expression.txt",
+        "Differential role of CbpA and PspA in modulation of in vitro CXC chemokine responses of respiratory epithelial cells to.txt"
+      ]
+    },
+    {
+      "id" : "claim-312",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 47.303291,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "A culture-independent sequence-based metagenomics approach to the investigation of an outbreak of Shiga-toxigenic Escher.txt",
+        "Full-length transcriptome assembly from RNA-Seq data without a reference genome.txt",
+        "Trimmomatic a flexible trimmer for Illumina sequence data.txt",
+        "De novo assembly of a PML nuclear subcompartment occurs through multiple pathways and induces telomere elongation.txt",
+        "BLAST+ architecture and applications.txt"
+      ]
+    },
+    {
+      "id" : "claim-1298",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 71.8075,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.125,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 8,
+      "top" : [
+        "Effectiveness of thigh-length graduated compression stockings to reduce the risk of deep vein thrombosis after stroke (C.txt",
+        "Hospital and 1-year survival of patients admitted to intensive care units with acute exacerbation of chronic obstructive.txt",
+        "Association of Intracerebral Hemorrhage Among Patients Taking Non–Vitamin K Antagonist vs Vitamin K Antagonist Oral Anti.txt",
+        "Simvastatin reduces CD40 expression in an experimental model of early arterialization of saphenous vein graft.txt",
+        "Effects of Thiazolidinediones on Stroke Recovery A Case-Matched Controlled Study.txt"
+      ]
+    },
+    {
+      "id" : "claim-904",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 34.353584,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Podoplanin-Rich Stromal Networks Induce Dendritic Cell Motility via Activation of the C-type Lectin Receptor CLEC-2.txt",
+        "Porcine circovirus type 2 DNA influences cytoskeleton rearrangements in plasmacytoid and monocyte-derived dendritic cell.txt",
+        "Inducing Tumor Immunity through the Selective Engagement of Activating Fcγ Receptors on Dendritic Cells.txt",
+        "Persistence of HIV-1 Receptor-Positive Cells after HSV-2 Reactivation A Potential Mechanism for Increased HIV-1 Acquisit.txt",
+        "Role of fascin in filopodial protrusion.txt"
+      ]
+    },
+    {
+      "id" : "claim-128",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 28.226584,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 7,
+      "top" : [
+        "Angiopoietin-like protein 3 supports the activity of hematopoietic stem cells in the bone marrow niche.txt",
+        "Scaffold-based three-dimensional human fibroblast culture provides a structural matrix that supports angiogenesis in inf.txt",
+        "Endothelium-mediated relaxation of porcine collateral-dependent arterioles is improved by exercise training.txt",
+        "Tolerance rather than immunity protects from Helicobacter pylori-induced gastric preneoplasia.txt",
+        "Why females live longer than males control of longevity by sex hormones.txt"
+      ]
+    },
+    {
+      "id" : "claim-593",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 40.462625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 9,
+      "top" : [
+        "Trends in heart failure incidence and survival in a community-based population.txt",
+        "Role of beta adrenergic receptor polymorphisms in heart failure systematic review and meta-analysis.txt",
+        "Angina with \"normal\" coronary arteries sex differences in outcomes.txt",
+        "Plasma soluble corin in patients with heart failure.txt",
+        "Quality of life in patients with advanced heart failure.txt"
+      ]
+    },
+    {
+      "id" : "claim-539",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 38.557375,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 9,
+      "top" : [
+        "Hypoglycemic episodes and risk of dementia in older patients with type 2 diabetes mellitus.txt",
+        "Aggregation of vascular risk factors and risk of incident Alzheimer disease.txt",
+        "Risk of death with atypical antipsychotic drug treatment for dementia meta-analysis of randomized placebo-controlled tri.txt",
+        "Synaptic glutamate release by ventromedial hypothalamic neurons is part of the neurocircuitry that prevents hypoglycemia.txt",
+        "Reproductive period and risk of dementia in postmenopausal women.txt"
+      ]
+    },
+    {
+      "id" : "claim-1197",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 36.277083,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.08333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 12,
+      "top" : [
+        "Mental health problems of homeless children and families longitudinal study.txt",
+        "The impact of homelessness on children.txt",
+        "Health and access to care perspectives of homeless youth in Baltimore City, U.S.A.txt",
+        "Does socioeconomic status matter? A meta-analysis on parent training effectiveness for disruptive child behavior.txt",
+        "A diversity of beta diversities straightening up a concept gone awry. Part 1. Defining beta diversity as a function of a.txt"
+      ]
+    },
+    {
+      "id" : "claim-1292",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 29.094542,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 6,
+      "top" : [
+        "Macrosomia and Hyperinsulinaemic Hypoglycaemia in Patients with Heterozygous Mutations in the HNF4A Gene.txt",
+        "The association between psychological distance and construal level evidence from an implicit association test.txt",
+        "The association between sterilizing activity and drug distribution into tuberculosis lesions.txt",
+        "Diabetes, metabolic syndrome, and breast cancer a review of the current evidence.txt",
+        "Risk of gestational hypertension in relation to folic acid supplementation during pregnancy.txt"
+      ]
+    },
+    {
+      "id" : "claim-882",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 28.800125,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Intestinal microbiota metabolism of L-carnitine, a nutrient in red meat, promotes atherosclerosis.txt",
+        "Transmission of atherosclerosis susceptibility with gut microbial transplantation.txt",
+        "Circulating trimethylamine N‐oxide and the risk of cardiovascular diseases a systematic review and meta‐analysis of 11 p.txt",
+        "Dietary status of trained female cyclists.txt",
+        "Zinc supplementation during lactation effects on maternal status and milk zinc concentrations.txt"
+      ]
+    },
+    {
+      "id" : "claim-75",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 36.733125,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "Structure of the proton-gated urea channel from the gastric pathogen Helicobacter pylori.txt",
+        "Purification and activation properties of UreD-UreF-urease apoprotein complexes.txt",
+        "Helicobacter pylori AlpA and AlpB bind host laminin and influence gastric inflammation in gerbils.txt",
+        "Prophylactic and therapeutic efficacy of the epitope vaccine CTB-UA against Helicobacter pylori infection in a BALB c mi.txt",
+        "Gq protein alpha subunits Galphaq and Galpha11 are localized at postsynaptic extra-junctional membrane of cerebellar Pur.txt"
+      ]
+    },
+    {
+      "id" : "claim-535",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 20.997125,
+      "mustPass" : false,
+      "ndcgAt10" : 0.3562071871080222,
+      "precision" : 0.07692307692307693,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.16666666666666666,
+      "returned" : 13,
+      "top" : [
+        "Variations in the quality and sustainability of long-term glycaemic control with continuous subcutaneous insulin infusio.txt",
+        "Systemic arterial hypertension in children following renal transplantation prevalence and risk factors.txt",
+        "Hypoglycemic episodes and risk of dementia in older patients with type 2 diabetes mellitus.txt",
+        "Association Between High Serum Soluble Corin and Hypertension A Cross-Sectional Study in a General Population of China.txt",
+        "Contemporary type 1 diabetes pregnancy outcomes impact of obesity and glycaemic control.txt"
+      ]
+    },
+    {
+      "id" : "claim-1121",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 20.848167,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 9,
+      "top" : [
+        "Astrocyte-Mediated Distributed Plasticity at Hypothalamic Glutamate Synapses.txt",
+        "Autocrine BDNF–TrkB signalling within a single dendritic spine.txt",
+        "Structural Homeostasis Compensatory Adjustments of Dendritic Arbor Geometry in Response to Variations of Synaptic Input.txt",
+        "The origin and neuronal function of in vivo nonsynaptic glutamate.txt",
+        "Synaptic glutamate release by ventromedial hypothalamic neurons is part of the neurocircuitry that prevents hypoglycemia.txt"
+      ]
+    },
+    {
+      "id" : "claim-727",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 18.596125,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 6,
+      "top" : [
+        "Subpopulations of mouse blood monocytes differ in maturation stage and inflammatory response.txt",
+        "Fate mapping reveals origins and dynamics of monocytes and tissue macrophages under homeostasis.txt",
+        "Origin and functions of tissue macrophages.txt",
+        "Identification of splenic reservoir monocytes and their deployment to inflammatory sites.txt",
+        "Maximal aerobic capacity in African-American and Caucasian prepubertal children.txt"
+      ]
+    },
+    {
+      "id" : "claim-1221",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 46.345167,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.125,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 8,
+      "top" : [
+        "Evolution of metastasis revealed by mutational landscapes of chemically induced skin cancers.txt",
+        "Smallest angiosperm genomes found in lentibulariaceae, with chromosomes of bacterial size.txt",
+        "The BLM helicase contributes to telomere maintenance through processing of late-replicating intermediate structures.txt",
+        "A Teratocarcinoma-Like Human Embryonic Stem Cell (hESC) Line and Four hESC Lines Reveal Potentially Oncogenic Genomic Ch.txt",
+        "CHROMOTHRIPSIS FROM DNA DAMAGE IN MICRONUCLEI.txt"
+      ]
+    },
+    {
+      "id" : "claim-1187",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 60.905458,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.125,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 8,
+      "top" : [
+        "Regulation of Hippo pathway transcription factor TEAD by p38 MAPK-induced cytoplasmic translocation.txt",
+        "An acetylation switch in p53 mediates holo-TFIID recruitment.txt",
+        "Structure of human RNase H1 complexed with an RNA DNA hybrid insight into HIV reverse transcription.txt",
+        "CLIP-170 interacts with dynactin complex and the APC-binding protein EB1 by different mechanisms.txt",
+        "Identification and distinct regulation of yeast TATA box-containing genes.txt"
+      ]
+    },
+    {
+      "id" : "claim-598",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 81.65725,
+      "mustPass" : false,
+      "ndcgAt10" : 0.4306765580733931,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.25,
+      "returned" : 10,
+      "top" : [
+        "The effect of mass screening on incidence and mortality of squamous and adenocarcinoma of cervix uteri.txt",
+        "Efficacy of human papillomavirus testing for the detection of invasive cervical cancers and cervical intraepithelial neo.txt",
+        "Human papillomavirus testing for the detection of high-grade cervical intraepithelial neoplasia and cancer final results.txt",
+        "Mass screening programmes and trends in cervical cancer in Finland and the Netherlands.txt",
+        "Human papillomavirus and Papanicolaou tests to screen for cervical cancer.txt"
+      ]
+    },
+    {
+      "id" : "claim-232",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 42.871667,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1111111111111111,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 9,
+      "top" : [
+        "Prevalence and Causes of Blindness and Low Vision in Southern Sudan.txt",
+        "Variations and Trends in Health Burden of Visual Impairment Due to Cataract A Global Analysis.txt",
+        "Economic impact of primary open-angle glaucoma in Australia.txt",
+        "Human and other faeces as breeding media of the trachoma vector Musca sorbens.txt",
+        "Effectiveness of screening older people for impaired vision in community setting systematic review of evidence from rand.txt"
+      ]
+    },
+    {
+      "id" : "claim-820",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 60.274792,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 26,
+      "top" : [
+        "Nucleosome stability mediated by histone variants H3.3 and H2A.Z.txt",
+        "Negative effect of the transcriptional activator GAL4.txt",
+        "Quantitative, genome-wide analysis of eukaryotic replication initiation and termination.txt",
+        "Specific HDV RNA-templated transcription by pol II in vitro.txt",
+        "Histone Variant H2A.Z Marks the 5′ Ends of Both Active and Inactive Genes in Euchromatin.txt"
+      ]
+    },
+    {
+      "id" : "claim-1024",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 53.442458,
+      "mustPass" : false,
+      "ndcgAt10" : 0.38685280723454163,
+      "precision" : 0.16666666666666666,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.2,
+      "returned" : 6,
+      "top" : [
+        "Characterization of constitutive CTCF cohesin loci a possible role in establishing topological domains in mammalian geno.txt",
+        "CTCF and Cohesin in Genome Folding and Transcriptional Gene Regulation.txt",
+        "Identification of splenic reservoir monocytes and their deployment to inflammatory sites.txt",
+        "A conditionally lethal yeast mutant blocked at the first step in glycosyl phosphatidylinositol anchor synthesis.txt",
+        "3D Chromosome Regulatory Landscape of Human Pluripotent Cells.txt"
+      ]
+    },
+    {
+      "id" : "claim-1245",
+      "isNegative" : false,
+      "kind" : "document",
+      "latencyMilliseconds" : 51.971208,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.125,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 8,
+      "top" : [
+        "Perinatal mortality in rural China retrospective cohort study.txt",
+        "Cancer chemoprevention Much has been done, but there is still much to do. State of the art and possible new approaches.txt",
+        "Population growth, urban sprawl and landscape integrity of Beijing City.txt",
+        "Strategies for optimizing maternal nutrition to promote infant development.txt",
+        "How to control residual cardiovascular risk despite statin treatment focusing on HDL-cholesterol.txt"
+      ]
+    },
+    {
+      "id" : "none-elephant",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 29.998375,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 2,
+      "top" : [
+        "Interaction between Oct3 4 and Cdx2 Determines Trophectoderm Differentiation.txt",
+        "Regulation of Hippo pathway transcription factor TEAD by p38 MAPK-induced cytoplasmic translocation.txt"
+      ]
+    },
+    {
+      "id" : "none-giraffe",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 33.571833,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 2,
+      "top" : [
+        "Regulation of Hippo pathway transcription factor TEAD by p38 MAPK-induced cytoplasmic translocation.txt",
+        "Transcriptional regulation of neuronal genes and its effect on neural functions expression and function of forkhead tran.txt"
+      ]
+    },
+    {
+      "id" : "none-zebra",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 34.577958,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 3,
+      "top" : [
+        "Quiescent and active hippocampal neural stem cells with distinct morphologies respond selectively to physiological and p.txt",
+        "A Microtubule Interactome Complexes with Roles in Cell Cycle and Mitosis.txt",
+        "All dosage compensation is local Gene-by-gene regulation of sex-biased expression on the chicken Z chromosome.txt"
+      ]
+    },
+    {
+      "id" : "none-bear",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 34.74975,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 6,
+      "top" : [
+        "Ancient Hybridization and an Irish Origin for the Modern Polar Bear Matriline.txt",
+        "Fate mapping reveals origins and dynamics of monocytes and tissue macrophages under homeostasis.txt",
+        "70229.jpg",
+        "The Ratio of Monocytes to Lymphocytes in Peripheral Blood Correlates with Increased Susceptibility to Clinical Malaria i.txt",
+        "73118.jpg"
+      ]
+    },
+    {
+      "id" : "none-airplane",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 33.873459,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 5,
+      "top" : [
+        "11615.jpg",
+        "157847.jpg",
+        "308328.jpg",
+        "294855.jpg",
+        "1532.jpg"
+      ]
+    },
+    {
+      "id" : "none-pizza",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 32.972833,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 10,
+      "top" : [
+        "397133.jpg",
+        "393014.jpg",
+        "18193.jpg",
+        "416885.jpg",
+        "404678.jpg"
+      ]
+    },
+    {
+      "id" : "none-surfboard",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 47.514583,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 11,
+      "top" : [
+        "243989.jpg",
+        "229553.jpg",
+        "97278.jpg",
+        "163314.jpg",
+        "451043.jpg"
+      ]
+    },
+    {
+      "id" : "none-kite",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 23.140166,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 3,
+      "top" : [
+        "2923.jpg",
+        "265108.jpg",
+        "139883.jpg"
+      ]
+    },
+    {
+      "id" : "none-a-herd-of-elephants",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 44.634625,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 10,
+      "top" : [
+        "230166.jpg",
+        "161820.jpg",
+        "Seroepidemiologic survey of captive Old-World primates for antibodies to human and simian retroviruses, and isolation of.txt",
+        "434996.jpg",
+        "Evolution of novel cooperative swarming in the bacterium Myxococcus xanthus.txt"
+      ]
+    },
+    {
+      "id" : "none-giraffe-eating-leaves",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 31.390791,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 4,
+      "top" : [
+        "Brief, four-session group CBT reduces binge eating behaviors among bariatric surgery candidates.txt",
+        "Activation of Serotonin 2C Receptors in Dopamine Neurons Inhibits Binge-like Eating in Mice.txt",
+        "Mulberry leaves (Morus alba L.) ameliorate obesity-induced hepatic lipogenesis, fibrosis, and oxidative stress in high-f.txt",
+        "Grass plants bind, retain, uptake, and transport infectious prions.txt"
+      ]
+    },
+    {
+      "id" : "none-a-slice-of-pizza",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 29.820583,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 14,
+      "top" : [
+        "393014.jpg",
+        "358427.jpg",
+        "18193.jpg",
+        "416885.jpg",
+        "327780.jpg"
+      ]
+    },
+    {
+      "id" : "none-plane-taking-off",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 19.238125,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 13,
+      "top" : [
+        "157847.jpg",
+        "308328.jpg",
+        "544811.jpg",
+        "303818.jpg",
+        "2923.jpg"
+      ]
+    },
+    {
+      "id" : "none-guest-wifi-password",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 16.710041,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 7,
+      "top" : [
+        "60449.jpg",
+        "393569.jpg",
+        "68765.jpg",
+        "370478.jpg",
+        "136600.jpg"
+      ]
+    },
+    {
+      "id" : "none-birthday-party-invitation",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 27.951,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 3,
+      "top" : [
+        "509451.jpg",
+        "275198.jpg",
+        "18380.jpg"
+      ]
+    },
+    {
+      "id" : "none-car-insurance-renewal",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 34.647875,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 8,
+      "top" : [
+        "421455.jpg",
+        "526392.jpg",
+        "Hematopoietic stem cell self-renewal versus differentiation.txt",
+        "555050.jpg",
+        "Adult Neurogenesis Is Sustained by Symmetric Self-Renewal and Differentiation.txt"
+      ]
+    },
+    {
+      "id" : "none-football-match-score",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 34.430875,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 8,
+      "top" : [
+        "457559.jpg",
+        "Predictive performance of the quick Sequential Organ Failure Assessment score as a screening tool for sepsis, mortality,.txt",
+        "A more efficient method to generate integration-free human iPS cells.txt",
+        "Generating an iPSC bank for HLA-matched tissue transplantation based on known donor and recipient HLA types.txt",
+        "Defining community acquired pneumonia severity on presentation to hospital an international derivation and validation st.txt"
+      ]
+    },
+    {
+      "id" : "none-hotel-booking-in-Goa",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 40.448416,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 3,
+      "top" : [
+        "46048.jpg",
+        "60449.jpg",
+        "393569.jpg"
+      ]
+    },
+    {
+      "id" : "none-javascript-promise-error",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 27.7505,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 9,
+      "top" : [
+        "XRCC4's interaction with XLF is required for coding (but not signal) end joining.txt",
+        "Desferrioxamine treatment of porphyria cutanea tarda in a patient with HIV and chronic renal failure.txt",
+        "Trophoblast differentiation defect in human embryonic stem cells lacking PIG-A and GPI-anchored cell-surface proteins.txt",
+        "Effect of exercise-induced ischemia on QT interval dispersion.txt",
+        "Hematopoietic stem cell quiescence promotes error-prone DNA repair and mutagenesis.txt"
+      ]
+    },
+    {
+      "id" : "none-wedding-photos",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 29.906541,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 14,
+      "top" : [
+        "473219.jpg",
+        "509451.jpg",
+        "124659.jpg",
+        "151000.jpg",
+        "181753.jpg"
+      ]
+    },
+    {
+      "id" : "none-quarterly-sales-deck",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 30.76325,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 6,
+      "top" : [
+        "BIOINFORMATICS APPLICATIONS NOTE.txt",
+        "Potential consequences of replacing a retail alcohol monopoly with a private licence system results from Sweden.txt",
+        "Averting Obesity and Type 2 Diabetes in India through Sugar-Sweetened Beverage Taxation An Economic-Epidemiologic Modeli.txt",
+        "RiboSys, a high-resolution, quantitative approach to measure the in vivo kinetics of pre-mRNA splicing and 3'-end proces.txt",
+        "RSEM accurate transcript quantification from RNA-Seq data with or without a reference genome.txt"
+      ]
+    },
+    {
+      "id" : "none-recipe-for-pasta-carbonara",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 43.358958,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 14,
+      "top" : [
+        "54654.jpg",
+        "331817.jpg",
+        "221872.jpg",
+        "455267.jpg",
+        "116206.jpg"
+      ]
+    },
+    {
+      "id" : "none-piano-lesson-schedule",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 21.952125,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 3,
+      "top" : [
+        "Mental health difficulties across childhood and mental health service use findings from a longitudinal population-based.txt",
+        "Cancer inhibition through circadian reprogramming of tumor transcriptome with meal timing.txt",
+        "Diminished linear growth during intermittent calcitriol therapy in children undergoing CCPD.txt"
+      ]
+    }
+  ],
+  "overall" : {
+    "f1" : 0.2676775439721394,
+    "mrr" : 0.8467690058479531,
+    "ndcgAt10" : 0.8640847105065969,
+    "precision" : 0.18427016705069887,
+    "queries" : 190,
+    "recall" : 0.9537196566425741,
+    "recallAt10" : 0.9467069014294793
+  },
+  "perKind" : {
+    "document" : {
+      "f1" : 0.2567371814631875,
+      "mrr" : 0.8594166666666667,
+      "ndcgAt10" : 0.8879606364675996,
+      "precision" : 0.15179679593949089,
+      "queries" : 100,
+      "recall" : 0.98,
+      "recallAt10" : 0.98
+    },
+    "image" : {
+      "f1" : 0.27983350231541854,
+      "mrr" : 0.832716049382716,
+      "ndcgAt10" : 0.8375559038832612,
+      "precision" : 0.22035169050759612,
+      "queries" : 90,
+      "recall" : 0.9245192751343232,
+      "recallAt10" : 0.9097145696844565
+    }
+  }
+}
