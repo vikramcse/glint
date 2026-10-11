@@ -37,18 +37,21 @@ public struct MainWindowView: View {
                 }
                 .navigationTitle(title)
                 .navigationSubtitle(services.status.summary)
+                // Search and toolbar belong to the detail column, and the inspector is attached
+                // inside it, so the inspector gets its own toolbar section instead of the search
+                // field stretching over it.
+                .searchable(
+                    text: $model.text, tokens: $model.tokens, suggestedTokens: .constant(suggestedTokens), placement: .toolbar,
+                    prompt: Text("Search anything")
+                ) { token in
+                    TokenLabel(token: token)
+                }
+                .toolbar { toolbar }
+                .inspector(isPresented: $showInspector) {
+                    InspectorView(result: selectedResult, model: model, services: services)
+                        .inspectorColumnWidth(min: 240, ideal: 300, max: 420)
+                }
         }
-        .inspector(isPresented: $showInspector) {
-            InspectorView(result: selectedResult, model: model, services: services)
-                .inspectorColumnWidth(min: 240, ideal: 300, max: 420)
-        }
-        .searchable(
-            text: $model.text, tokens: $model.tokens, suggestedTokens: .constant(suggestedTokens), placement: .toolbar,
-            prompt: Text("Search anything")
-        ) { token in
-            TokenLabel(token: token)
-        }
-        .toolbar { toolbar }
         .onChange(of: sidebar, initial: true) { _, item in applySidebar(item) }
         .onChange(of: services.status.status.totalIndexed) { _, _ in
             if model.text.isEmpty { applySidebar(sidebar) }

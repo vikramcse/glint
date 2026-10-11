@@ -36,19 +36,8 @@ struct ThumbnailView: View {
     @State private var image: NSImage?
 
     var body: some View {
-        ZStack {
-            if let image {
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: contentMode)
-            } else {
-                Image(nsImage: NSWorkspace.shared.icon(forFile: filePath))
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .padding(4)
-            }
-        }
-        .clipShape(.rect(cornerRadius: cornerRadius))
+        framed
+            .clipShape(.rect(cornerRadius: cornerRadius))
         .accessibilityHidden(true)
         .task(id: url) {
             guard let url else { return }
@@ -57,6 +46,29 @@ struct ThumbnailView: View {
             } else {
                 image = await ThumbnailCache.shared.load(url)
             }
+        }
+    }
+
+    /// A filled thumbnail takes exactly the space it is offered and crops the image to it;
+    /// sized by the image instead, it would spill over its neighbours.
+    @ViewBuilder private var framed: some View {
+        if contentMode == .fill {
+            Color.clear.overlay { content }
+        } else {
+            content
+        }
+    }
+
+    @ViewBuilder private var content: some View {
+        if let image {
+            Image(nsImage: image)
+                .resizable()
+                .aspectRatio(contentMode: contentMode)
+        } else {
+            Image(nsImage: NSWorkspace.shared.icon(forFile: filePath))
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .padding(4)
         }
     }
 }

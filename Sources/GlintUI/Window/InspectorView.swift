@@ -130,10 +130,11 @@ struct InspectorView: View {
             if !similar.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Similar Items").font(.headline)
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 72), spacing: 8)], spacing: 8) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
                         ForEach(similar.prefix(9)) { item in
                             ThumbnailView(url: item.match.thumbnailURL, filePath: item.file.path, kind: item.file.kind)
-                                .frame(height: 72)
+                                .aspectRatio(1, contentMode: .fit)
+                                .contentShape(.rect)
                                 .help(Text(verbatim: item.file.name))
                                 .onTapGesture { model.selection = item.id }
                                 .onTapGesture(count: 2) { services.actions?.open(item) }
