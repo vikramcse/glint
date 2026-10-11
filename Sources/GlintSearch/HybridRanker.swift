@@ -43,6 +43,10 @@ public struct HybridRanker: Sendable {
     /// over the library are dropped (`nil`: off). Needs the statistics passed to `rank`, and
     /// replaces `similarityMargin` once the library has `calibrationMinimumRows` vectors.
     public var minimumZScore: Float?
+    /// Semantic hits this many robust deviations above the query's median score are kept even
+    /// below `minimumZScore` (`nil`: off). Catches matches too numerous to stand out from the
+    /// mean, such as a folder full of train photos for "train".
+    public var minimumRobustZScore: Float?
     /// Below this many vectors the library's score statistics are too noisy to calibrate with.
     public var calibrationMinimumRows = 200
     /// Maximum relative boost for a file modified today, decaying with `recencyHalfLife`.
@@ -131,7 +135,11 @@ public struct HybridRanker: Sendable {
     private func semanticFloor(_ semantic: [ScoredChunk], statistics: ScoreStatistics?) -> Float {
         var floor = minimumSimilarity
         if let minimumZScore, let statistics, statistics.deviation > 0, statistics.count >= calibrationMinimumRows {
-            floor = max(floor, statistics.mean + minimumZScore * statistics.deviation)
+            var calibrated = statistics.mean + minimumZScore * statistics.deviation
+            if let minimumRobustZScore, statistics.robustDeviation > 0 {
+                calibrated = min(calibrated, statistics.median + minimumRobustZScore * statistics.robustDeviation)
+            }
+            floor = max(floor, calibrated)
         } else if let similarityMargin, let best = semantic.map(\.score).max() {
             floor = max(floor, best - similarityMargin)
         }

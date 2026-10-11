@@ -42,11 +42,11 @@ public actor SearchEngine {
 
     /// Maximum files returned per query.
     public let resultLimit: Int
-    /// With a model loaded, how many partial (any-word) keyword matches the final phase keeps;
-    /// they also count for less in the ranking (`HybridRanker.looseKeywordWeight`). Partial
+    /// With a model that `limitsLooseKeywords`, how many partial (any-word) keyword matches the
+    /// final phase keeps; they also count for less in the ranking (`HybridRanker.looseKeywordWeight`). Partial
     /// matches of common words ("score", "error") otherwise flood natural-language queries and
     /// push the real match down (SciFact: MRR 0.61 -> 0.80, Recall@10 0.82 -> 0.93 with them
-    /// limited). `nil` keeps them all at full weight, as without a model.
+    /// limited). `nil` keeps them all at full weight, as without a model or with a weaker one.
     public let looseKeywordLimit: Int?
 
     public init(
@@ -73,6 +73,7 @@ public actor SearchEngine {
             self.ranker.minimumSimilarity = encoder.minimumSimilarity
             self.ranker.similarityMargin = encoder.similarityMargin
             self.ranker.minimumZScore = encoder.minimumZScore
+            self.ranker.minimumRobustZScore = encoder.minimumRobustZScore
         }
         self.resultLimit = resultLimit
         self.now = now
@@ -89,6 +90,7 @@ public actor SearchEngine {
         ranker.minimumSimilarity = newEncoder.minimumSimilarity
         ranker.similarityMargin = newEncoder.similarityMargin
         ranker.minimumZScore = newEncoder.minimumZScore
+        ranker.minimumRobustZScore = newEncoder.minimumRobustZScore
         vectorIndex = newIndex
         keywordCache = nil
         try await loadVectors()
@@ -143,7 +145,7 @@ public actor SearchEngine {
         var names = hits.names
         var looseChunks: [KeywordHit] = []
         var looseNames: [KeywordHit] = []
-        if encoder == nil || looseKeywordLimit == nil {
+        if encoder?.limitsLooseKeywords != true || looseKeywordLimit == nil {
             chunks += hits.looseChunks
             names += hits.looseNames
         } else if let limit = looseKeywordLimit {

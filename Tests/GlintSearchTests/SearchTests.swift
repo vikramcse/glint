@@ -36,6 +36,16 @@ struct FlatVectorIndexTests {
         #expect(filtered.map(\.fileID) == [FileID(2)])
     }
 
+    @Test func robustStatisticsDescribeUnrelatedRowsWhenManyRowsMatch() {
+        // 40 matches at 0.76 among 160 unrelated rows spread around 0.60.
+        let unrelated = (0..<160).map { 0.56 + Float($0 % 9) * 0.01 }
+        let (median, deviation) = ScoreStatistics.robust(unrelated + Array(repeating: 0.76, count: 40))
+        #expect(abs(median - 0.61) < 0.011)
+        // The matches stand out from the median by far more than from the mean (0.63, deviation
+        // 0.06, where they sit near z 2.2).
+        #expect((0.76 - median) / deviation > 3.25)
+    }
+
     @Test func removeKeepsRemainingRowsConsistent() async throws {
         let index = FlatVectorIndex(space: space, useGPU: false)
         var vectors: [StoredVector] = []
@@ -214,6 +224,25 @@ struct HybridRankerTests {
         // z = 3.0 passes calibration, but on a small library the margin (0.73 - 0.05) drops it.
         #expect(ranker.rank(semantic: tight, keyword: [], names: [], attributes: [:], statistics: large).count == 2)
         #expect(ranker.rank(semantic: tight, keyword: [], names: [], attributes: [:], statistics: small).count == 1)
+    }
+
+    @Test func keepsMatchesTooNumerousToStandOutFromTheMean() {
+        var ranker = HybridRanker()
+        ranker.minimumSimilarity = 0.6
+        ranker.minimumZScore = 2.75
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.76),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.65),
+        ]
+        // Many matches lift the mean to 0.63 and the deviation to 0.06: z 2.2 for file 1.
+        let statistics = ScoreStatistics(mean: 0.63, deviation: 0.06, median: 0.61, robustDeviation: 0.03, count: 500)
+        #expect(ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: statistics).isEmpty)
+
+        // Robust z 5.0 for file 1 clears 3.5; file 2 (1.3) still doesn't.
+        ranker.minimumRobustZScore = 3.5
+        #expect(
+            ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: statistics).map(\.fileID)
+                == [FileID(1)])
     }
 
     @Test func partialKeywordMatchesOnlyAddFiles() {

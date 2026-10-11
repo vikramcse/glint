@@ -10,8 +10,11 @@ import UniformTypeIdentifiers
 private struct FakeEncoder: QueryEncoding {
     let space: VectorSpace
     let table: [String: Int]
+    var mixed: [String: [Float]] = [:]
+    var limitsLooseKeywords = false
 
     func encode(query: String) async throws -> Embedding {
+        if let values = mixed[query] { return Embedding(normalizing: values, space: space) }
         var values = [Float](repeating: 0, count: space.dimension)
         values[table[query] ?? (space.dimension - 1)] = 1
         return Embedding(normalizing: values, space: space)
@@ -24,7 +27,7 @@ private struct Harness {
     let gate: FeatureGateBox
     let ids: [String: FileID]
 
-    static func make(gate: FeatureGateSnapshot = .pro) async throws -> Harness {
+    static func make(gate: FeatureGateSnapshot = .pro, limitsLooseKeywords: Bool = false) async throws -> Harness {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("glint-search-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let url = directory.appendingPathComponent("index.sqlite")
@@ -62,7 +65,10 @@ private struct Harness {
         let engine = SearchEngine(
             reader: try IndexReader(url: url),
             vectorIndex: FlatVectorIndex(space: space, useGPU: false),
-            encoder: FakeEncoder(space: space, table: ["dog on the sand": 0, "when was the deadline": 2]),
+            encoder: FakeEncoder(
+                space: space, table: ["dog on the sand": 0, "when was the deadline": 2],
+                // Closer to the standup than to the pitch, which has the word "revenue".
+                mixed: ["revenue lunch": [0, 0.6, 0.8, 0, 0, 0, 0, 0]], limitsLooseKeywords: limitsLooseKeywords),
             thumbnails: ThumbnailStore(directory: directory.appendingPathComponent("Thumbnails")),
             gate: box
         )
@@ -73,6 +79,15 @@ private struct Harness {
 
 @Suite("SearchEngine")
 struct SearchEngineTests {
+    @Test(arguments: [false, true])
+    func partialKeywordMatchesBoostOnlyWithAWeakerModel(limits: Bool) async throws {
+        let harness = try await Harness.make(limitsLooseKeywords: limits)
+        let results = try await harness.engine.mergedResults(for: SearchQuery(text: "revenue lunch"))
+        // The built-in model needs the partial match on "revenue" to lift the pitch; with a
+        // model that limits partial matches, they only add files and the semantic order holds.
+        #expect(results.items.first?.file.name == (limits ? "standup.m4a" : "Acme pitch.pdf"))
+    }
+
     @Test func keywordPhaseFindsTextAndNames() async throws {
         let harness = try await Harness.make()
         let byText = try await harness.engine.keywordResults(for: SearchQuery(text: "flight confirm"))

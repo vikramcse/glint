@@ -18,6 +18,8 @@ struct EvalRunner {
     var looseKeywordLimit: Int??
     /// Overrides the model's minimum z-score when set (`.some(nil)` turns it off).
     var minimumZScore: Float??
+    /// Overrides the model's minimum robust z-score when set (`.some(nil)` turns it off).
+    var minimumRobustZScore: Float??
 
     func run() async throws -> EvalReport {
         let work = FileManager.default.temporaryDirectory.appendingPathComponent("glint-eval-\(UUID().uuidString)")
@@ -38,7 +40,8 @@ struct EvalRunner {
         let engine = SearchEngine(
             reader: try IndexReader(url: paths.database), vectorIndex: vectorIndex,
             encoder: MarginOverride(
-                base: GatedQueryEncoder(provider: provider, gate: gate), margin: similarityMargin, zScore: minimumZScore),
+                base: GatedQueryEncoder(provider: provider, gate: gate), margin: similarityMargin, zScore: minimumZScore,
+                robustZScore: minimumRobustZScore),
             thumbnails: thumbnails, gate: features, looseKeywordLimit: looseKeywordLimit ?? 3
         )
 
@@ -141,15 +144,18 @@ struct EvalRunner {
     }
 }
 
-/// Wraps the model's query encoder with a different similarity margin or z-score.
+/// Wraps the model's query encoder with a different similarity margin or z-scores.
 private struct MarginOverride: QueryEncoding {
     let base: any QueryEncoding
     let margin: Float??
     let zScore: Float??
+    let robustZScore: Float??
 
     var space: VectorSpace { base.space }
     var minimumSimilarity: Float { base.minimumSimilarity }
     var similarityMargin: Float? { margin ?? base.similarityMargin }
     var minimumZScore: Float? { zScore ?? base.minimumZScore }
+    var minimumRobustZScore: Float? { robustZScore ?? base.minimumRobustZScore }
+    var limitsLooseKeywords: Bool { base.limitsLooseKeywords }
     func encode(query: String) async throws -> Embedding { try await base.encode(query: query) }
 }

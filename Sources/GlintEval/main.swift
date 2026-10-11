@@ -166,6 +166,7 @@ case "run":
         var runner = EvalRunner(corpus: corpus, queries: set.queries, provider: provider)
         if let margin = option("--margin", in: arguments) { runner.similarityMargin = .some(Float(margin)) }
         if let z = option("--z", in: arguments) { runner.minimumZScore = .some(Float(z)) }
+        if let z = option("--robust-z", in: arguments) { runner.minimumRobustZScore = .some(Float(z)) }
         if arguments.contains("--titles") { runner.indexerOptions.documentTitles = true }
         if let loose = option("--loose-keywords", in: arguments) { runner.looseKeywordLimit = .some(Int(loose)) }
         let report = try await runner.run()

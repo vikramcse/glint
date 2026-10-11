@@ -72,7 +72,7 @@ public actor FlatVectorIndex: VectorIndex {
         try await searchWithStatistics(query, limit: limit, filter: filter).hits
     }
 
-    /// Like `search`, plus the mean and spread of the query's score over every stored row,
+    /// Like `search`, plus the centre and spread of the query's score over every stored row,
     /// which tells how far a hit stands out from the library as a whole.
     public func searchWithStatistics(
         _ query: Embedding, limit: Int, filter: SearchFilter
@@ -94,7 +94,12 @@ public actor FlatVectorIndex: VectorIndex {
             top.insert(row, score: score)
         }
         let hits = top.sorted().map { ScoredChunk(chunkID: chunkIDs[$0.element], fileID: fileIDs[$0.element], score: $0.score) }
-        return (hits, ScoreStatistics(mean: mean, deviation: deviation, count: scores.count))
+        let (median, robustDeviation) = ScoreStatistics.robust(scores)
+        return (
+            hits,
+            ScoreStatistics(
+                mean: mean, deviation: deviation, median: median, robustDeviation: robustDeviation, count: scores.count)
+        )
     }
 
     /// The vectors stored for one file (used by "find similar").
@@ -132,12 +137,34 @@ public actor FlatVectorIndex: VectorIndex {
 public struct ScoreStatistics: Sendable, Hashable {
     public var mean: Float
     public var deviation: Float
+    /// Median and scaled median absolute deviation (in standard deviations of a normal
+    /// distribution). Unlike the mean and deviation they describe the unrelated rows even when
+    /// many rows match: a folder of 40 train photos lifted the mean and deviation so far that
+    /// "train" scored no photo above z 2.4.
+    public var median: Float
+    public var robustDeviation: Float
     /// Rows the statistics were computed over.
     public var count: Int
 
-    public init(mean: Float, deviation: Float, count: Int) {
+    public init(mean: Float, deviation: Float, median: Float? = nil, robustDeviation: Float? = nil, count: Int) {
         self.mean = mean
         self.deviation = deviation
+        self.median = median ?? mean
+        self.robustDeviation = robustDeviation ?? deviation
         self.count = count
+    }
+
+    /// The median and scaled median absolute deviation of `scores`.
+    public static func robust(_ scores: [Float]) -> (median: Float, deviation: Float) {
+        let median = median(scores)
+        return (median, 1.4826 * Self.median(scores.map { abs($0 - median) }))
+    }
+
+    private static func median(_ values: [Float]) -> Float {
+        guard !values.isEmpty else { return 0 }
+        var sorted = values
+        vDSP_vsort(&sorted, vDSP_Length(sorted.count), 1)
+        let middle = sorted.count / 2
+        return sorted.count.isMultiple(of: 2) ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle]
     }
 }

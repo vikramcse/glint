@@ -68,6 +68,8 @@ public struct GatedQueryEncoder: QueryEncoding {
     public var minimumSimilarity: Float { provider.descriptor.minimumSimilarity ?? 0.25 }
     public var similarityMargin: Float? { provider.descriptor.similarityMargin }
     public var minimumZScore: Float? { provider.descriptor.minimumZScore }
+    public var minimumRobustZScore: Float? { provider.descriptor.minimumRobustZScore }
+    public var limitsLooseKeywords: Bool { provider.descriptor.limitsLooseKeywords }
 
     public func encode(query: String) async throws -> Embedding {
         let provider = provider

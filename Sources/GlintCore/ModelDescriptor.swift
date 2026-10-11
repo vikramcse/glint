@@ -31,6 +31,15 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
     /// the model's crowded background better than a fixed cutoff or margin; used instead of
     /// `similarityMargin` once the library is large enough for stable statistics.
     public var minimumZScore: Float?
+    /// Semantic matches at least this many robust deviations (median absolute deviation) above
+    /// the query's median score are kept even below `minimumZScore`. When many files match, they
+    /// lift the mean and standard deviation until none of them stands out; the median doesn't move.
+    public var minimumRobustZScore: Float?
+    /// Whether semantic matches are reliable enough that partial (any-word) keyword matches
+    /// should only add a few files instead of boosting files already found. True for
+    /// EmbeddingGemma 2 (SciFact MRR 0.61 -> 0.80); the built-in model needs the keyword boost
+    /// (sample set: "revenue" lifts the Q3 summary above unrelated screenshots).
+    public var limitsLooseKeywords: Bool
 
     public init(
         id: String,
@@ -45,7 +54,9 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
         checksum: String? = nil,
         minimumSimilarity: Float? = nil,
         similarityMargin: Float? = nil,
-        minimumZScore: Float? = nil
+        minimumZScore: Float? = nil,
+        minimumRobustZScore: Float? = nil,
+        limitsLooseKeywords: Bool = false
     ) {
         self.id = id
         self.version = version
@@ -60,6 +71,8 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
         self.minimumSimilarity = minimumSimilarity
         self.similarityMargin = similarityMargin
         self.minimumZScore = minimumZScore
+        self.minimumRobustZScore = minimumRobustZScore
+        self.limitsLooseKeywords = limitsLooseKeywords
     }
 
     /// The vector space stored vectors are tagged with. Includes the version so a new model
