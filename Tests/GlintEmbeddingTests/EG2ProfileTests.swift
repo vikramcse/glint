@@ -13,7 +13,7 @@ struct EG2ProfileTests {
     @Test func breakdown() async throws {
         let directory = EmbeddingGemma2ParityTests.modelDirectory
         let config = try EG2Configuration.load(from: directory)
-        let tokenizer = try await TokenizerLoader.load(directory)
+        let tokenizer = try EG2Tokenizer(directory: directory)
         let processor = EG2Processor(tokenizer: tokenizer, config: config)
         let model = EG2Model(config, towers: .text)
         try model.loadWeights(from: directory)
