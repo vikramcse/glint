@@ -1,0 +1,1049 @@
+{
+  "corpusFiles" : 244,
+  "date" : "2026-10-11T13:44:51Z",
+  "indexingSeconds" : 153.988803333,
+  "latencyP50Milliseconds" : 37.089083,
+  "latencyP95Milliseconds" : 52.277792,
+  "model" : "google.embeddinggemma-2\/2.0@512",
+  "negatives" : {
+    "averageReturned" : 0.8333333333333334,
+    "emptyRate" : 0.5,
+    "queries" : 6
+  },
+  "outcomes" : [
+    {
+      "id" : "people-two-train",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 44.724917,
+      "mustPass" : false,
+      "ndcgAt10" : 0.3953144612881589,
+      "precision" : 0.5,
+      "recall" : 0.46153846153846156,
+      "recallAt10" : 0.19230769230769232,
+      "reciprocalRank" : 0.25,
+      "returned" : 24,
+      "top" : [
+        "16038.jpg",
+        "290959.jpg",
+        "54955.jpg",
+        "551717.jpg",
+        "543676.jpg"
+      ]
+    },
+    {
+      "id" : "people-one-train",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 57.652375,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6242322474067891,
+      "precision" : 0.5833333333333334,
+      "recall" : 0.525,
+      "recallAt10" : 0.15,
+      "reciprocalRank" : 1,
+      "returned" : 36,
+      "top" : [
+        "18179.jpg",
+        "488488.jpg",
+        "49603.jpg",
+        "578026.jpg",
+        "290959.jpg"
+      ]
+    },
+    {
+      "id" : "people-group-train",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 51.595458,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.75,
+      "recall" : 0.5357142857142857,
+      "recallAt10" : 0.35714285714285715,
+      "reciprocalRank" : 1,
+      "returned" : 20,
+      "top" : [
+        "96241.jpg",
+        "436759.jpg",
+        "554319.jpg",
+        "290959.jpg",
+        "279521.jpg"
+      ]
+    },
+    {
+      "id" : "people-none-train",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 35.92525,
+      "mustPass" : false,
+      "ndcgAt10" : 0.680450372435079,
+      "precision" : 0.6153846153846154,
+      "recall" : 0.08888888888888889,
+      "recallAt10" : 0.06666666666666667,
+      "reciprocalRank" : 1,
+      "returned" : 13,
+      "top" : [
+        "488488.jpg",
+        "451392.jpg",
+        "435034.jpg",
+        "54955.jpg",
+        "10275.jpg"
+      ]
+    },
+    {
+      "id" : "with-backpack",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 23.630583,
+      "mustPass" : false,
+      "ndcgAt10" : 0.20509662144948262,
+      "precision" : 0.25,
+      "recall" : 0.2857142857142857,
+      "recallAt10" : 0.2857142857142857,
+      "reciprocalRank" : 0.25,
+      "returned" : 8,
+      "top" : [
+        "551717.jpg",
+        "488488.jpg",
+        "271092.jpg",
+        "93434.jpg",
+        "427770.jpg"
+      ]
+    },
+    {
+      "id" : "with-bench",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 36.434375,
+      "mustPass" : false,
+      "ndcgAt10" : 0.35079429740281753,
+      "precision" : 0.23076923076923078,
+      "recall" : 0.375,
+      "recallAt10" : 0.25,
+      "reciprocalRank" : 1,
+      "returned" : 13,
+      "top" : [
+        "532714.jpg",
+        "451392.jpg",
+        "551717.jpg",
+        "488488.jpg",
+        "101913.jpg"
+      ]
+    },
+    {
+      "id" : "with-bicycle",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 33.464083,
+      "mustPass" : false,
+      "ndcgAt10" : 0.740284919516622,
+      "precision" : 0.4,
+      "recall" : 0.6666666666666666,
+      "recallAt10" : 0.6666666666666666,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "415288.jpg",
+        "291889.jpg",
+        "421773.jpg",
+        "546760.jpg",
+        "451392.jpg"
+      ]
+    },
+    {
+      "id" : "with-chair",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 43.3125,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 7,
+      "top" : [
+        "488488.jpg",
+        "551717.jpg",
+        "451392.jpg",
+        "271092.jpg",
+        "270999.jpg"
+      ]
+    },
+    {
+      "id" : "with-handbag",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 43.208959,
+      "mustPass" : false,
+      "ndcgAt10" : 0.08514311764162098,
+      "precision" : 0.2,
+      "recall" : 0.1,
+      "recallAt10" : 0.1,
+      "reciprocalRank" : 0.2,
+      "returned" : 5,
+      "top" : [
+        "551717.jpg",
+        "488488.jpg",
+        "427770.jpg",
+        "451392.jpg",
+        "221547.jpg"
+      ]
+    },
+    {
+      "id" : "with-suitcase",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 26.325167,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 9,
+      "top" : [
+        "551717.jpg",
+        "16038.jpg",
+        "488488.jpg",
+        "427770.jpg",
+        "241764.jpg"
+      ]
+    },
+    {
+      "id" : "cap-488657",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 45.640166,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "488657.jpg"
+      ]
+    },
+    {
+      "id" : "cap-471468",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 25.760875,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "471468.jpg"
+      ]
+    },
+    {
+      "id" : "cap-484225",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 29.253458,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.5,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 2,
+      "top" : [
+        "484225.jpg",
+        "488657.jpg"
+      ]
+    },
+    {
+      "id" : "cap-178793",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 27.236375,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.3333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 3,
+      "top" : [
+        "178793.jpg",
+        "456499.jpg",
+        "158823.jpg"
+      ]
+    },
+    {
+      "id" : "cap-410680",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 15.063291,
+      "mustPass" : false,
+      "ndcgAt10" : 0.4306765580733931,
+      "precision" : 0.25,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.25,
+      "returned" : 4,
+      "top" : [
+        "131581.jpg",
+        "291889.jpg",
+        "415288.jpg",
+        "410680.jpg"
+      ]
+    },
+    {
+      "id" : "cap-520879",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 28.433208,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "520879.jpg"
+      ]
+    },
+    {
+      "id" : "cap-322049",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 52.522625,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 18,
+      "top" : [
+        "191893.jpg",
+        "134844.jpg",
+        "565996.jpg",
+        "506699.jpg",
+        "112232.jpg"
+      ]
+    },
+    {
+      "id" : "cap-254081",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 38.846792,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.25,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 4,
+      "top" : [
+        "254081.jpg",
+        "54955.jpg",
+        "283642.jpg",
+        "236346.jpg"
+      ]
+    },
+    {
+      "id" : "cap-465045",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 37.089083,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "465045.jpg"
+      ]
+    },
+    {
+      "id" : "cap-176702",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 37.364958,
+      "mustPass" : false,
+      "ndcgAt10" : 0.5,
+      "precision" : 0.3333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.3333333333333333,
+      "returned" : 3,
+      "top" : [
+        "149329.jpg",
+        "500335.jpg",
+        "176702.jpg"
+      ]
+    },
+    {
+      "id" : "cap-164388",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 40.9405,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0.045454545454545456,
+      "recall" : 1,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0.09090909090909091,
+      "returned" : 22,
+      "top" : [
+        "191893.jpg",
+        "515022.jpg",
+        "61605.jpg",
+        "245377.jpg",
+        "134844.jpg"
+      ]
+    },
+    {
+      "id" : "cap-326559",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 25.4545,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 3,
+      "top" : [
+        "435034.jpg",
+        "83556.jpg",
+        "277431.jpg"
+      ]
+    },
+    {
+      "id" : "cap-188044",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 15.223292,
+      "mustPass" : false,
+      "ndcgAt10" : 0.6309297535714574,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.5,
+      "returned" : 5,
+      "top" : [
+        "254081.jpg",
+        "188044.jpg",
+        "438220.jpg",
+        "283642.jpg",
+        "85179.jpg"
+      ]
+    },
+    {
+      "id" : "cap-281080",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 15.345083,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "281080.jpg"
+      ]
+    },
+    {
+      "id" : "cap-74030",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 37.353125,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "74030.jpg"
+      ]
+    },
+    {
+      "id" : "cap-300303",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 39.666,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 1,
+      "top" : [
+        "488657.jpg"
+      ]
+    },
+    {
+      "id" : "cap-491106",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 45.74025,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "491106.jpg",
+        "488488.jpg",
+        "270999.jpg",
+        "482159.jpg",
+        "18179.jpg"
+      ]
+    },
+    {
+      "id" : "cap-372794",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 39.702125,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 0,
+      "top" : [
+
+      ]
+    },
+    {
+      "id" : "cap-185082",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 39.198333,
+      "mustPass" : false,
+      "ndcgAt10" : 0.5,
+      "precision" : 0.25,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 0.3333333333333333,
+      "returned" : 4,
+      "top" : [
+        "264753.jpg",
+        "107450.jpg",
+        "185082.jpg",
+        "191893.jpg"
+      ]
+    },
+    {
+      "id" : "cap-563380",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 31.936083,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.5,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 2,
+      "top" : [
+        "563380.jpg",
+        "488657.jpg"
+      ]
+    },
+    {
+      "id" : "cap-554319",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 23.608708,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.14285714285714285,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 7,
+      "top" : [
+        "554319.jpg",
+        "469105.jpg",
+        "96241.jpg",
+        "290959.jpg",
+        "436759.jpg"
+      ]
+    },
+    {
+      "id" : "cap-54955",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 14.397458,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.3333333333333333,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 3,
+      "top" : [
+        "54955.jpg",
+        "66443.jpg",
+        "578094.jpg"
+      ]
+    },
+    {
+      "id" : "cap-87958",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 14.082708,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 10,
+      "top" : [
+        "87958.jpg",
+        "69553.jpg",
+        "44160.jpg",
+        "488488.jpg",
+        "83556.jpg"
+      ]
+    },
+    {
+      "id" : "cap-500335",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 14.581583,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.5,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 2,
+      "top" : [
+        "500335.jpg",
+        "488657.jpg"
+      ]
+    },
+    {
+      "id" : "cap-60005",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 15.140125,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 15,
+      "top" : [
+        "270999.jpg",
+        "71357.jpg",
+        "185082.jpg",
+        "484225.jpg",
+        "393178.jpg"
+      ]
+    },
+    {
+      "id" : "cap-37678",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 13.859542,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 4,
+      "top" : [
+        "451392.jpg",
+        "264753.jpg",
+        "488488.jpg",
+        "381658.jpg"
+      ]
+    },
+    {
+      "id" : "cap-66337",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 14.631625,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "66337.jpg"
+      ]
+    },
+    {
+      "id" : "cap-287304",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 43.293292,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 4,
+      "top" : [
+        "546760.jpg",
+        "43776.jpg",
+        "44160.jpg",
+        "86133.jpg"
+      ]
+    },
+    {
+      "id" : "cap-214468",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 28.423667,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.2,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 5,
+      "top" : [
+        "214468.jpg",
+        "324870.jpg",
+        "270999.jpg",
+        "436759.jpg",
+        "176285.jpg"
+      ]
+    },
+    {
+      "id" : "cap-96241",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 44.442125,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 2,
+      "top" : [
+        "436759.jpg",
+        "270999.jpg"
+      ]
+    },
+    {
+      "id" : "cap-55166",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 31.957208,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 7,
+      "top" : [
+        "290959.jpg",
+        "245377.jpg",
+        "554319.jpg",
+        "551717.jpg",
+        "16038.jpg"
+      ]
+    },
+    {
+      "id" : "cap-351126",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 41.378458,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 37,
+      "top" : [
+        "522000.jpg",
+        "55166.jpg",
+        "81280.jpg",
+        "479879.jpg",
+        "75902.jpg"
+      ]
+    },
+    {
+      "id" : "cap-544855",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 44.434083,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.25,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 4,
+      "top" : [
+        "544855.jpg",
+        "324870.jpg",
+        "162579.jpg",
+        "176285.jpg"
+      ]
+    },
+    {
+      "id" : "cap-222305",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 41.225917,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "222305.jpg"
+      ]
+    },
+    {
+      "id" : "cap-375380",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 33.52425,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 1,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 1,
+      "top" : [
+        "375380.jpg"
+      ]
+    },
+    {
+      "id" : "cap-93236",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 52.277792,
+      "mustPass" : false,
+      "ndcgAt10" : 1,
+      "precision" : 0.5,
+      "recall" : 1,
+      "recallAt10" : 1,
+      "reciprocalRank" : 1,
+      "returned" : 2,
+      "top" : [
+        "93236.jpg",
+        "513260.jpg"
+      ]
+    },
+    {
+      "id" : "cap-79354",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 51.437791,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 1,
+      "top" : [
+        "283642.jpg"
+      ]
+    },
+    {
+      "id" : "cap-71357",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 52.218667,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0.016666666666666666,
+      "recall" : 1,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0.03225806451612903,
+      "returned" : 60,
+      "top" : [
+        "381658.jpg",
+        "488488.jpg",
+        "81280.jpg",
+        "427770.jpg",
+        "451392.jpg"
+      ]
+    },
+    {
+      "id" : "cap-506699",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 50.438542,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 4,
+      "top" : [
+        "283642.jpg",
+        "550925.jpg",
+        "438220.jpg",
+        "503985.jpg"
+      ]
+    },
+    {
+      "id" : "cap-283642",
+      "isNegative" : false,
+      "kind" : "image",
+      "latencyMilliseconds" : 45.793917,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recall" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 9,
+      "top" : [
+        "578026.jpg",
+        "49603.jpg",
+        "79354.jpg",
+        "532714.jpg",
+        "241764.jpg"
+      ]
+    },
+    {
+      "id" : "none-elephant",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 46.65025,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 1,
+      "top" : [
+        "351126.jpg"
+      ]
+    },
+    {
+      "id" : "none-giraffe-eating-leaves",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 37.382125,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 1,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 0,
+      "top" : [
+
+      ]
+    },
+    {
+      "id" : "none-a-slice-of-pizza",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 44.64875,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 1,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 0,
+      "top" : [
+
+      ]
+    },
+    {
+      "id" : "none-birthday-cake-with-candles",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 25.50225,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 2,
+      "top" : [
+        "8024.jpg",
+        "254081.jpg"
+      ]
+    },
+    {
+      "id" : "none-a-cat-sleeping-on-a-sofa",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 35.151584,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 1,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 0,
+      "top" : [
+
+      ]
+    },
+    {
+      "id" : "none-surfer-riding-a-wave",
+      "isNegative" : true,
+      "kind" : "negative",
+      "latencyMilliseconds" : 24.806583,
+      "mustPass" : false,
+      "ndcgAt10" : 0,
+      "precision" : 0,
+      "recallAt10" : 0,
+      "reciprocalRank" : 0,
+      "returned" : 2,
+      "top" : [
+        "204275.jpg",
+        "308107.jpg"
+      ]
+    }
+  ],
+  "overall" : {
+    "f1" : 0.3846716118524689,
+    "mrr" : 0.5647966764418377,
+    "ndcgAt10" : 0.5428584469757084,
+    "precision" : 0.34754645354645347,
+    "queries" : 50,
+    "recall" : 0.6007704517704517,
+    "recallAt10" : 0.5413699633699633
+  },
+  "perKind" : {
+    "image" : {
+      "f1" : 0.3846716118524689,
+      "mrr" : 0.5647966764418377,
+      "ndcgAt10" : 0.5428584469757084,
+      "precision" : 0.34754645354645347,
+      "queries" : 50,
+      "recall" : 0.6007704517704517,
+      "recallAt10" : 0.5413699633699633
+    }
+  }
+}

@@ -44,6 +44,8 @@ public protocol QueryEncoding: Sendable {
     var minimumZScore: Float? { get }
     /// Semantic matches at or above this robust z-score are kept despite `minimumZScore` (`nil`: off).
     var minimumRobustZScore: Float? { get }
+    /// Semantic matches at or above this cosine similarity are kept despite calibration (`nil`: off).
+    var confidentSimilarity: Float? { get }
     /// Whether partial keyword matches should only add a few files (`SearchEngine.looseKeywordLimit`).
     var limitsLooseKeywords: Bool { get }
     func encode(query: String) async throws -> Embedding
@@ -54,6 +56,7 @@ extension QueryEncoding {
     public var similarityMargin: Float? { nil }
     public var minimumZScore: Float? { nil }
     public var minimumRobustZScore: Float? { nil }
+    public var confidentSimilarity: Float? { nil }
     public var limitsLooseKeywords: Bool { false }
 }
 

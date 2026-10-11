@@ -78,6 +78,7 @@ public actor SearchEngine {
             self.ranker.similarityMargin = encoder.similarityMargin
             self.ranker.minimumZScore = encoder.minimumZScore
             self.ranker.minimumRobustZScore = encoder.minimumRobustZScore
+            self.ranker.confidentSimilarity = encoder.confidentSimilarity
         }
         self.resultLimit = resultLimit
         self.now = now
@@ -95,6 +96,7 @@ public actor SearchEngine {
         ranker.similarityMargin = newEncoder.similarityMargin
         ranker.minimumZScore = newEncoder.minimumZScore
         ranker.minimumRobustZScore = newEncoder.minimumRobustZScore
+        ranker.confidentSimilarity = newEncoder.confidentSimilarity
         vectorIndex = newIndex
         keywordCache = nil
         try await loadVectors()
@@ -211,6 +213,7 @@ public actor SearchEngine {
         // "Find similar" is for browsing neighbours, not deciding what matches.
         ranker.similarityMargin = nil
         ranker.minimumZScore = nil
+        ranker.confidentSimilarity = nil
         let ranked = ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], now: now())
         let items = try await hydrate(ranked, terms: [])
         return SearchResults(query: SearchQuery(text: "", filter: filter), phase: .merged, items: items, elapsedMilliseconds: 0)

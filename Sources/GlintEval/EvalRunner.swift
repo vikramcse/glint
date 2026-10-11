@@ -20,6 +20,8 @@ struct EvalRunner {
     var minimumZScore: Float??
     /// Overrides the model's minimum robust z-score when set (`.some(nil)` turns it off).
     var minimumRobustZScore: Float??
+    /// Overrides the model's confident similarity when set (`.some(nil)` turns it off).
+    var confidentSimilarity: Float??
     /// Ranker settings under test (fusion, per-file fusion, weights).
     var ranker = HybridRanker()
     /// Lean each query's weights by how it reads (`QueryStyle`).
@@ -45,7 +47,7 @@ struct EvalRunner {
             reader: try IndexReader(url: paths.database), vectorIndex: vectorIndex,
             encoder: MarginOverride(
                 base: GatedQueryEncoder(provider: provider, gate: gate), margin: similarityMargin, zScore: minimumZScore,
-                robustZScore: minimumRobustZScore),
+                robustZScore: minimumRobustZScore, confident: confidentSimilarity),
             thumbnails: thumbnails, gate: features, ranker: ranker, looseKeywordLimit: looseKeywordLimit ?? 3,
             adaptsWeights: adaptsWeights
         )
@@ -155,12 +157,14 @@ private struct MarginOverride: QueryEncoding {
     let margin: Float??
     let zScore: Float??
     let robustZScore: Float??
+    let confident: Float??
 
     var space: VectorSpace { base.space }
     var minimumSimilarity: Float { base.minimumSimilarity }
     var similarityMargin: Float? { margin ?? base.similarityMargin }
     var minimumZScore: Float? { zScore ?? base.minimumZScore }
     var minimumRobustZScore: Float? { robustZScore ?? base.minimumRobustZScore }
+    var confidentSimilarity: Float? { confident ?? base.confidentSimilarity }
     var limitsLooseKeywords: Bool { base.limitsLooseKeywords }
     func encode(query: String) async throws -> Embedding { try await base.encode(query: query) }
 }

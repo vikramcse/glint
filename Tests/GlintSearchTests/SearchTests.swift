@@ -245,6 +245,32 @@ struct HybridRankerTests {
                 == [FileID(1)])
     }
 
+    @Test func keepsConfidentMatchesInALibraryOfLookalikes() {
+        var ranker = HybridRanker()
+        ranker.minimumSimilarity = 0.6
+        ranker.minimumZScore = 2.75
+        ranker.minimumRobustZScore = 3.5
+        // A library of one trip's train photos: everything scores high, so calibration (mean
+        // 0.608 + 2.75 × 0.068 = 0.795) drops the whole trip for "two people near a train".
+        let statistics = ScoreStatistics(mean: 0.608, deviation: 0.068, median: 0.62, robustDeviation: 0.06, count: 500)
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.773),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.750),
+            ScoredChunk(chunkID: ChunkID(3), fileID: FileID(3), score: 0.715),
+        ]
+        #expect(ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: statistics).isEmpty)
+
+        ranker.confidentSimilarity = 0.72
+        // Kept down to max(0.72, 0.773 - 0.05): file 3 is below the confident score.
+        #expect(
+            ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: statistics).map(\.fileID)
+                == [FileID(1), FileID(2)])
+
+        // A best match below the confident score changes nothing.
+        let weak = semantic.map { ScoredChunk(chunkID: $0.chunkID, fileID: $0.fileID, score: $0.score - 0.1) }
+        #expect(ranker.rank(semantic: weak, keyword: [], names: [], attributes: [:], statistics: statistics).isEmpty)
+    }
+
     @Test func partialKeywordMatchesOnlyAddFiles() {
         let ranker = HybridRanker()
         let semantic = [

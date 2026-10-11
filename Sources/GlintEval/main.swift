@@ -6,7 +6,7 @@
 //   glint-eval run <dir> [--queries q.json] [--model gemma|apple|hashing] [--model-dir D] [--dimensions N]
 //                  [--baseline report.json] [--out report.json] [--margin M|off] [--z K|off] [--titles] [--loose-keywords N|all]
 //                  [--text-bits 8|16] [--media-bits 8|16] [--fusion rrf|scores] [--per-file] [--adaptive on|off]
-//                  [--semantic-weight W] [--keyword-weight W]
+//                  [--semantic-weight W] [--keyword-weight W] [--confident S|off] [--confident-margin M]
 //   glint-eval query <text>... --model-dir D [--index index.sqlite] [--dimensions N] [--idle-unload S]
 //                    run queries against a real index (read-only) and print every
 //                    semantic score next to what the app would show
@@ -168,6 +168,8 @@ case "run":
         if let margin = option("--margin", in: arguments) { runner.similarityMargin = .some(Float(margin)) }
         if let z = option("--z", in: arguments) { runner.minimumZScore = .some(Float(z)) }
         if let z = option("--robust-z", in: arguments) { runner.minimumRobustZScore = .some(Float(z)) }
+        if let confident = option("--confident", in: arguments) { runner.confidentSimilarity = .some(Float(confident)) }
+        if let margin = option("--confident-margin", in: arguments).flatMap(Float.init) { runner.ranker.confidentMargin = margin }
         if arguments.contains("--titles") { runner.indexerOptions.documentTitles = true }
         if let loose = option("--loose-keywords", in: arguments) { runner.looseKeywordLimit = .some(Int(loose)) }
         if let fusion = option("--fusion", in: arguments) { runner.ranker.fusion = fusion == "rrf" ? .reciprocalRank : .scores }

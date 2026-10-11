@@ -64,6 +64,12 @@ public struct HybridRanker: Sendable {
     /// below `minimumZScore` (`nil`: off). Catches matches too numerous to stand out from the
     /// mean, such as a folder full of train photos for "train".
     public var minimumRobustZScore: Float?
+    /// Semantic hits at or above this cosine similarity, and within `confidentMargin` of the best
+    /// hit, are kept even below the calibrated cutoff (`nil`: off). In a library that is mostly
+    /// one trip's train photos, "two people near a train" stands out from nothing, yet a high
+    /// absolute score still means a real match.
+    public var confidentSimilarity: Float?
+    public var confidentMargin: Float = 0.05
     /// Below this many vectors the library's score statistics are too noisy to calibrate with.
     public var calibrationMinimumRows = 200
     /// Maximum relative boost for a file modified today, decaying with `recencyHalfLife`.
@@ -193,7 +199,8 @@ public struct HybridRanker: Sendable {
     }
 
     /// The lowest semantic score kept: calibrated against the library's score statistics when
-    /// there are enough vectors, otherwise a margin below the best match.
+    /// there are enough vectors, otherwise a margin below the best match; lowered for matches
+    /// that are confident on their own.
     private func semanticFloor(_ semantic: [ScoredChunk], statistics: ScoreStatistics?) -> Float {
         var floor = minimumSimilarity
         if let minimumZScore, let statistics, statistics.deviation > 0, statistics.count >= calibrationMinimumRows {
@@ -204,6 +211,9 @@ public struct HybridRanker: Sendable {
             floor = max(floor, calibrated)
         } else if let similarityMargin, let best = semantic.map(\.score).max() {
             floor = max(floor, best - similarityMargin)
+        }
+        if let confidentSimilarity, let best = semantic.map(\.score).max(), best >= confidentSimilarity {
+            floor = min(floor, max(confidentSimilarity, best - confidentMargin))
         }
         return floor
     }
