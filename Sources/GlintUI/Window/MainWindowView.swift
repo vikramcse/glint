@@ -106,16 +106,20 @@ public struct MainWindowView: View {
         switch item {
         case .kind(let kind):
             model.scope = [kind]
+            model.folderScope = nil
             library.load(kinds: [kind])
         case .source(let id):
             model.scope = []
             let path = services.status.sources.first { $0.id == id }?.path
+            model.folderScope = path
             library.load(kinds: [], folder: path)
         case .saved(let id):
             model.scope = []
+            model.folderScope = nil
             if let saved = library.savedSearches.first(where: { $0.id == id }) { model.text = saved.query }
         case .all, nil:
             model.scope = []
+            model.folderScope = nil
             library.load(kinds: [])
         }
     }

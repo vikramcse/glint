@@ -146,6 +146,21 @@ struct SearchModelTests {
         #expect(model.results.map(\.file.name) == ["deck.pdf"])
     }
 
+    @Test func sidebarFolderScopesSearchOnEveryTier() async throws {
+        let (engine, directory) = try await makeEngine(gate: .free)
+        _ = directory
+        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trialExpired) })
+        model.folderScope = "/elsewhere"
+        model.text = "beach"
+        #expect(model.currentQuery.filter.folders == ["/elsewhere"])
+        await waitUntil { model.phase == .merged }
+        #expect(model.results.isEmpty)
+
+        model.folderScope = "/lib"
+        await waitUntil { model.phase == .merged && !model.results.isEmpty }
+        #expect(model.results.count == 6)
+    }
+
     @Test func lockedResultsAreVisibleOnFree() async throws {
         let (engine, directory) = try await makeEngine(gate: .free)
         _ = directory

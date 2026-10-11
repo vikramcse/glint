@@ -44,6 +44,8 @@ public final class SearchModel {
     public var tokens: [SearchToken] = [] { didSet { if tokens != oldValue { queryChanged() } } }
     /// Kinds selected outside the field (the main window's sidebar).
     public var scope: Set<MediaKind> = [] { didSet { if scope != oldValue { queryChanged() } } }
+    /// Folder selected outside the field (a source in the main window's sidebar).
+    public var folderScope: String? { didSet { if folderScope != oldValue { queryChanged() } } }
     public var selection: FileID?
     public var groupByKind = true
 
@@ -88,6 +90,7 @@ public final class SearchModel {
         let combined = ParsedQuery(text: parsed.text, tokens: parsed.tokens + tokens)
         var filter = combined.filter(allowFullFilters: entitlements().allows(.fullFilters), sources: sourcePaths())
         filter.kinds.formUnion(scope)
+        if let folderScope { filter.folders.append(folderScope) }
         return SearchQuery(text: combined.text, filter: filter)
     }
 
