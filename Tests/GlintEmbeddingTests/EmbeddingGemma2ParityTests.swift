@@ -77,7 +77,7 @@ struct EmbeddingGemma2ParityTests {
 
     static func load(_ towers: EG2Towers, quantization: EG2Quantization = .none) async throws -> (EG2Runtime, EG2Processor) {
         let config = try EG2Configuration.load(from: modelDirectory)
-        let tokenizer = try await TokenizerLoader.load(modelDirectory)
+        let tokenizer = try EG2Tokenizer(directory: modelDirectory)
         return (
             try EG2Runtime(directory: modelDirectory, config: config, tokenizer: tokenizer, towers: towers, quantization: quantization),
             EG2Processor(tokenizer: tokenizer, config: config)
@@ -90,7 +90,7 @@ struct EmbeddingGemma2ParityTests {
         let (runtime, processor) = try await Self.load(.text)
         for fixture in file.fixtures {
             let ids =
-                [EG2Processor.bosToken] + processor.tokenizer.encode(text: fixture.text, addSpecialTokens: false) + [EG2Processor.eosToken]
+                [EG2Processor.bosToken] + processor.tokenizer.encode(fixture.text).map(Int.init) + [EG2Processor.eosToken]
             #expect(ids == fixture.ids, "token ids differ for: \(fixture.text.prefix(40))")
         }
         let vectors = try await runtime.embedRaw(file.fixtures.map(\.text))

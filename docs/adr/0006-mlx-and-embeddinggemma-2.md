@@ -9,7 +9,7 @@ EmbeddingGemma 2 (Apache-2.0, 6 Oct 2026) maps text, images, video and audio int
 ## Decision
 
 - **Runtime:** [mlx-swift](https://github.com/ml-explore/mlx-swift) 0.32 (Apple, MIT). New dependency, approved here.
-- **Tokenizer:** [swift-transformers](https://github.com/huggingface/swift-transformers) `Tokenizers` 1.3 (Hugging Face, Apache-2.0) reading the checkpoint's `tokenizer.json`. New dependency, approved here; writing our own Gemma BPE would risk token-id drift.
+- **Tokenizer:** originally [swift-transformers](https://github.com/huggingface/swift-transformers) `Tokenizers` 1.3. Replaced (2026-10-11) by `EG2Tokenizer`, a compact BPE reading `tokenizer.json`: swift-transformers held ~150 MB for the 262k vocabulary and 515k merges, and keyed them by Swift `String`, which equates canonically equivalent characters (Kelvin sign and K) and missed a space before a combining mark. The drift risk that kept us off our own BPE is covered by `EG2TokenizerParityTests`: 42 hard cases against Hugging Face's Rust tokenizer, and a 30k-text corpus (sources, COCO captions, random Unicode) with 0 mismatches against it. swift-transformers remains a test-only dependency.
 - **Port** (`Sources/GlintEmbedding/EmbeddingGemma2/`):
   - Text encoder, processor, image/audio preprocessing and the audio conformer: ported from mlx-vlm's `embedding_gemma2` and `gemma4` modules (MIT).
   - Vision tower: adapted from mlx-swift-lm's Swift Gemma 4 (MIT).

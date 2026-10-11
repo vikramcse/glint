@@ -51,23 +51,8 @@ struct EG2Configuration: Decodable, Sendable {
 }
 
 struct EG2TextConfiguration: Decodable, Sendable {
-    struct LayerOverride: Decodable, Sendable {
-        var headDim: Int?
-        var numKeyValueHeads: Int?
-        var numAttentionHeads: Int?
-
-        enum CodingKeys: String, CodingKey {
-            case headDim = "head_dim"
-            case numKeyValueHeads = "num_key_value_heads"
-            case numAttentionHeads = "num_attention_heads"
-        }
-    }
-
-    struct Rope: Decodable, Sendable {
-        var ropeTheta: Float
-
-        enum CodingKeys: String, CodingKey { case ropeTheta = "rope_theta" }
-    }
+    typealias LayerOverride = EG2LayerOverride
+    typealias Rope = EG2Rope
 
     var vocabSize: Int
     var hiddenSize: Int
@@ -133,4 +118,24 @@ struct EG2TextConfiguration: Decodable, Sendable {
     }
 
     func override(for layer: Int) -> LayerOverride? { perLayerConfig[String(format: "%02d", layer)] }
+}
+
+/// Per-layer overrides in `per_layer_config`.
+struct EG2LayerOverride: Decodable, Sendable {
+    var headDim: Int?
+    var numKeyValueHeads: Int?
+    var numAttentionHeads: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case headDim = "head_dim"
+        case numKeyValueHeads = "num_key_value_heads"
+        case numAttentionHeads = "num_attention_heads"
+    }
+}
+
+/// One attention type's entry in `rope_parameters`.
+struct EG2Rope: Decodable, Sendable {
+    var ropeTheta: Float
+
+    enum CodingKeys: String, CodingKey { case ropeTheta = "rope_theta" }
 }

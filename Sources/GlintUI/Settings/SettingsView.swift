@@ -159,7 +159,10 @@ struct PrivacySettings: View {
                 if let deleteError { Text(deleteError).foregroundStyle(.red).font(.caption) }
             } footer: {
                 Text(
-                    "Removes everything Glint derived from your files. Your files are not touched; Glint re-indexes your folders afterwards."
+                    """
+                    Removes everything Glint derived from your files. \
+                    Your files are not touched; Glint re-indexes your folders afterwards.
+                    """
                 )
             }
         }

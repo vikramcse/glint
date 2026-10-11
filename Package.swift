@@ -51,7 +51,6 @@ let package = Package(
                 "GlintCore",
                 .product(name: "MLX", package: "mlx-swift"),
                 .product(name: "MLXNN", package: "mlx-swift"),
-                .product(name: "Tokenizers", package: "swift-transformers"),
             ],
             swiftSettings: strictSettings
         ),
@@ -121,7 +120,12 @@ let package = Package(
         ),
         .testTarget(
             name: "GlintEmbeddingTests",
-            dependencies: ["GlintEmbedding", "GlintTestSupport"],
+            dependencies: [
+                "GlintEmbedding", "GlintTestSupport",
+                // Reference for the compact tokenizer's parity test.
+                .product(name: "Tokenizers", package: "swift-transformers"),
+            ],
+            exclude: ["Fixtures"],
             swiftSettings: strictSettings
         ),
         .testTarget(

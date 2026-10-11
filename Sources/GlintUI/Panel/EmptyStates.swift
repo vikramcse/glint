@@ -59,7 +59,10 @@ public struct PermissionDeniedView: View {
             Label("Glint Can’t Read This Folder", systemImage: "lock.shield")
         } description: {
             Text(
-                "Allow access in System Settings › Privacy & Security. Full Disk Access is optional and lets Glint index any folder you add."
+                """
+                Allow access in System Settings › Privacy & Security. \
+                Full Disk Access is optional and lets Glint index any folder you add.
+                """
             )
         } actions: {
             Button("Open Privacy Settings", action: openSettings)

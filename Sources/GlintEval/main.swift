@@ -58,8 +58,8 @@ func printReport(_ report: EvalReport, failures: [String]) {
     if !noisy.isEmpty {
         print("\nReturned unrelated files:")
         for outcome in noisy {
-            print(
-                "  \(outcome.id): \(outcome.returned ?? 0) results, precision \(String(format: "%.2f", outcome.precision ?? 0)); top \(outcome.top.prefix(3))")
+            let precision = String(format: "%.2f", outcome.precision ?? 0)
+            print("  \(outcome.id): \(outcome.returned ?? 0) results, precision \(precision); top \(outcome.top.prefix(3))")
         }
     }
     if failures.isEmpty {
@@ -226,7 +226,8 @@ case "query":
                 print(String(format: "    %@ %.3f  z %5.2f  %@", mark, score, z, names[id] ?? "#\(id.rawValue)"))
             }
             let shown = try await engine.mergedResults(for: SearchQuery(text: text)).items
-            print("  app shows: \(shown.isEmpty ? "nothing" : shown.map { "\($0.file.name) [\($0.sources.label)]" }.joined(separator: ", "))")
+            let labels = shown.map { "\($0.file.name) [\($0.sources.label)]" }.joined(separator: ", ")
+            print("  app shows: \(shown.isEmpty ? "nothing" : labels)")
         }
     } catch {
         fail(String(describing: error))
@@ -234,7 +235,8 @@ case "query":
 
 default:
     print(
-        "usage: glint-eval sample <dir> | run <dir> [--queries q.json] [--model gemma|apple|hashing] [--model-dir D] [--dimensions N] [--baseline r.json] [--out r.json]"
+        "usage: glint-eval sample <dir> | run <dir> [--queries q.json] [--model gemma|apple|hashing] [--model-dir D] "
+            + "[--dimensions N] [--baseline r.json] [--out r.json]"
     )
     exit(2)
 }

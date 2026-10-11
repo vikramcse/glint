@@ -18,7 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_26.app
+        # The image names Xcode by full version (Xcode_26.0.1.app, ...): pick the newest Xcode 26.
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
+          xcodebuild -version
       - name: Module boundaries
         run: scripts/check_imports.sh
       - name: Format
@@ -116,6 +119,13 @@ jobs:
       - run: >
           xcodebuild test -project Xcode/Glint.xcodeproj -scheme Glint
           -destination 'platform=macOS,arch=arm64' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
+          -resultBundlePath "$RUNNER_TEMP/UITests.xcresult"
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: UITests.xcresult
+          path: ${{ runner.temp }}/UITests.xcresult
 
   model:
     name: EmbeddingGemma 2 parity and evals (reference Mac)

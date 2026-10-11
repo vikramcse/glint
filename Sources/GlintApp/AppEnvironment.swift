@@ -46,25 +46,14 @@ final class AppEnvironment {
         provider = Self.makeProvider()
         thumbnails = ThumbnailStore(directory: paths.thumbnails)
 
-        license = LicenseManager(
-            verifier: try LicenseVerifier.production(),
-            store: launch.isUITest
-                ? FileSecureStore(url: paths.root.appendingPathComponent("license.json"))
-                : SecureStoreFactory.make(fallbackDirectory: paths.root),
-            // Without GlintLicenseServerURL in Info.plist, signed keys activate offline (development).
-            activationService: AppConfiguration.current.licenseServer.map { HTTPActivationService(baseURL: $0) }
-        )
+        license = try Self.makeLicense(paths: paths, isUITest: launch.isUITest)
         features = FeatureGateBox(license.entitlements.snapshot)
 
         vectorIndex = FlatVectorIndex(space: provider.descriptor.space)
         let registry = ExtractorRegistry.standard(options: Self.extractionOptions(settings))
         engine = SearchEngine(
-            reader: reader,
-            vectorIndex: vectorIndex,
-            encoder: GatedQueryEncoder(provider: provider, gate: priorityGate),
-            exampleEncoder: FileExampleEncoder(registry: registry, provider: provider),
-            thumbnails: thumbnails,
-            gate: features
+            reader: reader, vectorIndex: vectorIndex, encoder: GatedQueryEncoder(provider: provider, gate: priorityGate),
+            exampleEncoder: FileExampleEncoder(registry: registry, provider: provider), thumbnails: thumbnails, gate: features
         )
         indexer = Indexer(
             writer: writer, extractors: registry.extractors, provider: provider, vectorIndex: vectorIndex,
@@ -73,39 +62,20 @@ final class AppEnvironment {
             photos: photos
         )
 
-        telemetrySender = QueuedTelemetryClient(
-            queueURL: paths.telemetryQueue,
-            transport: HTTPTelemetryTransport(endpoint: AppConfiguration.current.telemetryEndpoint),
-            keyValueStore: UserDefaultsKeyValueStore()
-        )
+        telemetrySender = Self.makeTelemetrySender(queueURL: paths.telemetryQueue)
         telemetry = OptInTelemetryClient(sender: telemetrySender, isEnabled: settings.analyticsEnabled)
         metricKit = MetricKitReporter(directory: paths.diagnostics)
         savedSearches = AppSavedSearches(writer: writer, reader: reader)
 
-        let telemetry = telemetry
-        let paths = paths
-        let thumbnails = thumbnails
         services = GlintServices(
-            engine: engine,
-            indexing: indexer,
-            license: license,
-            settings: settings,
-            modelDescription: Self.modelDescription(active: provider.descriptor),
-            report: { event in
-                guard let mapped = TelemetryBridge.event(for: event) else { return }
-                Task { await telemetry.record(mapped) }
-            },
-            storageUsage: {
-                let database = (try? FileManager.default.attributesOfItem(atPath: paths.database.path)[.size] as? Int64) ?? 0
-                return database + thumbnails.diskUsage()
-            },
-            analyticsPreview: { await telemetry.pendingPayloadPreview() }
+            engine: engine, indexing: indexer, license: license, settings: settings,
+            modelDescription: Self.modelDescription(active: provider.descriptor), report: Self.reporter(telemetry),
+            storageUsage: Self.storageUsage(paths: paths, thumbnails: thumbnails), analyticsPreview: Self.analyticsPreview(telemetry)
         )
 
-        let modelBase = (Bundle.main.object(forInfoDictionaryKey: "GlintModelBaseURL") as? String).flatMap(URL.init(string:))
         let options = Self.extractionOptions(settings)
         models = ModelController(
-            store: ModelStore(directory: paths.models), artifact: .embeddingGemma2(baseURL: modelBase), settings: settings,
+            store: ModelStore(directory: paths.models), artifact: .embeddingGemma2(baseURL: Self.modelBaseURL), settings: settings,
             engine: engine, indexer: indexer, gate: priorityGate, fallback: provider,
             registry: { ExtractorRegistry.standard(options: options) }
         )
@@ -132,6 +102,49 @@ final class AppEnvironment {
     }
 
     // MARK: Factories
+
+    private static func makeLicense(paths: AppPaths, isUITest: Bool) throws -> LicenseManager {
+        LicenseManager(
+            verifier: try LicenseVerifier.production(),
+            store: isUITest
+                ? FileSecureStore(url: paths.root.appendingPathComponent("license.json"))
+                : SecureStoreFactory.make(fallbackDirectory: paths.root),
+            // Without GlintLicenseServerURL in Info.plist, signed keys activate offline (development).
+            activationService: AppConfiguration.current.licenseServer.map { HTTPActivationService(baseURL: $0) }
+        )
+    }
+
+    /// Records UI events through telemetry, which drops them unless the user opted in.
+    private static func reporter(_ telemetry: OptInTelemetryClient) -> @MainActor (UIEvent) -> Void {
+        { event in
+            guard let mapped = TelemetryBridge.event(for: event) else { return }
+            Task { await telemetry.record(mapped) }
+        }
+    }
+
+    /// Where EmbeddingGemma 2 downloads from (Info.plist `GlintModelBaseURL`), if overridden.
+    private static var modelBaseURL: URL? {
+        (Bundle.main.object(forInfoDictionaryKey: "GlintModelBaseURL") as? String).flatMap(URL.init(string:))
+    }
+
+    private static func analyticsPreview(_ telemetry: OptInTelemetryClient) -> @Sendable () async -> String {
+        { await telemetry.pendingPayloadPreview() }
+    }
+
+    private static func makeTelemetrySender(queueURL: URL) -> QueuedTelemetryClient {
+        QueuedTelemetryClient(
+            queueURL: queueURL,
+            transport: HTTPTelemetryTransport(endpoint: AppConfiguration.current.telemetryEndpoint),
+            keyValueStore: UserDefaultsKeyValueStore()
+        )
+    }
+
+    private static func storageUsage(paths: AppPaths, thumbnails: ThumbnailStore) -> @Sendable () async -> Int64 {
+        {
+            let database = (try? FileManager.default.attributesOfItem(atPath: paths.database.path)[.size] as? Int64) ?? 0
+            return database + thumbnails.diskUsage()
+        }
+    }
 
     private static func openWriter(at url: URL) throws -> IndexWriter {
         do {

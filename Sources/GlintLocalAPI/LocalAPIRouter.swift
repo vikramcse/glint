@@ -47,9 +47,8 @@ public struct LocalAPIRouter: Sendable {
                     "Use \(request.path.hasSuffix("search") || request.path.hasSuffix("similar") ? "POST" : "GET") for \(request.path).")
                 : Self.error(404, "not_found", "Unknown endpoint. See GET /v1/status, GET /v1/sources, POST /v1/search, POST /v1/similar.")
         }
-        Log.app.info(
-            "Local API \(request.method, privacy: .public) \(Self.loggedRoute(request.path), privacy: .public) → \(response.status, privacy: .public)"
-        )
+        let logged = Self.loggedRoute(request.path)
+        Log.app.info("Local API \(request.method, privacy: .public) \(logged, privacy: .public) → \(response.status, privacy: .public)")
         return response
     }
 

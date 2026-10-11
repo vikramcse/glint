@@ -42,53 +42,60 @@ struct FilePipeline: Sendable {
                 return .vanished
             }
             defer { if let copy = resolved.temporaryCopy { try? FileManager.default.removeItem(at: copy) } }
-            var clock = Stopwatch()
-            let url = resolved.fileRef.url
-            let precomputed = resolved.contentHash
-            let hash = try await BlockingIO.run { try precomputed ?? ContentHasher.hash(of: url) }
-            await time(.hash, record, seconds: clock.seconds)
-            try Task.checkCancellation()
+            return try await index(record, from: resolved)
+        } catch {
+            return await outcome(of: error, for: record)
+        }
+    }
 
-            if let duplicate = try await writer.indexedDuplicate(contentHash: hash, space: space, excluding: record.id) {
-                let vectors = try await writer.copyIndex(from: duplicate, to: record.id, contentHash: hash, space: space)
-                try await publish(vectors, for: record)
-                return .deduplicated
-            }
+    private func index(_ record: FileRecord, from resolved: ResolvedFile) async throws -> FileOutcome {
+        var clock = Stopwatch()
+        let url = resolved.fileRef.url
+        let precomputed = resolved.contentHash
+        let hash = try await BlockingIO.run { try precomputed ?? ContentHasher.hash(of: url) }
+        await time(.hash, record, seconds: clock.seconds)
+        try Task.checkCancellation()
 
-            guard let extractor = extractors.first(where: { $0.canExtract(record.contentType) }) else {
-                try await writer.markFailed(record.id, category: .unsupported)
-                return .failed(.unsupported)
-            }
-            let extractState = Signposts.indexing.beginInterval(Signposts.Name.extractFile)
-            let streamed = try await extractAndEmbed(extractor.chunks(of: resolved.fileRef), record: record, contentHash: hash)
-            Signposts.indexing.endInterval(Signposts.Name.extractFile, extractState)
-            await time(.extract, record, seconds: streamed.extractSeconds)
-            await time(.embed, record, seconds: streamed.embedWaitSeconds)
-
-            clock = Stopwatch()
-            let commitState = Signposts.indexing.beginInterval(Signposts.Name.commitFile)
-            let vectors = try await committer.commit(
-                FileCommit(fileID: record.id, contentHash: hash, space: space, chunks: streamed.writes, media: streamed.media))
-            Signposts.indexing.endInterval(Signposts.Name.commitFile, commitState)
+        if let duplicate = try await writer.indexedDuplicate(contentHash: hash, space: space, excluding: record.id) {
+            let vectors = try await writer.copyIndex(from: duplicate, to: record.id, contentHash: hash, space: space)
             try await publish(vectors, for: record)
-            await time(.commit, record, seconds: clock.seconds)
-            await stats?.finish(record.kind, bytes: record.size, chunks: streamed.writes.count, vectors: vectors.count)
-            return .indexed(chunks: streamed.writes.count, vectors: vectors.count)
-        } catch is CancellationError {
+            return .deduplicated
+        }
+
+        guard let extractor = extractors.first(where: { $0.canExtract(record.contentType) }) else {
+            try await writer.markFailed(record.id, category: .unsupported)
+            return .failed(.unsupported)
+        }
+        let extractState = Signposts.indexing.beginInterval(Signposts.Name.extractFile)
+        let streamed = try await extractAndEmbed(extractor.chunks(of: resolved.fileRef), record: record, contentHash: hash)
+        Signposts.indexing.endInterval(Signposts.Name.extractFile, extractState)
+        await time(.extract, record, seconds: streamed.extractSeconds)
+        await time(.embed, record, seconds: streamed.embedWaitSeconds)
+
+        clock = Stopwatch()
+        let commitState = Signposts.indexing.beginInterval(Signposts.Name.commitFile)
+        let vectors = try await committer.commit(
+            FileCommit(fileID: record.id, contentHash: hash, space: space, chunks: streamed.writes, media: streamed.media))
+        Signposts.indexing.endInterval(Signposts.Name.commitFile, commitState)
+        try await publish(vectors, for: record)
+        await time(.commit, record, seconds: clock.seconds)
+        await stats?.finish(record.kind, bytes: record.size, chunks: streamed.writes.count, vectors: vectors.count)
+        return .indexed(chunks: streamed.writes.count, vectors: vectors.count)
+    }
+
+    /// A cancelled file goes back to the queue; any other failure is recorded against it.
+    private func outcome(of error: any Error, for record: FileRecord) async -> FileOutcome {
+        let category = error is CancellationError ? .cancelled : error.glintCategory
+        if category == .cancelled {
             try? await writer.release(record.id)
             return .cancelled
-        } catch {
-            let category = error.glintCategory
-            if category == .cancelled {
-                try? await writer.release(record.id)
-                return .cancelled
-            }
-            Log.indexer.notice(
-                "Indexing failed (\(category.rawValue, privacy: .public), \(String(describing: type(of: error)), privacy: .public)) for \(record.path, privacy: .private)"
-            )
-            try? await writer.markFailed(record.id, category: category)
-            return .failed(category)
         }
+        let errorType = String(describing: type(of: error))
+        Log.indexer.notice(
+            "Indexing failed (\(category.rawValue, privacy: .public), \(errorType, privacy: .public)) for \(record.path, privacy: .private)"
+        )
+        try? await writer.markFailed(record.id, category: category)
+        return .failed(category)
     }
 
     private func time(_ stage: IndexingStage, _ record: FileRecord, seconds: Double) async {
@@ -116,24 +123,10 @@ struct FilePipeline: Sendable {
     ) async throws -> Streamed {
         var result = Streamed()
         let snapshot = features.current
-        let windowSize = max(1, options.embeddingBatchSize)
-        var window: [(index: Int, input: EmbeddingInput)] = []
-        var inFlight: [Window] = []
+        var windows = EmbeddingWindows(
+            embedder: embedder, size: max(1, options.embeddingBatchSize), maxInFlight: max(1, options.embeddingWindowsInFlight))
         var iterator = stream.makeAsyncIterator()
 
-        func submit() {
-            guard !window.isEmpty else { return }
-            let items = window
-            window = []
-            let embedder = embedder
-            inFlight.append(
-                Task {
-                    let embeddings = try await embedder.embed(items.map(\.input))
-                    return zip(items, embeddings).map { item, embedding in
-                        (item.index, embedding.values.contains { $0 != 0 } ? embedding.values : nil)
-                    }
-                })
-        }
         func settle(_ task: Window) async throws {
             let clock = Stopwatch()
             for (index, values) in try await task.value { result.writes[index].vector = values }
@@ -145,37 +138,88 @@ struct FilePipeline: Sendable {
                 let clock = Stopwatch()
                 let next = try await iterator.next()
                 result.extractSeconds += clock.seconds
-                guard var chunk = next else { break }
+                guard let next else { break }
                 try Task.checkCancellation()
-                if let required = chunk.requiredFeature, !snapshot.allows(required) {
-                    chunk.input = nil
-                    // A gated chunk with nothing to keyword-index is dropped entirely.
-                    if chunk.text?.isEmpty ?? true, chunk.preview.thumbnail == nil { continue }
-                }
+                guard let chunk = admitted(next, snapshot: snapshot) else { continue }
                 if result.writes.isEmpty {
                     result.media = FileMedia(duration: chunk.preview.duration, waveform: chunk.preview.waveform)
                 }
-                if let input = composedInput(for: chunk) { window.append((result.writes.count, input)) }
+                let index = result.writes.count
+                let overflow = composedInput(for: chunk).flatMap { windows.append(index, $0) }
                 result.writes.append(
                     ChunkWrite(
                         ordinal: chunk.ordinal, locator: chunk.locator, text: chunk.text,
                         thumbnail: saveThumbnail(chunk, contentHash: contentHash), vector: nil))
-                if window.count >= windowSize {
-                    submit()
-                    if inFlight.count > max(1, options.embeddingWindowsInFlight) { try await settle(inFlight.removeFirst()) }
-                }
+                if let overflow { try await settle(overflow) }
                 if result.writes.count >= options.maxChunksPerFile { break }
             }
             // Extractor streams finish quietly when the consuming task is cancelled; never commit
             // a half-read file as done.
             try Task.checkCancellation()
-            submit()
-            for task in inFlight { try await settle(task) }
+            for task in windows.flush() { try await settle(task) }
         } catch {
-            for task in inFlight { task.cancel() }
+            windows.cancel()
             throw error
         }
         return result
+    }
+
+    /// The chunk as stored. Media the license doesn't cover loses its embedding input; a gated
+    /// chunk with nothing to keyword-index is dropped entirely.
+    private func admitted(_ chunk: Chunk, snapshot: FeatureGateSnapshot) -> Chunk? {
+        guard let required = chunk.requiredFeature, !snapshot.allows(required) else { return chunk }
+        var chunk = chunk
+        chunk.input = nil
+        if chunk.text?.isEmpty ?? true, chunk.preview.thumbnail == nil { return nil }
+        return chunk
+    }
+
+    /// One file's embedding inputs, sent to the embedding lane a window at a time.
+    private struct EmbeddingWindows {
+        let embedder: EmbeddingBatcher
+        let size: Int
+        let maxInFlight: Int
+        private var pending: [(index: Int, input: EmbeddingInput)] = []
+        private var inFlight: [Window] = []
+
+        init(embedder: EmbeddingBatcher, size: Int, maxInFlight: Int) {
+            self.embedder = embedder
+            self.size = size
+            self.maxInFlight = maxInFlight
+        }
+
+        /// Queues the input of chunk `index`. Returns the oldest window, for the caller to wait
+        /// on, once too many are in flight.
+        mutating func append(_ index: Int, _ input: EmbeddingInput) -> Window? {
+            pending.append((index, input))
+            guard pending.count >= size else { return nil }
+            submit()
+            return inFlight.count > maxInFlight ? inFlight.removeFirst() : nil
+        }
+
+        /// Submits what is left and returns every window still in flight.
+        mutating func flush() -> [Window] {
+            submit()
+            return inFlight
+        }
+
+        func cancel() {
+            for task in inFlight { task.cancel() }
+        }
+
+        private mutating func submit() {
+            guard !pending.isEmpty else { return }
+            let items = pending
+            pending = []
+            let embedder = embedder
+            inFlight.append(
+                Task {
+                    let embeddings = try await embedder.embed(items.map(\.input))
+                    return zip(items, embeddings).map { item, embedding in
+                        (item.index, embedding.values.contains { $0 != 0 } ? embedding.values : nil)
+                    }
+                })
+        }
     }
 
     private func saveThumbnail(_ chunk: Chunk, contentHash: String) -> String? {

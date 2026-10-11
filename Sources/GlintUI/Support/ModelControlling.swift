@@ -51,8 +51,10 @@ extension ModelUIState {
             String(localized: "Download EmbeddingGemma 2 (\(bytes.formatted(.byteCount(style: .file)))) for the best search")
         case .downloading(let received, let total):
             String(
-                localized:
-                    "Downloading search model… \(received.formatted(.byteCount(style: .file))) of \(total.formatted(.byteCount(style: .file)))"
+                localized: """
+                    Downloading search model… \(received.formatted(.byteCount(style: .file))) \
+                    of \(total.formatted(.byteCount(style: .file)))
+                    """
             )
         case .verifying: String(localized: "Verifying search model…")
         case .loading: String(localized: "Starting search model…")

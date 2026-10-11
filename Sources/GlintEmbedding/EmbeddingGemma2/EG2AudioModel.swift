@@ -229,11 +229,9 @@ final class EG2AudioAttention: Module {
 
     func callAsFunction(_ x: MLXArray, mask: MLXArray, causalValid: MLXArray) -> MLXArray {
         let (batch, length) = (x.dim(0), x.dim(1))
-        var q = qProj(x).asType(.float32).reshaped(batch, length, heads, headDim)
-        var k = kProj(x).asType(.float32).reshaped(batch, length, heads, headDim)
+        let q = qProj(x).asType(.float32).reshaped(batch, length, heads, headDim) * (qScale * softplus(perDimScale))
+        let k = kProj(x).asType(.float32).reshaped(batch, length, heads, headDim) * kScale
         let v = vProj(x).asType(.float32).reshaped(batch, length, heads, headDim)
-        q = q * (qScale * softplus(perDimScale))
-        k = k * kScale
 
         let queryBlocks = toBlocks(q)
         let keyBlocks = blockContext(k)
@@ -315,13 +313,11 @@ final class EG2ConformerBlock: Module {
     }
 
     func callAsFunction(_ x: MLXArray, mask: MLXArray, causalValid: MLXArray) -> MLXArray {
-        var h = feedForward1(x)
-        let residual = h
-        var attended = attention(normPreAttention(clip(h, min: -clipping, max: clipping)), mask: mask, causalValid: causalValid)
+        let residual = feedForward1(x)
+        var attended = attention(normPreAttention(clip(residual, min: -clipping, max: clipping)), mask: mask, causalValid: causalValid)
         attended = clip(attended, min: -clipping, max: clipping)
-        h = residual + normPostAttention(attended)
-        h = h * logicalNot(mask).expandedDimensions(axis: -1).asType(h.dtype)
-        h = feedForward2(lconv1d(h))
+        let sum = residual + normPostAttention(attended)
+        let h = feedForward2(lconv1d(sum * logicalNot(mask).expandedDimensions(axis: -1).asType(sum.dtype)))
         return normOut(clip(h, min: -clipping, max: clipping))
     }
 }

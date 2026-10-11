@@ -167,8 +167,8 @@ final class EG2EncoderLayer: Module {
     }
 
     func callAsFunction(_ x: MLXArray, mask: MLXArray, positions: MLXArray, perLayerInput: MLXArray?) -> MLXArray {
-        var h = x + postAttentionNorm(attention(inputNorm(x), mask: mask, positions: positions))
-        h = h + postFeedforwardNorm(mlp(preFeedforwardNorm(h)))
+        let attended = x + postAttentionNorm(attention(inputNorm(x), mask: mask, positions: positions))
+        var h = attended + postFeedforwardNorm(mlp(preFeedforwardNorm(attended)))
         if let perLayerBlock, let perLayerInput {
             h = perLayerBlock(h, perLayerInput: perLayerInput)
         }

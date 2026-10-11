@@ -128,7 +128,7 @@ public actor QueuedTelemetryClient: TelemetryClient {
     /// The pending batch exactly as it would be sent, pretty-printed for Settings > Privacy.
     public func pendingPayloadPreview() -> String {
         guard let data = try? encodedBatch(queue, pretty: true) else { return "{}" }
-        return String(decoding: data, as: UTF8.self)
+        return String(bytes: data, encoding: .utf8) ?? "{}"
     }
 
     public func pendingEvents() -> [QueuedTelemetryEvent] { queue }

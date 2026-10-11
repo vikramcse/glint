@@ -38,7 +38,7 @@ public actor SearchEngine {
     private let gate: FeatureGateBox
     private var ranker: HybridRanker
     private let now: @Sendable () -> Date
-    private var keywordCache: (query: SearchQuery, prefix: Bool, chunks: [KeywordHit], names: [KeywordHit])?
+    private var keywordCache: KeywordCache?
 
     /// Maximum files returned per query.
     public let resultLimit: Int
@@ -223,7 +223,7 @@ public actor SearchEngine {
         }
         chunks = chunks.filter { query.filter.matches(fileID: $0.fileID, attributes: $0.attributes) }
         names = names.filter { query.filter.matches(fileID: $0.fileID, attributes: $0.attributes) }
-        keywordCache = (query, prefix, chunks, names)
+        keywordCache = KeywordCache(query: query, prefix: prefix, chunks: chunks, names: names)
         return (chunks, names)
     }
 
@@ -256,4 +256,12 @@ public actor SearchEngine {
             )
         }
     }
+}
+
+/// The last query's keyword hits, reused while only the semantic phase changes.
+private struct KeywordCache {
+    let query: SearchQuery
+    let prefix: Bool
+    let chunks: [KeywordHit]
+    let names: [KeywordHit]
 }

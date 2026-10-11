@@ -42,24 +42,25 @@ public struct HTTPResponse: Sendable, Hashable {
     }
 
     static func reason(for status: Int) -> String {
-        switch status {
-        case 200: "OK"
-        case 400: "Bad Request"
-        case 401: "Unauthorized"
-        case 402: "Payment Required"
-        case 403: "Forbidden"
-        case 404: "Not Found"
-        case 405: "Method Not Allowed"
-        case 413: "Payload Too Large"
-        case 415: "Unsupported Media Type"
-        case 422: "Unprocessable Content"
-        case 431: "Request Header Fields Too Large"
-        case 500: "Internal Server Error"
-        case 501: "Not Implemented"
-        case 503: "Service Unavailable"
-        default: "Status"
-        }
+        reasons[status] ?? "Status"
     }
+
+    private static let reasons: [Int: String] = [
+        200: "OK",
+        400: "Bad Request",
+        401: "Unauthorized",
+        402: "Payment Required",
+        403: "Forbidden",
+        404: "Not Found",
+        405: "Method Not Allowed",
+        413: "Payload Too Large",
+        415: "Unsupported Media Type",
+        422: "Unprocessable Content",
+        431: "Request Header Fields Too Large",
+        500: "Internal Server Error",
+        501: "Not Implemented",
+        503: "Service Unavailable",
+    ]
 }
 
 /// Result of feeding bytes received so far to the parser.
@@ -85,21 +86,10 @@ public enum HTTPRequestParser {
         let lines = head.components(separatedBy: "\r\n")
         let requestLine = lines[0].split(separator: " ", omittingEmptySubsequences: true)
         guard requestLine.count == 3, requestLine[2].hasPrefix("HTTP/1.") else { return .failure(status: 400) }
-        var headers: [String: String] = [:]
-        for line in lines.dropFirst() where !line.isEmpty {
-            guard let colon = line.firstIndex(of: ":") else { return .failure(status: 400) }
-            let name = line[..<colon].trimmingCharacters(in: .whitespaces).lowercased()
-            let value = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
-            guard !name.isEmpty else { return .failure(status: 400) }
-            headers[name] = value
-        }
+        guard let headers = parseHeaders(lines.dropFirst()) else { return .failure(status: 400) }
         if headers["transfer-encoding"] != nil { return .failure(status: 501) }
 
-        var length = 0
-        if let declared = headers["content-length"] {
-            guard let value = Int(declared), value >= 0 else { return .failure(status: 400) }
-            length = value
-        }
+        guard let length = contentLength(headers) else { return .failure(status: 400) }
         if length > maxBodyBytes { return .failure(status: 413) }
         let bodyStart = headerEnd.upperBound
         let available = data.endIndex - bodyStart
@@ -109,5 +99,25 @@ public enum HTTPRequestParser {
         let target = String(requestLine[1])
         let path = target.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? target
         return .complete(HTTPRequest(method: String(requestLine[0]).uppercased(), path: path, headers: headers, body: body))
+    }
+
+    /// Lowercased header names to values, or nil when a line is malformed.
+    private static func parseHeaders(_ lines: ArraySlice<String>) -> [String: String]? {
+        var headers: [String: String] = [:]
+        for line in lines where !line.isEmpty {
+            guard let colon = line.firstIndex(of: ":") else { return nil }
+            let name = line[..<colon].trimmingCharacters(in: .whitespaces).lowercased()
+            let value = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
+            guard !name.isEmpty else { return nil }
+            headers[name] = value
+        }
+        return headers
+    }
+
+    /// The declared body length (0 when absent), or nil when it is not a valid length.
+    private static func contentLength(_ headers: [String: String]) -> Int? {
+        guard let declared = headers["content-length"] else { return 0 }
+        guard let value = Int(declared), value >= 0 else { return nil }
+        return value
     }
 }

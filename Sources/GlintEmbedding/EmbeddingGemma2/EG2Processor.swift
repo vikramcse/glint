@@ -2,14 +2,13 @@ import CoreGraphics
 import Foundation
 import GlintCore
 import MLX
-import Tokenizers
 
 /// Turns Glint inputs into EmbeddingGemma 2 token sequences, following the reference
 /// processor and chat template: text gets a task prompt; each image becomes
 /// `<boi> <image>×n <eoi>`, each video frame `<boi> <video>×n <eoi>`, and audio
 /// `<boa> <audio>×n <eoa>`; media alone carries no prompt.
 struct EG2Processor: @unchecked Sendable {
-    let tokenizer: any Tokenizer
+    let tokenizer: EG2Tokenizer
     let config: EG2Configuration
     var imageProcessor = EG2ImageProcessor(maxSoftTokens: 280)
     var frameProcessor = EG2ImageProcessor(maxSoftTokens: 140)
@@ -54,7 +53,7 @@ struct EG2Processor: @unchecked Sendable {
     }
 
     private func append(text: String, to item: inout Item) {
-        item.ids += tokenizer.encode(text: text, addSpecialTokens: false).map(Int32.init)
+        item.ids += tokenizer.encode(text)
     }
 
     private func append(_ part: EmbeddingInput, to item: inout Item) throws {
@@ -66,23 +65,30 @@ struct EG2Processor: @unchecked Sendable {
             item.images.append(processed)
             item.ids += mediaSpan(start: config.boiTokenId, token: config.imageTokenId, count: processed.softTokens, end: config.eoiTokenId)
         case .video(let clip):
-            for frame in clip.frames {
-                guard let processed = frameProcessor.process(frame) else { continue }
-                item.frames.append(processed)
-                item.ids += mediaSpan(
-                    start: config.boiTokenId, token: config.videoTokenId, count: processed.softTokens, end: config.eoiTokenId)
-            }
+            appendFrames(of: clip, to: &item)
             if let audio = clip.audio { try append(.audio(audio), to: &item) }
         case .audio(let clip):
-            let samples = clip.sampleRate == 16_000 ? clip.samples : Self.resample(clip.samples, from: clip.sampleRate)
-            let features = audioFeatures(samples)
-            let tokens = EG2AudioFeatureExtractor.tokenCount(mask: features.mask)
-            guard tokens > 0 else { return }
-            item.audio.append(features)
-            item.ids += mediaSpan(start: config.boaTokenId, token: config.audioTokenId, count: tokens, end: config.eoaTokenIndex)
+            append(audio: clip, to: &item)
         case .interleaved(let parts):
             for nested in parts { try append(nested, to: &item) }
         }
+    }
+
+    private func appendFrames(of clip: VideoClip, to item: inout Item) {
+        for frame in clip.frames {
+            guard let processed = frameProcessor.process(frame) else { continue }
+            item.frames.append(processed)
+            item.ids += mediaSpan(start: config.boiTokenId, token: config.videoTokenId, count: processed.softTokens, end: config.eoiTokenId)
+        }
+    }
+
+    private func append(audio clip: AudioClip, to item: inout Item) {
+        let samples = clip.sampleRate == 16_000 ? clip.samples : Self.resample(clip.samples, from: clip.sampleRate)
+        let features = audioFeatures(samples)
+        let tokens = EG2AudioFeatureExtractor.tokenCount(mask: features.mask)
+        guard tokens > 0 else { return }
+        item.audio.append(features)
+        item.ids += mediaSpan(start: config.boaTokenId, token: config.audioTokenId, count: tokens, end: config.eoaTokenIndex)
     }
 
     private func mediaSpan(start: Int, token: Int, count: Int, end: Int) -> [Int32] {

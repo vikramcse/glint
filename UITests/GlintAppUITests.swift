@@ -3,32 +3,29 @@ import XCTest
 /// Click-through tests of the real app. Each test launches Glint against an isolated support
 /// folder and settings domain (see Sources/GlintApp/LaunchOptions.swift), with a small source
 /// folder of text files, so nothing touches the user's index, settings or keychain.
+///
+/// The runner is sandboxed: it can only write inside its own container, which Glint never
+/// indexes. So the test root sits in /private/tmp (Glint creates it) and the fixtures ship in
+/// this bundle; Glint copies them into the test root and resets its test settings at launch.
 @MainActor
 final class GlintAppUITests: XCTestCase {
     private var root: URL!
-    private var source: URL!
+    private var fixtures: URL!
 
     override func setUp() async throws {
         continueAfterFailure = false
-        root = FileManager.default.temporaryDirectory.appendingPathComponent("glint-ui-\(UUID().uuidString)", isDirectory: true)
-        source = root.appendingPathComponent("Library", isDirectory: true)
-        try FileManager.default.createDirectory(at: source, withIntermediateDirectories: true)
-        try "Flight confirmation IndiGo 6E 2341, BLR to GOI, booking ref QX7P2M".write(
-            to: source.appendingPathComponent("flight-confirmation.txt"), atomically: true, encoding: .utf8)
-        try "Weeknight pasta sauce with tomatoes, garlic and basil".write(
-            to: source.appendingPathComponent("pasta.txt"), atomically: true, encoding: .utf8)
-        UserDefaults(suiteName: "app.glint.mac.uitests")?.removePersistentDomain(forName: "app.glint.mac.uitests")
-    }
-
-    override func tearDown() async throws {
-        try? FileManager.default.removeItem(at: root)
+        root = URL(fileURLWithPath: "/private/tmp", isDirectory: true).appendingPathComponent(
+            "glint-ui-\(UUID().uuidString)", isDirectory: true)
+        fixtures = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Library", withExtension: nil))
     }
 
     private func launch(_ arguments: [String]) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchEnvironment["GLINT_UI_TEST_ROOT"] = root.appendingPathComponent("Support").path
-        app.launchEnvironment["GLINT_UI_TEST_SOURCE"] = source.path
-        app.launchArguments = arguments
+        app.launchEnvironment["GLINT_UI_TEST_ROOT"] = root.path
+        app.launchEnvironment["GLINT_UI_TEST_SOURCE"] = fixtures.path
+        // Legacy scroll bars, as on CI's virtual Macs (a mouse, no trackpad): they take width from
+        // scrolling content, which once sent the panel into an endless resize.
+        app.launchArguments = arguments + ["-AppleShowScrollBars", "Always"]
         app.launch()
         return app
     }
@@ -61,7 +58,7 @@ final class GlintAppUITests: XCTestCase {
 
     func testMainWindowSearchesTheLibrary() {
         let app = launch(["-GlintSkipOnboarding", "-GlintShowMainWindow"])
-        let window = app.windows["Glint"]
+        let window = app.windows["main"]
         XCTAssertTrue(window.waitForExistence(timeout: 10))
         XCTAssertTrue(window.staticTexts["All Items"].waitForExistence(timeout: 5))
         let search = window.searchFields.firstMatch
@@ -87,14 +84,16 @@ final class GlintAppUITests: XCTestCase {
 
     func testSettingsShowsEveryTab() {
         let app = launch(["-GlintSkipOnboarding", "-GlintShowMainWindow"])
-        XCTAssertTrue(app.windows["Glint"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.windows["main"].waitForExistence(timeout: 10))
         app.typeKey(",", modifierFlags: .command)
-        let settings = app.windows.containing(.toolbarButton, identifier: "General").firstMatch
+        // The title follows the selected tab; the tabs are plain buttons in the toolbar.
+        let settings = app.windows["com_apple_SwiftUI_Settings_window"]
         XCTAssertTrue(settings.waitForExistence(timeout: 10))
+        let tabs = settings.toolbars.firstMatch
         for tab in ["General", "Sources", "Search", "Models", "Privacy", "License"] {
-            XCTAssertTrue(settings.toolbarButtons[tab].exists, "missing tab \(tab)")
+            XCTAssertTrue(tabs.buttons[tab].exists, "missing tab \(tab)")
         }
-        settings.toolbarButtons["Sources"].click()
+        tabs.buttons["Sources"].click()
         XCTAssertTrue(settings.buttons["Add Folder…"].waitForExistence(timeout: 5))
     }
 }

@@ -1,7 +1,6 @@
 import Foundation
 import GlintCore
 import MLX
-import Tokenizers
 
 /// EmbeddingGemma 2 (Apache-2.0) running natively on Apple silicon through MLX.
 ///
@@ -31,7 +30,7 @@ public final class EmbeddingGemma2Provider: EmbeddingProvider, @unchecked Sendab
         guard [768, 512, 256, 128].contains(dimensions), dimensions <= config.textConfig.embeddingDim else {
             throw EmbeddingError.modelUnavailable("dimension \(dimensions)")
         }
-        let tokenizer = try await TokenizerLoader.load(directory)
+        let tokenizer = try EG2Tokenizer(directory: directory)
         var descriptor = ModelCatalog.embeddingGemma2
         descriptor.dimensions = dimensions
         self.descriptor = descriptor
@@ -85,7 +84,7 @@ actor EG2Runtime {
     private var textUnloadTask: Task<Void, Never>?
 
     init(
-        directory: URL, config: EG2Configuration, tokenizer: any Tokenizer, towers: EG2Towers,
+        directory: URL, config: EG2Configuration, tokenizer: EG2Tokenizer, towers: EG2Towers,
         quantization: EG2Quantization = .none, mediaQuantization: EG2Quantization = .none,
         textIdleUnload: Duration? = nil
     ) throws {
@@ -231,7 +230,7 @@ actor EG2Runtime {
         let model = try loadedModel()
         let items = texts.map { text in
             EG2Processor.Item(
-                ids: [Int32(EG2Processor.bosToken)] + processor.tokenizer.encode(text: text, addSpecialTokens: false).map(Int32.init)
+                ids: [Int32(EG2Processor.bosToken)] + processor.tokenizer.encode(text)
                     + [Int32(EG2Processor.eosToken)])
         }
         return runText(items, model: model)
@@ -274,11 +273,3 @@ public enum EG2Quantization: Sendable, Hashable {
     /// Affine 8-bit, group size 64.
     case int8
 }
-
-/// Loads the checkpoint's `tokenizer.json` (no network).
-enum TokenizerLoader {
-    static func load(_ directory: URL) async throws -> any Tokenizer {
-        try await AutoTokenizer.from(modelFolder: directory)
-    }
-}
-

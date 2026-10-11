@@ -73,6 +73,19 @@ targets:
     platform: macOS
     sources:
       - path: UITests
+        excludes: ["Fixtures/**"]
+    # Bundles the fixture folder whole; Glint copies it into the test root at launch (see
+    # Sources/GlintApp/LaunchOptions.swift). A script because XcodeGen writes folder references
+    # relative to project.yml, not to Xcode/.
+    postBuildScripts:
+      - name: Copy fixtures
+        script: |
+          rm -rf "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Library"
+          cp -R "$SRCROOT/../UITests/Fixtures/Library" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/"
+        inputFiles:
+          - $(SRCROOT)/../UITests/Fixtures/Library
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Library
     dependencies:
       - target: Glint
     settings:

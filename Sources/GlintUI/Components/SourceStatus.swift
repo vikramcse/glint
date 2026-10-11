@@ -35,9 +35,11 @@ public enum SourceIndexState: Hashable, Sendable {
         case .scanning: String(localized: "Looking for files…")
         case .indexing(let done, let total): String(localized: "Indexing \(done.formatted()) of \(total.formatted())")
         case .paused(let reason, let done, let total):
-            reason == .itemLimitReached
-                ? String(localized: "Free limit reached · \(done.formatted()) of \(total.formatted())")
-                : String(localized: "Paused · \(done.formatted()) of \(total.formatted())")
+            if reason == .itemLimitReached {
+                String(localized: "Free limit reached · \(done.formatted()) of \(total.formatted())")
+            } else {
+                String(localized: "Paused · \(done.formatted()) of \(total.formatted())")
+            }
         case .complete(let indexed): String(localized: "Indexed · \(indexed.formatted()) items")
         case .empty: String(localized: "No searchable files")
         }

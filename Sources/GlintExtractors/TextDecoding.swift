@@ -6,6 +6,8 @@ enum TextDecoding {
     /// Throws `ExtractionError.unsupported` for binary data.
     static func decode(_ data: Data) throws -> String {
         if data.starts(with: [0xEF, 0xBB, 0xBF]) {
+            // Lossy on purpose: the BOM settles the encoding, so stray bytes become U+FFFD.
+            // swiftlint:disable:next optional_data_string_conversion
             return String(decoding: data.dropFirst(3), as: UTF8.self)
         }
         if data.starts(with: [0xFF, 0xFE]) || data.starts(with: [0xFE, 0xFF]) {
