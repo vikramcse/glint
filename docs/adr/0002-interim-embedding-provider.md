@@ -4,7 +4,7 @@
 
 ## Context
 
-EmbeddingGemma 2 (released 6 Oct 2026) is the 1.0 default model. The PRD's riskiest assumption is a fast MLX-Swift port of its towers, which the M0 spike must confirm with a parity gate (cosine ≥ 0.999 against the Python reference). Weights are not yet on our CDN and the vision and audio towers' MLX coverage is unconfirmed.
+EmbeddingGemma 2 (released 6 Oct 2026) is the 1.0 default model. The plan's riskiest assumption is a fast MLX-Swift port of its towers, which the M0 spike must confirm with a parity gate (cosine ≥ 0.999 against the Python reference). Weights are not yet on our CDN and the vision and audio towers' MLX coverage is unconfirmed.
 
 ## Decision
 

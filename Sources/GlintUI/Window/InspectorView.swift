@@ -63,7 +63,6 @@ struct InspectorView: View {
                         playback.isPlaying(result.id) ? "Stop" : "Play",
                         systemImage: playback.isPlaying(result.id) ? "stop.fill" : "play.fill")
                 }
-                .disabled(result.isLocked)
             }
         } else if let page = result.match.locator.pageIndex {
             Button {
@@ -117,41 +116,28 @@ struct InspectorView: View {
 
     private func actions(_ result: SearchResult) -> some View {
         HStack {
-            Button("Open") {
-                if result.isLocked { services.actions?.showUpgrade(.lockedResult) } else { services.actions?.open(result) }
-            }
-            .keyboardShortcut(.defaultAction)
+            Button("Open") { services.actions?.open(result) }
+                .keyboardShortcut(.defaultAction)
             Button("Show in Finder") { services.actions?.revealInFinder([result]) }
         }
     }
 
     @ViewBuilder private var similarSection: some View {
-        if services.entitlements.allows(.findSimilar) {
-            if !similar.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Similar Items").font(.headline)
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                        ForEach(similar.prefix(9)) { item in
-                            ThumbnailView(url: item.match.thumbnailURL, filePath: item.file.path, kind: item.file.kind)
-                                .aspectRatio(1, contentMode: .fit)
-                                .contentShape(.rect)
-                                .help(Text(verbatim: item.file.name))
-                                .onTapGesture { model.selection = item.id }
-                                .onTapGesture(count: 2) { services.actions?.open(item) }
-                                .accessibilityElement()
-                                .accessibilityLabel(Text(AccessibilityText.label(for: item)))
-                                .accessibilityAddTraits(.isButton)
-                        }
+        if !similar.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Similar Items").font(.headline)
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                    ForEach(similar.prefix(9)) { item in
+                        ThumbnailView(url: item.match.thumbnailURL, filePath: item.file.path, kind: item.file.kind)
+                            .aspectRatio(1, contentMode: .fit)
+                            .contentShape(.rect)
+                            .help(Text(verbatim: item.file.name))
+                            .onTapGesture { model.selection = item.id }
+                            .onTapGesture(count: 2) { services.actions?.open(item) }
+                            .accessibilityElement()
+                            .accessibilityLabel(Text(AccessibilityText.label(for: item)))
+                            .accessibilityAddTraits(.isButton)
                     }
-                }
-            }
-        } else {
-            GroupBox {
-                HStack {
-                    Text("Find similar photos, clips and documents with Glint Pro.")
-                        .font(.callout)
-                    Spacer()
-                    Button("Learn More") { services.actions?.showUpgrade(.feature) }
                 }
             }
         }
@@ -159,7 +145,7 @@ struct InspectorView: View {
 
     private func loadSimilar(_ result: SearchResult) async {
         similar = []
-        guard services.entitlements.allows(.findSimilar), result.file.isIndexed else { return }
+        guard result.file.isIndexed else { return }
         similar = (try? await services.engine.similar(to: result.id).items) ?? []
     }
 

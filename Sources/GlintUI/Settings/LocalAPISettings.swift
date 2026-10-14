@@ -45,46 +45,34 @@ struct LocalAPISection: View {
 
     var body: some View {
         @Bindable var settings = services.settings
-        let allowed = services.entitlements.allows(.localAPI)
         Section {
             Toggle("Allow apps and agents to search Glint", isOn: $settings.localAPIEnabled)
-                .disabled(!allowed)
-            if !allowed {
-                HStack {
-                    Text("Searching Glint from AI agents and scripts is part of Glint Pro.")
+            LabeledContent("Status") {
+                Text(control.status.text)
+                    .foregroundStyle(statusStyle)
+                    .monospacedDigit()
+            }
+            if settings.localAPIEnabled {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Add Glint to Claude Code:")
                         .font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                    Button("Learn More") { services.actions?.showUpgrade(.feature) }
-                        .controlSize(.small)
-                }
-            } else {
-                LabeledContent("Status") {
-                    Text(control.status.text)
-                        .foregroundStyle(statusStyle)
-                        .monospacedDigit()
-                }
-                if settings.localAPIEnabled {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Add Glint to Claude Code:")
-                            .font(.caption).foregroundStyle(.secondary)
-                        HStack {
-                            Text(verbatim: control.mcpCommand)
-                                .font(.caption.monospaced())
-                                .textSelection(.enabled)
-                                .lineLimit(2)
-                            Spacer()
-                            Button(copied ? String(localized: "Copied") : String(localized: "Copy")) {
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(control.mcpCommand, forType: .string)
-                                copied = true
-                            }
-                            .controlSize(.small)
+                    HStack {
+                        Text(verbatim: control.mcpCommand)
+                            .font(.caption.monospaced())
+                            .textSelection(.enabled)
+                            .lineLimit(2)
+                        Spacer()
+                        Button(copied ? String(localized: "Copied") : String(localized: "Copy")) {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(control.mcpCommand, forType: .string)
+                            copied = true
                         }
+                        .controlSize(.small)
                     }
-                    if let reset = control.resetAccess {
-                        Button("Reset Access…") { Task { await reset() } }
-                            .help(Text("Issue a new access token; connected agents must reconnect."))
-                    }
+                }
+                if let reset = control.resetAccess {
+                    Button("Reset Access…") { Task { await reset() } }
+                        .help(Text("Issue a new access token; connected agents must reconnect."))
                 }
             }
         } header: {

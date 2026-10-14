@@ -1,6 +1,5 @@
 import Foundation
 import GlintCore
-import GlintLicensing
 import GlintSearch
 import Observation
 
@@ -31,7 +30,7 @@ public enum SearchEmptyState: Hashable, Sendable {
     case noSources
     case start
     case stillIndexing(pending: Int)
-    case noResults(lockedKinds: Bool)
+    case noResults
     case failed(String)
 }
 
@@ -59,9 +58,7 @@ public final class SearchModel {
     public private(set) var errorMessage: String?
 
     @ObservationIgnored private let engine: SearchEngine
-    @ObservationIgnored private let entitlements: @MainActor () -> Entitlements
     @ObservationIgnored private let sourcePaths: @MainActor () -> [String]
-    @ObservationIgnored private let report: @MainActor (UIEvent) -> Void
     @ObservationIgnored private let debounce: Duration
     @ObservationIgnored private var keywordTask: Task<Void, Never>?
     @ObservationIgnored private var mergeTask: Task<Void, Never>?
@@ -73,15 +70,11 @@ public final class SearchModel {
 
     public init(
         engine: SearchEngine,
-        entitlements: @escaping @MainActor () -> Entitlements,
         sourcePaths: @escaping @MainActor () -> [String] = { [] },
-        report: @escaping @MainActor (UIEvent) -> Void = { _ in },
         debounce: Duration = .milliseconds(40)
     ) {
         self.engine = engine
-        self.entitlements = entitlements
         self.sourcePaths = sourcePaths
-        self.report = report
         self.debounce = debounce
     }
 
@@ -91,7 +84,7 @@ public final class SearchModel {
     public var currentQuery: SearchQuery {
         let parsed = QueryParser.parse(text)
         let combined = ParsedQuery(text: parsed.text, tokens: parsed.tokens + tokens)
-        var filter = combined.filter(allowFullFilters: entitlements().allows(.fullFilters), sources: sourcePaths())
+        var filter = combined.filter(sources: sourcePaths())
         filter.kinds.formUnion(scope)
         if let folderScope { filter.folders.append(folderScope) }
         return SearchQuery(text: combined.text, filter: filter)
@@ -125,7 +118,6 @@ public final class SearchModel {
             isMerging = false
             return
         }
-        let stopwatch = Stopwatch()
         let engine = engine
         keywordTask = Task { [weak self] in
             guard let results = try? await engine.keywordResults(for: query) else { return }
@@ -142,7 +134,7 @@ public final class SearchModel {
                 self.mergedGeneration = current
                 self.apply(merged)
                 self.isMerging = false
-                self.didSearch(latency: stopwatch.milliseconds, results: merged.items)
+                self.didSearch()
             } catch {
                 guard let self, current == self.generation, !(error is CancellationError) else { return }
                 self.isMerging = false
@@ -160,8 +152,7 @@ public final class SearchModel {
         }
     }
 
-    private func didSearch(latency: Double, results: [SearchResult]) {
-        report(.searchPerformed(latencyMilliseconds: latency, resultCount: results.count, kinds: Set(results.map(\.file.kind))))
+    private func didSearch() {
         onFirstSearch?()
         onFirstSearch = nil
     }
@@ -175,12 +166,10 @@ public final class SearchModel {
     public var similarExampleName: String? { similarTo?.file.name ?? similarToFile?.lastPathComponent }
 
     public func findSimilar(to result: SearchResult) {
-        guard entitlements().allows(.findSimilar) else { return }
         run(similarTo: result, file: nil) { engine in try await engine.similar(to: result.id) }
     }
 
     public func findSimilar(toFileAt url: URL) {
-        guard entitlements().allows(.findSimilar) else { return }
         run(similarTo: nil, file: url) { engine in try await engine.similar(toFileAt: url) }
     }
 
@@ -246,17 +235,12 @@ public final class SearchModel {
         selection = order[min(max(index + offset, 0), order.count - 1)].id
     }
 
-    /// The 1-based rank of a result, for analytics.
-    public func rank(of result: SearchResult) -> Int {
-        (displayOrder.firstIndex { $0.id == result.id } ?? 0) + 1
-    }
-
     public func emptyState(status: IndexStatus) -> SearchEmptyState? {
         guard results.isEmpty, !isMerging || phase == .merged else { return nil }
         if status.sourceCount == 0 { return .noSources }
         if let errorMessage { return .failed(errorMessage) }
         if currentQuery.isEmpty, !isFindingSimilar { return .start }
         if status.pending > 0 { return .stillIndexing(pending: status.pending) }
-        return .noResults(lockedKinds: status.locked > 0)
+        return .noResults
     }
 }

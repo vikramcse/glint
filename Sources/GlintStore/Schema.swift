@@ -111,8 +111,7 @@ enum Schema {
     }
 }
 
-/// Processing state of a file row. Files whose kind needs a Pro feature simply stay pending
-/// (the indexer skips them), so a license change never rewrites rows.
+/// Processing state of a file row.
 public enum FileStatus: Int, Sendable, Codable {
     case pending = 0
     case indexed = 1

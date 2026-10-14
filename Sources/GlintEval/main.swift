@@ -220,7 +220,7 @@ case "query":
         let vectorIndex = FlatVectorIndex(space: provider.descriptor.space)
         let engine = SearchEngine(
             reader: try IndexReader(url: database), vectorIndex: vectorIndex, encoder: encoder,
-            thumbnails: ThumbnailStore(directory: paths.thumbnails), gate: FeatureGateBox(.pro))
+            thumbnails: ThumbnailStore(directory: paths.thumbnails))
         let loaded = try await engine.loadVectors()
         print("Loaded \(loaded) vectors in \(provider.descriptor.space); semantic cutoff \(encoder.minimumSimilarity)")
         let names = Dictionary(

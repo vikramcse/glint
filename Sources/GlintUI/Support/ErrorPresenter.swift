@@ -1,14 +1,11 @@
 import Foundation
 import GlintCore
-import GlintLicensing
 import GlintSearch
 
 /// The one place errors become user-facing text.
 public enum ErrorPresenter {
     public static func message(for error: any Error) -> String {
-        if let error = error as? LicenseError { return message(for: error) }
         if let error = error as? SearchError { return searchMessage(error) }
-        if let error = error as? EntitlementError { return entitlementMessage(error) }
         return categoryMessage(error.glintCategory)
     }
 
@@ -21,23 +18,8 @@ public enum ErrorPresenter {
         }
     }
 
-    private static func entitlementMessage(_ error: EntitlementError) -> String {
-        switch error {
-        case .sourceLimitReached(let limit):
-            String(localized: "Glint Free includes up to \(limit) folders. Upgrade to Pro to add more.")
-        case .externalDrivesRequirePro:
-            String(localized: "External drives need Glint Pro.")
-        case .itemLimitReached(let limit):
-            String(localized: "Glint Free indexes up to \(limit) items. Upgrade to Pro to index everything.")
-        case .photosLibraryRequiresPro:
-            String(localized: "Searching your Photos library needs Glint Pro.")
-        }
-    }
-
     private static func categoryMessage(_ category: ErrorCategory) -> String {
         switch category {
-        case .licensing:
-            String(localized: "This needs Glint Pro.")
         case .permissionDenied:
             String(
                 localized: "Glint doesn’t have permission to read this. You can grant access in System Settings › Privacy & Security.")
@@ -57,22 +39,6 @@ public enum ErrorPresenter {
             String(localized: "Cancelled.")
         case .internal:
             String(localized: "Something went wrong. Please try again.")
-        }
-    }
-
-    public static func message(for error: LicenseError) -> String {
-        switch error {
-        case .invalidKey: String(localized: "That doesn’t look like a Glint license key.")
-        case .tampered: String(localized: "This license key isn’t valid.")
-        case .wrongProduct: String(localized: "This key is for a different product.")
-        case .wrongVersion: String(localized: "This key is for a different version of Glint.")
-        case .wrongDevice: String(localized: "This activation belongs to another Mac. Activate the key again on this Mac.")
-        case .seatLimitReached:
-            String(localized: "This license is already active on 2 Macs. Deactivate one in its Settings or on the license page.")
-        case .revoked: String(localized: "This license was refunded and is no longer active.")
-        case .network: String(localized: "Glint couldn’t reach the license server. Check your connection and try again.")
-        case .server: String(localized: "The license server had a problem. Please try again later.")
-        case .storage: String(localized: "Glint couldn’t save the license to your keychain.")
         }
     }
 }

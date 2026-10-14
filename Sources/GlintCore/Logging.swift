@@ -12,12 +12,10 @@ public enum Log {
     public static let embedding = Logger(subsystem: subsystem, category: "embedding")
     public static let store = Logger(subsystem: subsystem, category: "store")
     public static let search = Logger(subsystem: subsystem, category: "search")
-    public static let licensing = Logger(subsystem: subsystem, category: "licensing")
-    public static let telemetry = Logger(subsystem: subsystem, category: "telemetry")
     public static let ui = Logger(subsystem: subsystem, category: "ui")
 }
 
-/// Signposts for every budgeted path in the Performance section of the PRD.
+/// Signposts for every budgeted search and indexing path.
 public enum Signposts {
     public static let search = OSSignposter(subsystem: Log.subsystem, category: .pointsOfInterest)
     public static let indexing = OSSignposter(subsystem: Log.subsystem, category: "indexing")

@@ -9,7 +9,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "6.0"
-    # Apple silicon only (PRD): Float16 vectors and MLX need arm64.
+    # Apple silicon only: Float16 vectors and MLX need arm64.
     ARCHS: arm64
     ONLY_ACTIVE_ARCH: YES
     MACOSX_DEPLOYMENT_TARGET: "15.0"

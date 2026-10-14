@@ -74,7 +74,7 @@ struct EvalReport: Codable, Sendable {
     var outcomes: [QueryOutcome]
 }
 
-/// Regression gates from the PRD: no metric may drop more than 1 point overall or 2 points
+/// Regression gates: no metric may drop more than 1 point overall or 2 points
 /// for any media type, and no must-pass query may fall out of the top 10.
 enum EvalGates {
     static func failures(report: EvalReport, baseline: EvalReport?) -> [String] {

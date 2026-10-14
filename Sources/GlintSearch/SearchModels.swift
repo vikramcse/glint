@@ -88,15 +88,12 @@ public struct SearchResult: Sendable, Hashable, Identifiable {
     public var match: MatchDetail
     public var score: Double
     public var sources: MatchSources
-    /// Visible but not openable without Pro (video and audio after a trial ends).
-    public var isLocked: Bool
 
-    public init(file: FileSummary, match: MatchDetail, score: Double, sources: MatchSources, isLocked: Bool) {
+    public init(file: FileSummary, match: MatchDetail, score: Double, sources: MatchSources) {
         self.file = file
         self.match = match
         self.score = score
         self.sources = sources
-        self.isLocked = isLocked
     }
 
     public var id: FileID { file.id }

@@ -417,15 +417,12 @@ struct QueryParserTests {
         #expect(parsed.tokens == [.kind(.video), .folder("Downloads"), .modifiedSince(.week)])
     }
 
-    @Test func freeTierOnlyAppliesKindFilters() {
+    @Test func appliesEveryFilterToken() {
         let parsed = QueryParser.parse("x kind:pdf in:Downloads date:today")
-        let free = parsed.filter(allowFullFilters: false, sources: ["/Users/a/Downloads"])
-        #expect(free.kinds == [.pdf])
-        #expect(free.folders.isEmpty)
-        #expect(free.modifiedAfter == nil)
-        let pro = parsed.filter(allowFullFilters: true, sources: ["/Users/a/Downloads"])
-        #expect(pro.folders == ["/Users/a/Downloads"])
-        #expect(pro.modifiedAfter != nil)
+        let filter = parsed.filter(sources: ["/Users/a/Downloads"])
+        #expect(filter.kinds == [.pdf])
+        #expect(filter.folders == ["/Users/a/Downloads"])
+        #expect(filter.modifiedAfter != nil)
     }
 
     @Test func unknownTokensStayInText() {

@@ -24,7 +24,6 @@ struct FilePipeline: Sendable {
     let vectorIndex: any VectorIndex
     let gate: PriorityGate
     let thumbnails: ThumbnailStore
-    let features: FeatureGateBox
     let options: IndexerOptions
     let embedder: EmbeddingBatcher
     let committer: CommitBatcher
@@ -125,7 +124,6 @@ struct FilePipeline: Sendable {
         _ stream: AsyncThrowingStream<Chunk, any Error>, record: FileRecord, contentHash: String
     ) async throws -> Streamed {
         var result = Streamed()
-        let snapshot = features.current
         var windows = EmbeddingWindows(
             embedder: embedder, size: max(1, options.embeddingBatchSize), maxInFlight: max(1, options.embeddingWindowsInFlight))
         var iterator = stream.makeAsyncIterator()
@@ -141,9 +139,8 @@ struct FilePipeline: Sendable {
                 let clock = Stopwatch()
                 let next = try await iterator.next()
                 result.extractSeconds += clock.seconds
-                guard let next else { break }
+                guard let chunk = next else { break }
                 try Task.checkCancellation()
-                guard let chunk = admitted(next, snapshot: snapshot) else { continue }
                 if result.writes.isEmpty {
                     result.media = FileMedia(duration: chunk.preview.duration, waveform: chunk.preview.waveform)
                 }
@@ -165,16 +162,6 @@ struct FilePipeline: Sendable {
             throw error
         }
         return result
-    }
-
-    /// The chunk as stored. Media the license doesn't cover loses its embedding input; a gated
-    /// chunk with nothing to keyword-index is dropped entirely.
-    private func admitted(_ chunk: Chunk, snapshot: FeatureGateSnapshot) -> Chunk? {
-        guard let required = chunk.requiredFeature, !snapshot.allows(required) else { return chunk }
-        var chunk = chunk
-        chunk.input = nil
-        if chunk.text?.isEmpty ?? true, chunk.preview.thumbnail == nil { return nil }
-        return chunk
     }
 
     /// One file's embedding inputs, sent to the embedding lane a window at a time.

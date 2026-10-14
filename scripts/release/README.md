@@ -28,7 +28,7 @@ These scripts take a built `Glint.app` from any build (`scripts/build_app.sh rel
    ```
 
    The private key goes into your login keychain. The tool prints the public key; put it in `App/Info.plist` as `SUPublicEDKey`. For CI, export it with `generate_keys -x sparkle-private.key` and set `SPARKLE_ED_KEY_FILE`.
-4. **Feed URL.** Set `SUFeedURL` in `App/Info.plist` to where `appcast.xml` will be hosted, for example `https://downloads.glint.app/appcast.xml`.
+4. **Feed URL.** Set `SUFeedURL` in `App/Info.plist` to where `appcast.xml` will be hosted, for example `https://example.com/glint/appcast.xml`.
 
    Until both `SUFeedURL` (https) and `SUPublicEDKey` are set, the app hides "Check for Updates…" and never starts Sparkle.
 
@@ -41,7 +41,7 @@ These scripts take a built `Glint.app` from any build (`scripts/build_app.sh rel
    ```sh
    SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
    NOTARY_PROFILE=glint-notary \
-   DOWNLOAD_URL_PREFIX=https://downloads.glint.app/ \
+   DOWNLOAD_URL_PREFIX=https://example.com/glint/ \
    scripts/release/release.sh build/Glint.app
    ```
 

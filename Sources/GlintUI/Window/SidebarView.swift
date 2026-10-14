@@ -14,17 +14,9 @@ struct SidebarView: View {
                     .badge(services.status.status.totalIndexed)
                     .tag(SidebarItem.all)
                 ForEach(MediaKind.allCases.sorted(), id: \.self) { kind in
-                    HStack {
-                        Label(kind.sectionTitle, systemImage: kind.symbolName)
-                        if !services.entitlements.allows(kind) {
-                            Image(systemName: "lock.fill")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .accessibilityLabel(Text("Requires Glint Pro"))
-                        }
-                    }
-                    .badge(services.status.status.indexed[kind] ?? 0)
-                    .tag(SidebarItem.kind(kind))
+                    Label(kind.sectionTitle, systemImage: kind.symbolName)
+                        .badge(services.status.status.indexed[kind] ?? 0)
+                        .tag(SidebarItem.kind(kind))
                 }
             }
             Section("Sources") {

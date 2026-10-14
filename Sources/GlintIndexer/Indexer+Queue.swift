@@ -23,7 +23,7 @@ extension Indexer {
             await runPool()
             if userPaused || power.pauseReason() != nil { continue }
             _ = try? await writer.failExhausted()
-            if case .paused(.itemLimitReached) = phase {} else { setPhase(.idle) }
+            setPhase(.idle)
             await publishStatus(force: true)
             await waitForWake(timeout: .seconds(300))
         }
@@ -85,19 +85,8 @@ extension Indexer {
     /// Claims the next few files in queue order, skipping files already in flight.
     private func refillQueue() async {
         defer { refill = nil }
-        let gate = features.current
-        var limit = max(2, options.concurrentFiles * 2)
-        if let itemLimit = gate.itemLimit {
-            let indexed = (try? await writer.counts().totalIndexed) ?? 0
-            let remaining = itemLimit - indexed - inFlight.count
-            if remaining <= 0 {
-                if indexed >= itemLimit { setPhase(.paused(.itemLimitReached)) }
-                queueExhausted = true
-                return
-            }
-            limit = min(limit, remaining)
-        }
-        var kinds = Set(MediaKind.allCases.filter { gate.allows($0) })
+        let limit = max(2, options.concurrentFiles * 2)
+        var kinds = Set(MediaKind.allCases)
         if options.videoOnlyOnPower, power.isOnBattery { kinds.remove(.video) }
         let claimed = (try? await writer.claimPending(limit: limit, kinds: kinds, excluding: inFlight)) ?? []
         if claimed.isEmpty {

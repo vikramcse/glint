@@ -21,12 +21,7 @@ struct ResultRow: View {
                         .font(.body.weight(.medium))
                         .lineLimit(1)
                         .truncationMode(.middle)
-                    if result.isLocked {
-                        Image(systemName: "lock.fill")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .help(Text("Requires Glint Pro"))
-                    } else if !result.file.isIndexed {
+                    if !result.file.isIndexed {
                         Label("Not indexed yet", systemImage: "clock")
                             .labelStyle(.iconOnly)
                             .font(.caption)
@@ -42,7 +37,6 @@ struct ResultRow: View {
         }
         .padding(.vertical, 4)
         .contentShape(.rect)
-        .opacity(result.isLocked ? 0.6 : 1)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(AccessibilityText.label(for: result)))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
@@ -90,7 +84,7 @@ struct ResultRow: View {
     }
 
     @ViewBuilder private var trailing: some View {
-        if let playback, let range = result.match.locator.timeRange, !result.isLocked {
+        if let playback, let range = result.match.locator.timeRange {
             Button {
                 playback.toggle(id: result.id, url: result.file.url, start: range.lowerBound, duration: result.file.duration)
             } label: {
@@ -139,13 +133,6 @@ struct ResultTile: View {
                         .background(.thinMaterial, in: .capsule)
                         .padding(5)
                 }
-                if result.isLocked {
-                    Image(systemName: "lock.fill")
-                        .padding(6)
-                        .background(.thinMaterial, in: .circle)
-                        .padding(5)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                }
             }
             .aspectRatio(4 / 3, contentMode: .fit)
             Text(result.file.name)
@@ -153,7 +140,6 @@ struct ResultTile: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
         }
-        .opacity(result.isLocked ? 0.6 : 1)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(AccessibilityText.label(for: result)))
     }

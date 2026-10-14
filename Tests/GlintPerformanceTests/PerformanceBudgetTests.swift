@@ -6,7 +6,7 @@ import GlintStore
 import GlintTestSupport
 import Testing
 
-/// Performance budgets from the PRD, measured at the specified scale (100k chunks, 512 d).
+/// Performance budgets, measured at the specified scale (100k chunks, 512 d).
 /// Budgets are set for the M1 8 GB floor; a change that breaks one does not merge.
 ///
 /// Run with `GLINT_PERF=1 swift test -c release --filter GlintPerformanceTests`.
@@ -81,7 +81,7 @@ struct PerformanceBudgetTests {
         let engine = SearchEngine(
             reader: try IndexReader(url: url), vectorIndex: index,
             encoder: GatedQueryEncoder(provider: PerfEncoder(space: space), gate: PriorityGate()),
-            thumbnails: ThumbnailStore(directory: directory.url), gate: FeatureGateBox(.pro)
+            thumbnails: ThumbnailStore(directory: directory.url)
         )
         let loaded = try await engine.loadVectors()
         #expect(loaded == Self.chunkCount)

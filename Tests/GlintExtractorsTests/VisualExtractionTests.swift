@@ -26,11 +26,9 @@ struct PDFExtractorTests {
 
         #expect(chunks[0].text?.contains("Acme pitch") == true)
         #expect(chunks[2].text?.contains("pricing tiers") == true)
-        #expect(chunks[0].requiredFeature == nil)
 
         for visual in [chunks[1], chunks[3]] {
             #expect(visual.text == nil)
-            #expect(visual.requiredFeature == .pdfVisualSearch)
             guard case .image(let image) = visual.input else {
                 Issue.record("Expected an image input")
                 continue
@@ -58,7 +56,7 @@ struct PDFExtractorTests {
         let url = try Fixtures.writePDF(pages: [""], in: directory.url)
         let chunks = try await collect(extractor, url)
         #expect(chunks.count == 1)
-        #expect(chunks[0].requiredFeature == .pdfVisualSearch)
+        #expect(chunks[0].input != nil)
         #expect(chunks[0].preview.thumbnailKey == "p0")
     }
 

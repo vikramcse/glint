@@ -4,7 +4,7 @@
 
 ## Context
 
-The PRD calls for direct distribution (Developer ID, notarized, not the Mac App Store) with updates through Sparkle, EdDSA-signed appcasts, and release notes shown in the app. The engineering standards require an ADR for any new third-party dependency.
+Glint ships by direct distribution (Developer ID, notarized, not the Mac App Store) with updates through Sparkle, EdDSA-signed appcasts, and release notes shown in the app. The engineering standards require an ADR for any new third-party dependency.
 
 ## Decision
 
@@ -17,7 +17,7 @@ The PRD calls for direct distribution (Developer ID, notarized, not the Mac App 
 ## Alternatives considered
 
 - **Hand-rolled updater.** Rejected: signature verification, delta updates, and installation outside the sandbox are exactly what Sparkle solves, and it is the de facto standard for direct-download Mac apps.
-- **Mac App Store updates.** Ruled out: the PRD excludes the Mac App Store at 1.0.
+- **Mac App Store updates.** Ruled out: Glint isn't distributed through the Mac App Store at 1.0.
 
 ## Consequences
 

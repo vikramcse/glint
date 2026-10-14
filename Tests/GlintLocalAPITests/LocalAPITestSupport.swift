@@ -18,7 +18,7 @@ struct FakeEncoder: QueryEncoding {
 }
 
 actor FakeIndexing: IndexingService {
-    var status = IndexStatus(phase: .indexing, indexed: [.image: 1, .audio: 1, .pdf: 1], pending: 4, locked: 2, sourceCount: 1)
+    var status = IndexStatus(phase: .indexing, indexed: [.image: 1, .audio: 1, .pdf: 1], pending: 4, sourceCount: 1)
     var folders: [SourceInfo] = []
 
     func setSources(_ sources: [SourceInfo]) { folders = sources }
@@ -32,20 +32,18 @@ actor FakeIndexing: IndexingService {
     func exclusions() async -> ExclusionRules { .default }
     func pause() async {}
     func resume() async {}
-    func entitlementsDidChange() async {}
     func deleteIndex() async throws {}
 }
 
 /// A small real index: files on disk under a temp folder, committed with fixed vectors.
 struct APIHarness {
     let router: LocalAPIRouter
-    let features: FeatureGateBox
     let library: URL
     let directory: TemporaryDirectory
     static let token = String(repeating: "ab", count: 32)
     static let port: UInt16 = 4_242
 
-    static func make(gate: FeatureGateSnapshot = .pro) async throws -> APIHarness {
+    static func make() async throws -> APIHarness {
         let directory = try TemporaryDirectory(prefix: "glint-api")
         let library = try directory.subdirectory("Library")
         let url = directory.url.appendingPathComponent("index.sqlite")
@@ -77,13 +75,11 @@ struct APIHarness {
                 chunks: [ChunkWrite(ordinal: 0, locator: entry.4, text: entry.2, thumbnail: nil, vector: vector)])
         }
 
-        let features = FeatureGateBox(gate)
         let engine = SearchEngine(
             reader: try IndexReader(url: url),
             vectorIndex: FlatVectorIndex(space: space, useGPU: false),
             encoder: FakeEncoder(space: space),
-            thumbnails: ThumbnailStore(directory: try directory.subdirectory("Thumbnails")),
-            gate: features
+            thumbnails: ThumbnailStore(directory: try directory.subdirectory("Thumbnails"))
         )
         try await engine.loadVectors()
         let indexing = FakeIndexing()
@@ -92,8 +88,8 @@ struct APIHarness {
                 id: source, path: library.path, isExternalVolume: false, isAccessible: true, itemCount: 6,
                 indexed: 4, pending: 2)
         ])
-        let router = LocalAPIRouter(engine: engine, indexing: indexing, features: features, token: token)
-        return APIHarness(router: router, features: features, library: library, directory: directory)
+        let router = LocalAPIRouter(engine: engine, indexing: indexing, token: token)
+        return APIHarness(router: router, library: library, directory: directory)
     }
 
     static func request(

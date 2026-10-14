@@ -15,7 +15,7 @@ public enum SourceAdder {
         return await add(urls, services: services)
     }
 
-    /// Adds `urls` as sources. Stops at a Pro limit and shows the upgrade sheet.
+    /// Adds `urls` as sources.
     @discardableResult
     public static func add(_ urls: [URL], services: GlintServices) async -> String? {
         guard !urls.isEmpty else { return nil }
@@ -23,10 +23,6 @@ public enum SourceAdder {
         for url in urls {
             do {
                 try await services.indexing.addSource(url)
-            } catch let error as EntitlementError {
-                failures.append(ErrorPresenter.message(for: error))
-                services.actions?.showUpgrade(.sourceLimit)
-                break
             } catch {
                 failures.append("\(url.lastPathComponent): \(ErrorPresenter.message(for: error))")
             }

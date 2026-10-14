@@ -4,7 +4,7 @@
 
 ## Context
 
-EmbeddingGemma 2 (Apache-2.0, 6 Oct 2026) maps text, images, video and audio into one 768-d space. The PRD makes it the default model and requires a native Swift runtime with a parity gate (cosine ≥ 0.999 against the Python reference, identical token ids).
+EmbeddingGemma 2 (Apache-2.0, 6 Oct 2026) maps text, images, video and audio into one 768-d space. Glint makes it the default model, which requires a native Swift runtime with a parity gate (cosine ≥ 0.999 against the Python reference, identical token ids).
 
 ## Decision
 
@@ -15,7 +15,7 @@ EmbeddingGemma 2 (Apache-2.0, 6 Oct 2026) maps text, images, video and audio int
   - Vision tower: adapted from mlx-swift-lm's Swift Gemma 4 (MIT).
   - Pillow's bicubic resampler is reimplemented bit-exactly so image pixels match the reference.
 - **Checkpoint:** `mlx-community/embeddinggemma-2-bf16` (1.49 GB, Google source revision 914f7f8), downloaded once and checksum-verified (see ModelStore).
-- **Default output: 512 d.** Matryoshka-truncated and re-normalized, per the model guide. 768/256 are Pro presets.
+- **Default output: 512 d.** Matryoshka-truncated and re-normalized, per the model guide. 768/256 are optional presets.
 - **Text path:** compiled with `MLX.compile` and padded to length buckets, so fused graphs are reused.
 - **Build:** MLX's Metal kernels cannot be built by `swift build`. Apps, model tests and benchmarks build with `xcodebuild` (Release for anything timed — Debug MLX is 3–4× slower). The Metal Toolchain component must be installed once: `xcodebuild -downloadComponent MetalToolchain`.
 

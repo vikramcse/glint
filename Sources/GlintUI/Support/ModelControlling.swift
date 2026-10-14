@@ -39,7 +39,7 @@ public protocol ModelControlling: AnyObject, Observable {
     func download()
     func cancelDownload()
     func remove()
-    /// Pro: 768 (best), 512 (balanced, default), 256 (compact). Re-embeds in the background.
+    /// 768 (best), 512 (balanced, default), 256 (compact). Re-embeds in the background.
     func setDimensions(_ dimensions: Int)
 }
 

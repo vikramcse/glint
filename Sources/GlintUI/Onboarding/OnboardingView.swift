@@ -9,7 +9,6 @@ public struct OnboardingView: View {
     @State private var choices = SuggestedFolder.defaults()
     @State private var extraFolders: [URL] = []
     @State private var isFinishing = false
-    @State private var startedAt = Date()
     @State private var downloadModel = true
 
     /// - Parameter suggestions: folders to pre-select; `nil` suggests Desktop, Documents,
@@ -108,10 +107,6 @@ public struct OnboardingView: View {
                     }
                 }
             }
-            if let limit = services.entitlements.snapshot.sourceLimit, selectedFolders.count > limit {
-                Text("Glint Free includes \(limit) folders. Your Pro trial covers the rest for 14 days.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
         }
     }
 
@@ -139,14 +134,6 @@ public struct OnboardingView: View {
                     }
                 }
             }
-            Divider()
-            Toggle(isOn: $settings.analyticsEnabled) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Share anonymous usage statistics")
-                    Text("Helps make Glint faster. Never includes searches, file names or contents. You can change this in Settings.")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-            }
             Spacer()
         }
     }
@@ -163,8 +150,6 @@ public struct OnboardingView: View {
         if downloadModel { services.models?.download() }
         Task {
             let failures = await SourceAdder.add(folders, services: services)
-            let added = services.status.sources.count
-            services.report(.onboardingCompleted(sourceCount: added, duration: Date().timeIntervalSince(startedAt)))
             services.settings.hasCompletedOnboarding = true
             onFinish()
             if let failures { services.actions?.presentError(failures) }

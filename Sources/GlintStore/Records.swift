@@ -162,7 +162,7 @@ public struct KeywordHit: Sendable, Hashable {
     }
 }
 
-/// A saved search (Pro).
+/// A saved search.
 public struct SavedSearch: Sendable, Hashable, Identifiable, Codable {
     public var id: Int64
     public var name: String

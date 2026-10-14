@@ -3,7 +3,7 @@
 //   claude mcp add glint -- /Applications/Glint.app/Contents/MacOS/glint-mcp
 //
 // Reads one JSON-RPC message per line from stdin and writes one per line to stdout. Logs go
-// to stderr only. Requires Glint to be running with the local API turned on (Pro).
+// to stderr only. Requires Glint to be running with the local API turned on.
 
 import Foundation
 import GlintMCP

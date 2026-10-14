@@ -13,3 +13,6 @@ Evals/coco-train/
 Evals/scifact/
 Evals/mixed/
 Xcode/
+default.profraw
+*.profraw
+temp

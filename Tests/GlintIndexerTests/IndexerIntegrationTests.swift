@@ -53,7 +53,7 @@ private final class Harness: Sendable {
     let provider: CountingProvider
     let writer: IndexWriter
 
-    init(gate: FeatureGateSnapshot = .pro, power: FixedPowerMonitor = FixedPowerMonitor(), root existingRoot: URL? = nil) throws {
+    init(power: FixedPowerMonitor = FixedPowerMonitor(), root existingRoot: URL? = nil) throws {
         root = existingRoot ?? FileManager.default.temporaryDirectory.appendingPathComponent("glint-indexer-\(UUID().uuidString)")
         library = root.appendingPathComponent("Library", isDirectory: true)
         try FileManager.default.createDirectory(at: library, withIntermediateDirectories: true)
@@ -62,18 +62,17 @@ private final class Harness: Sendable {
 
         provider = CountingProvider()
         writer = try IndexWriter(url: paths.database)
-        let features = FeatureGateBox(gate)
         let vectorIndex = FlatVectorIndex(space: provider.descriptor.space, useGPU: false)
         let priority = PriorityGate(quietPeriod: .milliseconds(1))
         let thumbnails = ThumbnailStore(directory: paths.thumbnails)
         indexer = Indexer(
             writer: writer, extractors: [LineExtractor()], provider: provider, vectorIndex: vectorIndex, gate: priority,
-            thumbnails: thumbnails, features: features, power: power,
+            thumbnails: thumbnails, power: power,
             options: IndexerOptions(concurrentFiles: 2, watcherLatency: 0.1)
         )
         engine = SearchEngine(
             reader: try IndexReader(url: paths.database), vectorIndex: vectorIndex,
-            encoder: GatedQueryEncoder(provider: provider, gate: priority), thumbnails: thumbnails, gate: features
+            encoder: GatedQueryEncoder(provider: provider, gate: priority), thumbnails: thumbnails
         )
     }
 
@@ -224,19 +223,8 @@ struct IndexerIntegrationTests {
         await relaunched.indexer.stop()
     }
 
-    @Test func freeTierItemLimitPausesWithoutDeleting() async throws {
-        let harness = try Harness(gate: FeatureGateSnapshot(enabled: [], itemLimit: 2, sourceLimit: 3))
-        for index in 0..<4 { try harness.write("\(index).txt", "note \(index)") }
-        try await harness.indexer.addSource(harness.library)
-        await harness.indexer.drain()
-        let status = await harness.indexer.currentStatus()
-        #expect(status.totalIndexed == 2)
-        #expect(status.pending == 2)
-        #expect(status.phase == .paused(.itemLimitReached))
-    }
-
     @Test func sourcesReportPerFolderProgress() async throws {
-        let harness = try Harness(gate: .free)
+        let harness = try Harness()
         try harness.write("a.txt", "alpha")
         try harness.write("b.txt", "beta")
         try harness.write("memo.m4a", "audio")
@@ -244,38 +232,20 @@ struct IndexerIntegrationTests {
         try await harness.indexer.addSource(harness.library)
         var source = try #require(try await harness.indexer.sources().first)
         #expect(source.itemCount == 4)
-        #expect(source.pending == 3)
-        #expect(source.locked == 1)
+        #expect(source.pending == 4)
         #expect(!source.isComplete)
 
         await harness.indexer.drain()
         source = try #require(try await harness.indexer.sources().first)
-        #expect(source.indexed == 2)
+        #expect(source.indexed == 3)
         #expect(source.failed == 1)
-        #expect(source.locked == 1)
         #expect(source.pending == 0)
         #expect(source.isComplete)
     }
 
-    @Test func freeTierLeavesAudioLocked() async throws {
-        let harness = try Harness(gate: .free)
-        try harness.write("memo.m4a", "not really audio")
-        try harness.write("note.txt", "text")
+    @Test func powerPolicyPausesIndexing() async throws {
+        let harness = try Harness(power: FixedPowerMonitor(reason: .thermal))
         try await harness.indexer.addSource(harness.library)
-        await harness.indexer.drain()
-        let status = await harness.indexer.currentStatus()
-        #expect(status.locked == 1)
-        #expect(status.indexed[.audio] == nil)
-    }
-
-    @Test func sourceLimitAndPowerPolicy() async throws {
-        let harness = try Harness(
-            gate: FeatureGateSnapshot(enabled: [], itemLimit: nil, sourceLimit: 1), power: FixedPowerMonitor(reason: .thermal))
-        try FileManager.default.createDirectory(at: harness.root.appendingPathComponent("Other"), withIntermediateDirectories: true)
-        try await harness.indexer.addSource(harness.library)
-        await #expect(throws: EntitlementError.sourceLimitReached(limit: 1)) {
-            try await harness.indexer.addSource(harness.root.appendingPathComponent("Other"))
-        }
 
         await harness.indexer.start()
         let deadline = ContinuousClock.now + .seconds(5)

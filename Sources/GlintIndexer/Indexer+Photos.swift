@@ -7,9 +7,8 @@ import GlintStore
 // MARK: Photos library
 
 extension Indexer {
-    /// Adds the Photos library as a source (Pro). Asks for Photos access the first time.
+    /// Adds the Photos library as a source. Asks for Photos access the first time.
     func addPhotosLibrary() async throws -> SourceInfo {
-        guard features.current.allows(.photosLibrary) else { throw EntitlementError.photosLibraryRequiresPro }
         guard let photos else { throw IndexerError.sourceUnreadable }
         var status = photos.authorizationStatus()
         if status == .notDetermined { status = await photos.requestAuthorization() }

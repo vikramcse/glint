@@ -9,7 +9,7 @@
 # Signing key: by default generate_appcast reads the EdDSA private key from the login
 # keychain (created once with Sparkle's generate_keys). In CI set SPARKLE_ED_KEY_FILE.
 #
-#   DOWNLOAD_URL_PREFIX=https://downloads.glint.app/ scripts/release/appcast.sh build/release
+#   DOWNLOAD_URL_PREFIX=https://example.com/glint/ scripts/release/appcast.sh build/release
 source "$(dirname "$0")/common.sh"
 
 UPDATES="${1:-$RELEASE_ROOT/build/release}"

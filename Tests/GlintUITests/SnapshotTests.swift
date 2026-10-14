@@ -1,6 +1,5 @@
 import AppKit
 import GlintCore
-import GlintLicensing
 import GlintSearch
 import SwiftUI
 import Testing
@@ -33,34 +32,15 @@ struct SnapshotTests {
                 result: .fixture(name: "standup.txt", kind: .document, snippet: "The client mentioned the deadline is Friday the 19th"),
                 isSelected: false)
             ResultRow(
-                result: {
-                    var locked = SearchResult.fixture(name: "Interview.mov", kind: .video, locator: .time(start: 61, end: 66));
-                    locked.isLocked = true; return locked
-                }(), isSelected: false)
+                result: .fixture(name: "Interview.mov", kind: .video, locator: .time(start: 61, end: 66)), isSelected: false)
         }
         .padding()
         .frame(width: 640)
     }
 
-    static var licenseStates: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            LicenseStatusRow(state: .trial(daysLeft: 9, endsAt: Date(timeIntervalSince1970: 1_800_000_000)))
-            LicenseStatusRow(state: .trialExpired)
-            LicenseStatusRow(state: .revoked)
-            LicenseStatusRow(state: .seatLimitReached)
-        }
-        .padding()
-        .frame(width: 520)
-    }
-
     @Test(arguments: [ColorScheme.light, .dark])
     func rendersResultRows(scheme: ColorScheme) throws {
         try render(Self.rows, name: "result-rows", scheme: scheme)
-    }
-
-    @Test(arguments: [ColorScheme.light, .dark])
-    func rendersLicenseStates(scheme: ColorScheme) throws {
-        try render(Self.licenseStates, name: "license-states", scheme: scheme)
     }
 
     @Test func rendersWaveformWithHighlight() throws {

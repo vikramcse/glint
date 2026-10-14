@@ -34,7 +34,7 @@ struct IndexingThroughputTests {
         let indexer = Indexer(
             writer: try IndexWriter(url: paths.database), extractors: ExtractorRegistry.standard(transcriber: nil).extractors,
             provider: provider, vectorIndex: FlatVectorIndex(space: provider.descriptor.space), gate: PriorityGate(),
-            thumbnails: ThumbnailStore(directory: paths.thumbnails), features: FeatureGateBox(.pro), power: FixedPowerMonitor()
+            thumbnails: ThumbnailStore(directory: paths.thumbnails), power: FixedPowerMonitor()
         )
         let stopwatch = Stopwatch()
         try await indexer.addSource(folder)

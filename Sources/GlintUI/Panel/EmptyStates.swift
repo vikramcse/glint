@@ -28,19 +28,11 @@ struct PanelEmptyState: View {
             } description: {
                 Text("Glint is still indexing \(pending.formatted()) items. Results appear as soon as they’re ready.")
             }
-        case .noResults(let lockedKinds):
+        case .noResults:
             ContentUnavailableView {
                 Label("No Results", systemImage: "magnifyingglass")
             } description: {
-                if lockedKinds {
-                    Text("Try different words. Video and audio files are not searched on Glint Free.")
-                } else {
-                    Text("Try different words, or check that the folder is one of your sources.")
-                }
-            } actions: {
-                if lockedKinds {
-                    Button("Learn About Pro") { services.actions?.showUpgrade(.lockedResult) }
-                }
+                Text("Try different words, or check that the folder is one of your sources.")
             }
         case .failed(let message):
             ContentUnavailableView {

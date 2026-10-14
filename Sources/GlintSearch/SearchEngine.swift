@@ -35,7 +35,6 @@ public actor SearchEngine {
     private var encoder: (any QueryEncoding)?
     private var exampleEncoder: (any ExampleEncoder)?
     private let thumbnails: ThumbnailStore
-    private let gate: FeatureGateBox
     private var ranker: HybridRanker
     private let now: @Sendable () -> Date
     private var keywordCache: KeywordCache?
@@ -57,7 +56,6 @@ public actor SearchEngine {
         encoder: (any QueryEncoding)?,
         exampleEncoder: (any ExampleEncoder)? = nil,
         thumbnails: ThumbnailStore,
-        gate: FeatureGateBox,
         ranker: HybridRanker = HybridRanker(),
         resultLimit: Int = 60,
         looseKeywordLimit: Int? = 3,
@@ -71,7 +69,6 @@ public actor SearchEngine {
         self.encoder = encoder
         self.exampleEncoder = exampleEncoder
         self.thumbnails = thumbnails
-        self.gate = gate
         self.ranker = ranker
         if let encoder {
             self.ranker.minimumSimilarity = encoder.minimumSimilarity
@@ -225,7 +222,6 @@ public actor SearchEngine {
     public func recent(kinds: Set<MediaKind>, limit: Int, offset: Int = 0) async throws -> [SearchResult] {
         let records = try await reader.recentFiles(kinds: kinds, limit: limit, offset: offset)
         let firstChunks = try await reader.firstChunks(of: records.map(\.id))
-        let snapshot = gate.current
         return records.map { record in
             let chunk = firstChunks[record.id]
             return SearchResult(
@@ -235,7 +231,7 @@ public actor SearchEngine {
                     snippet: chunk?.text.map { Snippet.make(from: $0, terms: []) },
                     thumbnailURL: chunk?.thumbnail.map(thumbnails.url(forRelativePath:))
                 ),
-                score: 0, sources: [], isLocked: !snapshot.allows(record.kind)
+                score: 0, sources: []
             )
         }
     }
@@ -284,7 +280,6 @@ public actor SearchEngine {
         let files = try await reader.files(top.map(\.fileID))
         let chunks = try await reader.chunks(top.compactMap(\.bestChunk))
         let fallbacks = try await reader.firstChunks(of: top.filter { $0.bestChunk == nil }.map(\.fileID))
-        let snapshot = gate.current
 
         return top.compactMap { ranked -> SearchResult? in
             guard let record = files[ranked.fileID] else { return nil }
@@ -299,8 +294,7 @@ public actor SearchEngine {
                     thumbnailURL: chunk?.thumbnail.map(thumbnails.url(forRelativePath:))
                 ),
                 score: ranked.score,
-                sources: ranked.sources,
-                isLocked: !snapshot.allows(record.kind)
+                sources: ranked.sources
             )
         }
     }

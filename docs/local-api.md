@@ -1,4 +1,4 @@
-# Local API and MCP server (Pro)
+# Local API and MCP server
 
 When **Settings › Privacy › Allow apps and agents to search Glint** is on, Glint runs a small HTTP/JSON server on `127.0.0.1`.
 It's how scripts and AI agents on this Mac can search the index.
@@ -25,14 +25,13 @@ The server rejects these requests:
 | A `Host` other than `127.0.0.1:<port>` or `localhost:<port>` (DNS-rebinding defence) | 403 |
 | Bodies over 64 KB | 413 |
 | Chunked bodies | 501 |
-| Users without Pro | 402 `pro_required` |
 
 ## Endpoints
 
 | Method | Path | Body | Returns |
 | --- | --- | --- | --- |
-| GET | `/v1/status` | — | `phase`, `pauseReason?`, `indexed{kind:n}`, `totalIndexed`, `pending`, `locked`, `failed`, `sources` |
-| GET | `/v1/sources` | — | `sources[]`: `path`, `name`, `accessible`, `external`, `items`, `indexed`, `pending`, `locked`, `failed`, `complete` |
+| GET | `/v1/status` | — | `phase`, `pauseReason?`, `indexed{kind:n}`, `totalIndexed`, `pending`, `failed`, `sources` |
+| GET | `/v1/sources` | — | `sources[]`: `path`, `name`, `accessible`, `external`, `items`, `indexed`, `pending`, `failed`, `complete` |
 | POST | `/v1/search` | `{query, kinds?, limit?, folders?, modifiedAfter?}` | `results[]` |
 | POST | `/v1/similar` | `{path, limit?}` (absolute path) | `results[]` |
 
@@ -46,7 +45,6 @@ Each result has these fields:
 - `page`: 1-based, for PDF matches.
 - `start` and `end`: seconds, for audio and video matches.
 - `snippet`
-- `locked`: visible but needs Pro to open.
 - `indexed`: false when the file matched by name only.
 
 Errors use the body `{"error": {"code": "...", "message": "..."}}`.

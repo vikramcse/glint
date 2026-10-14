@@ -5,11 +5,10 @@ import Testing
 
 @testable import GlintUI
 
-private func source(items: Int, indexed: Int = 0, pending: Int = 0, locked: Int = 0, failed: Int = 0, accessible: Bool = true) -> SourceInfo
-{
+private func source(items: Int, indexed: Int = 0, pending: Int = 0, failed: Int = 0, accessible: Bool = true) -> SourceInfo {
     SourceInfo(
         id: SourceID(1), path: "/Users/demo/Footage", isExternalVolume: false, isAccessible: accessible, itemCount: items,
-        indexed: indexed, pending: pending, locked: locked, failed: failed
+        indexed: indexed, pending: pending, failed: failed
     )
 }
 
@@ -27,10 +26,10 @@ struct SourceIndexStateTests {
         #expect(SourceIndexState(source: source(items: 10, indexed: 4, pending: 6, accessible: false), phase: .idle) == .unreadable)
     }
 
-    @Test func lockedFilesDoNotBlockCompletion() {
-        let free = source(items: 12, indexed: 10, locked: 2)
-        #expect(SourceIndexState(source: free, phase: .idle) == .complete(indexed: 10))
-        #expect(SourceStatusView.footnote(for: free) == "2 video and audio files need Pro")
+    @Test func failedFilesDoNotBlockCompletion() {
+        let source = source(items: 12, indexed: 10, failed: 2)
+        #expect(SourceIndexState(source: source, phase: .idle) == .complete(indexed: 10))
+        #expect(SourceStatusView.footnote(for: source) == "2 couldn’t be read")
     }
 
     @Test func titlesAndProgress() {
@@ -49,7 +48,7 @@ struct SourceStatusSnapshotTests {
     func rendersEveryState(scheme: ColorScheme) throws {
         let rows: [(String, SourceInfo, IndexStatus.Phase)] = [
             ("Footage", source(items: 5_310, indexed: 1_204, pending: 4_106), .indexing),
-            ("Documents", source(items: 812, indexed: 800, locked: 9, failed: 3), .idle),
+            ("Documents", source(items: 812, indexed: 800, failed: 3), .idle),
             ("Downloads", source(items: 300, indexed: 120, pending: 180), .paused(.user)),
             ("Desktop", source(items: 0), .scanning),
             ("Backup Drive", source(items: 40, accessible: false), .idle),

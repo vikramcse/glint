@@ -68,7 +68,7 @@ struct TextChunkerTests {
         #expect(pieces.map(\.text) == ["supercalifragilistic", String(repeating: "x", count: 5_000)])
     }
 
-    @Test func defaultSizesFollowThePRD() {
+    @Test func defaultChunkSizes() {
         let chunker = TextChunker()
         #expect(chunker.wordsPerChunk == 393)
         #expect(chunker.overlapWords == 49)

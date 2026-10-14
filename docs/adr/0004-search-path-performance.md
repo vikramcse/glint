@@ -8,7 +8,7 @@ Budgets (p95 on an M1 8 GB): vector scan of 100k chunks at 512 d ≤ 20 ms, keys
 
 ## Decision
 
-**Vectors.** `FlatVectorIndex` keeps every vector of the active space in one contiguous `Float16` matrix allocated as a shared-storage `MTLBuffer`, so the CPU writes rows and the GPU reads them with no copies. A query is one Metal kernel (one thread per row, `half4` loads, float accumulation) and a bounded top-k heap. Rows are removed by swapping in the last row. A CPU path (vImage half→float conversion plus `vDSP_mmul`) is the fallback and the test oracle. 100k × 512 halves is about 100 MB, inside the 500 MB idle budget, so the quantized coarse scan from the PRD is deferred until libraries exceed the memory budget.
+**Vectors.** `FlatVectorIndex` keeps every vector of the active space in one contiguous `Float16` matrix allocated as a shared-storage `MTLBuffer`, so the CPU writes rows and the GPU reads them with no copies. A query is one Metal kernel (one thread per row, `half4` loads, float accumulation) and a bounded top-k heap. Rows are removed by swapping in the last row. A CPU path (vImage half→float conversion plus `vDSP_mmul`) is the fallback and the test oracle. 100k × 512 halves is about 100 MB, inside the 500 MB idle budget, so the quantized coarse scan is deferred until libraries exceed the memory budget.
 
 **Keywords.** BM25 ranks at most the newest 5,000 FTS matches (`IndexReader.rankingWindow`), selected with a rowid range so FTS5 stays on its fast path (an `IN` list was 1,000× slower). Everything still matches; only the ranking window is capped. Without this, a two-letter prefix on a large library ranked every match (113 ms p95 in the budget suite).
 

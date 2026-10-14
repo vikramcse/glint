@@ -16,7 +16,7 @@ actor FakeClient: LocalAPIClient {
         switch path {
         case "/v1/status":
             return Data(
-                #"{"phase":"paused","pauseReason":"lowBattery","totalIndexed":120,"pending":30,"locked":4,"failed":0,"indexed":{"image":100},"sources":1}"#
+                #"{"phase":"paused","pauseReason":"lowBattery","totalIndexed":120,"pending":30,"failed":0,"indexed":{"image":100},"sources":1}"#
                     .utf8)
         default:
             return Data(#"{"sources":[{"path":"/Users/a/Footage","indexed":10,"items":12,"accessible":true,"complete":false}]}"#.utf8)
@@ -27,7 +27,7 @@ actor FakeClient: LocalAPIClient {
         requests.append((path, try? JSONValue.parse(body)))
         if let failure { throw failure }
         return Data(
-            #"{"results":[{"path":"/Users/a/Festival.mov","name":"Festival.mov","kind":"video","score":0.03,"start":724,"end":729,"locked":false,"indexed":true},{"path":"/Users/a/deck.pdf","name":"deck.pdf","kind":"pdf","score":0.02,"page":3,"snippet":"Pricing chart","locked":false,"indexed":true}]}"#
+            #"{"results":[{"path":"/Users/a/Festival.mov","name":"Festival.mov","kind":"video","score":0.03,"start":724,"end":729,"indexed":true},{"path":"/Users/a/deck.pdf","name":"deck.pdf","kind":"pdf","score":0.02,"page":3,"snippet":"Pricing chart","indexed":true}]}"#
                 .utf8)
     }
 }
@@ -123,7 +123,6 @@ struct MCPServerTests {
         let statusText = status["result"]?["content"]?.decodedArray?.first?["text"]?.stringValue ?? ""
         #expect(statusText.contains("indexed 120 files"))
         #expect(statusText.contains("paused (lowBattery)"))
-        #expect(statusText.contains("4 video and audio files need Glint Pro"))
 
         let sources = try decode(await server.handle(line: message(2, "tools/call", #"{"name":"list_sources","arguments":{}}"#)))
         #expect(
@@ -167,7 +166,7 @@ struct DiscoveryClientTests {
     }
 
     @Test func extractsErrorMessages() {
-        #expect(DiscoveryHTTPClient.message(in: Data(#"{"error":{"code":"x","message":"Needs Pro"}}"#.utf8)) == "Needs Pro")
+        #expect(DiscoveryHTTPClient.message(in: Data(#"{"error":{"code":"x","message":"Try again"}}"#.utf8)) == "Try again")
         #expect(DiscoveryHTTPClient.message(in: Data("nope".utf8)) == nil)
     }
 }

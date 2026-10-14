@@ -7,16 +7,14 @@ import GlintSearch
 public struct LocalAPIRouter: Sendable {
     public let engine: SearchEngine
     public let indexing: any IndexingService
-    public let features: FeatureGateBox
     public let token: String
     public static let defaultLimit = 20
     public static let maxLimit = 100
     public static let maxQueryLength = 1_000
 
-    public init(engine: SearchEngine, indexing: any IndexingService, features: FeatureGateBox, token: String) {
+    public init(engine: SearchEngine, indexing: any IndexingService, token: String) {
         self.engine = engine
         self.indexing = indexing
-        self.features = features
         self.token = token
     }
 
@@ -69,9 +67,6 @@ public struct LocalAPIRouter: Sendable {
             return Self.error(
                 401, "unauthorized", "Missing or wrong bearer token. Read it from ~/Library/Application Support/Glint/api.json.")
         }
-        guard features.current.allows(.localAPI) else {
-            return Self.error(402, "pro_required", "The local API is part of Glint Pro. Upgrade in Glint › Settings › License.")
-        }
         if request.method == "POST", let type = request.headers["content-type"], !type.lowercased().hasPrefix("application/json") {
             return Self.error(415, "unsupported_media_type", "Send JSON with Content-Type: application/json.")
         }
@@ -113,9 +108,6 @@ public struct LocalAPIRouter: Sendable {
     }
 
     private func similar(_ request: HTTPRequest) async -> HTTPResponse {
-        guard features.current.allows(.findSimilar) else {
-            return Self.error(402, "pro_required", "Find similar is part of Glint Pro.")
-        }
         guard let body = try? JSONDecoder().decode(SimilarRequestBody.self, from: request.body) else {
             return Self.error(400, "invalid_json", "Body must be JSON like {\"path\": \"/Users/me/Pictures/beach.jpg\"}.")
         }

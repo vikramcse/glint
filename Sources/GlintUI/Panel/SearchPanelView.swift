@@ -40,7 +40,7 @@ public struct SearchPanelView: View {
         }
         .dropDestination(for: URL.self) { urls, _ in
             guard let url = urls.first else { return false }
-            findSimilar(toFileAt: url)
+            model.findSimilar(toFileAt: url)
             return true
         } isTargeted: {
             isDropTargeted = $0
@@ -205,21 +205,8 @@ public struct SearchPanelView: View {
     }
 
     private func open(_ result: SearchResult) {
-        guard !result.isLocked else {
-            services.actions?.showUpgrade(.lockedResult)
-            return
-        }
-        services.report(.resultOpened(rank: model.rank(of: result), kind: result.file.kind))
         playback.stop()
         services.actions?.open(result)
-    }
-
-    private func findSimilar(toFileAt url: URL) {
-        guard services.entitlements.allows(.findSimilar) else {
-            services.actions?.showUpgrade(.feature)
-            return
-        }
-        model.findSimilar(toFileAt: url)
     }
 }
 
@@ -282,18 +269,12 @@ struct ResultContextMenu: View {
 
     var body: some View {
         Button("Open") {
-            if result.isLocked { services.actions?.showUpgrade(.lockedResult) } else { services.actions?.open(result) }
+            services.actions?.open(result)
         }
         Button("Quick Look") { services.actions?.quickLook([result], selected: result) }
         Button("Show in Finder") { services.actions?.revealInFinder([result]) }
         Button("Copy") { services.actions?.copy([result]) }
         Divider()
-        Button("Find Similar") {
-            if services.entitlements.allows(.findSimilar) {
-                model.findSimilar(to: result)
-            } else {
-                services.actions?.showUpgrade(.feature)
-            }
-        }
+        Button("Find Similar") { model.findSimilar(to: result) }
     }
 }

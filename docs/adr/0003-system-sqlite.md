@@ -4,7 +4,7 @@
 
 ## Context
 
-The PRD names SQLite (GRDB, WAL) for files, chunks, FTS5 and vector blobs. The engineering standards also say no new third-party dependency without an ADR.
+The original design named SQLite (GRDB, WAL) for files, chunks, FTS5 and vector blobs. The engineering standards also say no new third-party dependency without an ADR.
 
 ## Decision
 

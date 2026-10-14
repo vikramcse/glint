@@ -17,7 +17,6 @@ public struct AppPaths: Sendable, Hashable {
     public var database: URL { root.appendingPathComponent("index.sqlite") }
     public var thumbnails: URL { root.appendingPathComponent("Thumbnails", isDirectory: true) }
     public var models: URL { root.appendingPathComponent("Models", isDirectory: true) }
-    public var telemetryQueue: URL { root.appendingPathComponent("telemetry-queue.json") }
     public var diagnostics: URL { root.appendingPathComponent("Diagnostics", isDirectory: true) }
     /// Port and bearer token of the local API while it runs (owner-only permissions).
     /// `glint-mcp` and other local clients read this to find the app.

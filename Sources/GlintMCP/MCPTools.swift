@@ -21,7 +21,7 @@ struct MCPTools: Sendable {
                         "page": ["type": "integer", "description": "1-based PDF page of the match"],
                         "start": ["type": "number", "description": "Seconds into the audio or video where the match starts"],
                         "end": ["type": "number"], "snippet": ["type": "string"],
-                        "locked": ["type": "boolean"], "indexed": ["type": "boolean"],
+                        "indexed": ["type": "boolean"],
                     ],
                     "required": ["path", "name", "kind", "score"],
                 ],
@@ -148,7 +148,6 @@ struct MCPTools: Sendable {
             if let page = result["page"]?.intValue { line += ", page \(page)" }
             if case .number(let start)? = result["start"] { line += ", at \(timecode(start))" }
             if case .integer(let start)? = result["start"] { line += ", at \(timecode(Double(start)))" }
-            if result["locked"] == true { line += ", needs Glint Pro to open" }
             line += "]"
             if let snippet = result["snippet"]?.stringValue, !snippet.isEmpty { line += " — \(snippet)" }
             lines.append(line)
@@ -163,7 +162,6 @@ struct MCPTools: Sendable {
         var text = "Glint has indexed \(indexed) files; \(pending) are waiting. Indexing is \(phase)"
         if let reason = status["pauseReason"]?.stringValue { text += " (\(reason))" }
         text += "."
-        if let locked = status["locked"]?.intValue, locked > 0 { text += " \(locked) video and audio files need Glint Pro." }
         return text
     }
 

@@ -10,7 +10,6 @@ public enum ErrorCategory: String, Sendable, Hashable {
     case storage
     case model
     case network
-    case licensing
     case cancelled
     case `internal`
 }
@@ -18,25 +17,6 @@ public enum ErrorCategory: String, Sendable, Hashable {
 /// Implemented by every module's error type.
 public protocol GlintError: Error, Sendable, CustomStringConvertible {
     var category: ErrorCategory { get }
-}
-
-/// An action needs a Pro feature. Thrown by services; the UI responds with the upgrade sheet.
-public enum EntitlementError: GlintError, Equatable {
-    case sourceLimitReached(limit: Int)
-    case externalDrivesRequirePro
-    case itemLimitReached(limit: Int)
-    case photosLibraryRequiresPro
-
-    public var category: ErrorCategory { .licensing }
-
-    public var description: String {
-        switch self {
-        case .sourceLimitReached(let limit): "Source limit of \(limit) reached"
-        case .externalDrivesRequirePro: "External drives need Pro"
-        case .itemLimitReached(let limit): "Item limit of \(limit) reached"
-        case .photosLibraryRequiresPro: "The Photos library needs Pro"
-        }
-    }
 }
 
 extension Error {

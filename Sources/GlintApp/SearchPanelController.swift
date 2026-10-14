@@ -51,9 +51,7 @@ final class SearchPanelController {
     init(services: GlintServices) {
         model = SearchModel(
             engine: services.engine,
-            entitlements: { services.entitlements },
-            sourcePaths: { services.status.sources.map(\.path) },
-            report: services.report
+            sourcePaths: { services.status.sources.map(\.path) }
         )
         model.groupByKind = services.settings.groupResultsByKind
         model.scope = services.settings.defaultKinds

@@ -45,26 +45,6 @@
             "request": "launch",
             "args": [],
             "cwd": "${workspaceFolder:glint}",
-            "name": "Debug glint-license",
-            "target": "glint-license",
-            "configuration": "debug",
-            "preLaunchTask": "swift: Build Debug glint-license"
-        },
-        {
-            "type": "swift",
-            "request": "launch",
-            "args": [],
-            "cwd": "${workspaceFolder:glint}",
-            "name": "Release glint-license",
-            "target": "glint-license",
-            "configuration": "release",
-            "preLaunchTask": "swift: Build Release glint-license"
-        },
-        {
-            "type": "swift",
-            "request": "launch",
-            "args": [],
-            "cwd": "${workspaceFolder:glint}",
             "name": "Debug glint-mcp",
             "target": "glint-mcp",
             "configuration": "debug",

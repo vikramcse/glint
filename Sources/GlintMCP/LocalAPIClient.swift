@@ -4,7 +4,6 @@ import Foundation
 public enum LocalAPIClientError: Error, Sendable, Equatable, CustomStringConvertible {
     case notRunning
     case unauthorized
-    case proRequired(String)
     case server(status: Int, message: String)
     case invalidResponse
 
@@ -15,8 +14,6 @@ public enum LocalAPIClientError: Error, Sendable, Equatable, CustomStringConvert
                 + "Settings › Privacy › “Allow apps and agents to search Glint”."
         case .unauthorized:
             "Glint rejected the access token. Quit and reopen Glint, then try again."
-        case .proRequired(let message):
-            message
         case .server(_, let message):
             message
         case .invalidResponse:
@@ -78,7 +75,6 @@ public struct DiscoveryHTTPClient: LocalAPIClient {
         switch http.statusCode {
         case 200: return responseData
         case 401: throw LocalAPIClientError.unauthorized
-        case 402: throw LocalAPIClientError.proRequired(Self.message(in: responseData) ?? "This needs Glint Pro.")
         default:
             throw LocalAPIClientError.server(
                 status: http.statusCode, message: Self.message(in: responseData) ?? "Glint returned error \(http.statusCode).")

@@ -17,9 +17,7 @@ public struct MainWindowView: View {
         _model = State(
             initialValue: SearchModel(
                 engine: services.engine,
-                entitlements: { services.entitlements },
-                sourcePaths: { services.status.sources.map(\.path) },
-                report: services.report
+                sourcePaths: { services.status.sources.map(\.path) }
             ))
         _library = State(initialValue: LibraryModel(engine: services.engine, saved: savedSearches))
     }
@@ -96,10 +94,8 @@ public struct MainWindowView: View {
     private var suggestedTokens: [SearchToken] {
         guard model.tokens.isEmpty, !model.text.isEmpty else { return [] }
         var tokens = MediaKind.allCases.sorted().map(SearchToken.kind)
-        if services.entitlements.allows(.fullFilters) {
-            tokens += [.modifiedSince(.today), .modifiedSince(.week), .modifiedSince(.month)]
-            tokens += services.status.sources.map { .folder($0.path) }
-        }
+        tokens += [.modifiedSince(.today), .modifiedSince(.week), .modifiedSince(.month)]
+        tokens += services.status.sources.map { .folder($0.path) }
         return tokens
     }
 
@@ -148,12 +144,8 @@ public struct MainWindowView: View {
         }
         ToolbarItem {
             Button {
-                if services.entitlements.allows(.savedSearches) {
-                    savedSearchName = model.text
-                    savingSearch = true
-                } else {
-                    services.actions?.showUpgrade(.feature)
-                }
+                savedSearchName = model.text
+                savingSearch = true
             } label: {
                 Label("Save Search", systemImage: "bookmark")
             }
@@ -218,10 +210,6 @@ struct ResultsArea: View {
         }
         .dropDestination(for: URL.self) { urls, _ in
             guard let url = urls.first else { return false }
-            guard services.entitlements.allows(.findSimilar) else {
-                services.actions?.showUpgrade(.feature)
-                return false
-            }
             model.findSimilar(toFileAt: url)
             return true
         }
@@ -287,11 +275,6 @@ struct ResultsArea: View {
     }
 
     private func open(_ result: SearchResult) {
-        guard !result.isLocked else {
-            services.actions?.showUpgrade(.lockedResult)
-            return
-        }
-        services.report(.resultOpened(rank: model.rank(of: result), kind: result.file.kind))
         services.actions?.open(result)
     }
 }

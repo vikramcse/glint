@@ -1,8 +1,7 @@
 import GlintCore
-import GlintLicensing
 import SwiftUI
 
-/// The standard Settings window: General, Sources, Search, Models, Privacy, License.
+/// The standard Settings window: General, Sources, Search, Models, Privacy.
 public struct SettingsView: View {
     let services: GlintServices
 
@@ -17,7 +16,6 @@ public struct SettingsView: View {
             Tab("Search", systemImage: "magnifyingglass") { SearchSettings(settings: services.settings) }
             Tab("Models", systemImage: "cpu") { ModelsSettings(services: services) }
             Tab("Privacy", systemImage: "hand.raised") { PrivacySettings(services: services) }
-            Tab("License", systemImage: "checkmark.seal") { LicenseSettings(services: services) }
         }
         .scenePadding()
         .frame(width: 560, height: 440)
@@ -74,7 +72,7 @@ struct SearchSettings: View {
                 }
             }
             Section {
-                Text("Type kind:video, in:Downloads or date:week in the search field to filter. Folder and date filters need Pro.")
+                Text("Type kind:video, in:Downloads or date:week in the search field to filter.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -92,9 +90,7 @@ struct ModelsSettings: View {
         Form {
             Section("Model") {
                 if let models = services.models {
-                    ModelStatusView(models: models, canChoose: services.entitlements.allows(.modelChoice)) {
-                        services.actions?.showUpgrade(.feature)
-                    }
+                    ModelStatusView(models: models)
                 } else {
                     ForEach(services.modelDescription.options) { option in
                         LabeledContent(option.name, value: option.detail)
@@ -120,37 +116,17 @@ struct ModelsSettings: View {
 
 struct PrivacySettings: View {
     let services: GlintServices
-    @State private var preview = ""
     @State private var confirmingDelete = false
     @State private var deleteError: String?
 
     var body: some View {
-        @Bindable var settings = services.settings
         Form {
-            Section {
-                Toggle("Share anonymous usage statistics", isOn: $settings.analyticsEnabled)
-                Text("About ten events like “search took 40–80 ms”. Never your searches, file names, paths or contents.")
-                    .font(.caption).foregroundStyle(.secondary)
-                if settings.analyticsEnabled {
-                    DisclosureGroup("Data waiting to be sent") {
-                        ScrollView {
-                            Text(verbatim: preview.isEmpty ? "—" : preview)
-                                .font(.caption.monospaced())
-                                .textSelection(.enabled)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .frame(height: 90)
-                    }
-                }
-            }
             if let control = services.localAPI {
                 LocalAPISection(services: services, control: control)
             }
             Section("Network activity") {
                 Label("One-time model download", systemImage: "arrow.down.circle")
                 Label("Update checks", systemImage: "arrow.triangle.2.circlepath")
-                Label("License activation and weekly check", systemImage: "checkmark.seal")
-                Label("Anonymous statistics, if turned on", systemImage: "chart.bar")
                 Text("Nothing about your files ever leaves this Mac.")
                     .font(.caption).foregroundStyle(.secondary)
             }
@@ -167,7 +143,6 @@ struct PrivacySettings: View {
             }
         }
         .formStyle(.grouped)
-        .task(id: settings.analyticsEnabled) { preview = await services.analyticsPreview() }
         .confirmationDialog(Text("Delete the index?"), isPresented: $confirmingDelete) {
             Button("Delete Index", role: .destructive) {
                 Task {

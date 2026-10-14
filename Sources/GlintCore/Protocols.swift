@@ -80,8 +80,6 @@ public protocol IndexingService: Sendable {
     func exclusions() async -> ExclusionRules
     func pause() async
     func resume() async
-    /// Called after a license change so locked files get indexed (or paused) accordingly.
-    func entitlementsDidChange() async
     /// Removes everything Glint derived from the user's files.
     func deleteIndex() async throws
 }

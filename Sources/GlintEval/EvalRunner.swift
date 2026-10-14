@@ -37,13 +37,12 @@ struct EvalRunner {
         try paths.createDirectories()
 
         let writer = try IndexWriter(url: paths.database)
-        let features = FeatureGateBox(.pro)
         let gate = PriorityGate()
         let vectorIndex = FlatVectorIndex(space: provider.descriptor.space)
         let thumbnails = ThumbnailStore(directory: paths.thumbnails)
         let indexer = Indexer(
             writer: writer, extractors: ExtractorRegistry.standard(transcriber: nil).extractors, provider: provider,
-            vectorIndex: vectorIndex, gate: gate, thumbnails: thumbnails, features: features, power: FixedPowerMonitor(),
+            vectorIndex: vectorIndex, gate: gate, thumbnails: thumbnails, power: FixedPowerMonitor(),
             options: indexerOptions
         )
         let reader = try IndexReader(url: paths.database)
@@ -53,7 +52,7 @@ struct EvalRunner {
             encoder: MarginOverride(
                 base: queryEncoder, margin: similarityMargin, zScore: minimumZScore,
                 robustZScore: minimumRobustZScore, confident: confidentSimilarity),
-            thumbnails: thumbnails, gate: features, ranker: ranker, looseKeywordLimit: looseKeywordLimit ?? 3,
+            thumbnails: thumbnails, ranker: ranker, looseKeywordLimit: looseKeywordLimit ?? 3,
             adaptsWeights: adaptsWeights
         )
 

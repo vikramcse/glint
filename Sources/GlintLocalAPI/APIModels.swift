@@ -46,8 +46,6 @@ public struct ResultDTO: Codable, Sendable, Hashable {
     public var start: Double?
     public var end: Double?
     public var snippet: String?
-    /// Visible but needs Pro to open (video and audio after a trial ends).
-    public var locked: Bool
     /// False when the file matched by name before its contents were indexed.
     public var indexed: Bool
 
@@ -65,7 +63,6 @@ public struct ResultDTO: Codable, Sendable, Hashable {
         case .whole, .text: break
         }
         snippet = result.match.snippet?.text
-        locked = result.isLocked
         indexed = result.file.isIndexed
     }
 }
@@ -77,12 +74,11 @@ public struct ResultsDTO: Codable, Sendable, Hashable {
 public struct StatusDTO: Codable, Sendable, Hashable {
     /// `idle`, `scanning`, `indexing` or `paused`.
     public var phase: String
-    /// Why indexing is paused: `user`, `lowBattery`, `lowPowerMode`, `thermal`, `itemLimitReached`.
+    /// Why indexing is paused: `user`, `lowBattery`, `lowPowerMode`, `thermal`.
     public var pauseReason: String?
     public var indexed: [String: Int]
     public var totalIndexed: Int
     public var pending: Int
-    public var locked: Int
     public var failed: Int
     public var sources: Int
 
@@ -98,7 +94,6 @@ public struct StatusDTO: Codable, Sendable, Hashable {
         indexed = Dictionary(uniqueKeysWithValues: status.indexed.map { ($0.key.rawValue, $0.value) })
         totalIndexed = status.totalIndexed
         pending = status.pending
-        locked = status.locked
         failed = status.failed
         sources = status.sourceCount
     }
@@ -112,7 +107,6 @@ public struct SourceDTO: Codable, Sendable, Hashable {
     public var items: Int
     public var indexed: Int
     public var pending: Int
-    public var locked: Int
     public var failed: Int
     public var complete: Bool
 
@@ -124,7 +118,6 @@ public struct SourceDTO: Codable, Sendable, Hashable {
         items = source.itemCount
         indexed = source.indexed
         pending = source.pending
-        locked = source.locked
         failed = source.failed
         complete = source.isComplete
     }

@@ -308,8 +308,8 @@ public actor IndexWriter {
         try db.run("UPDATE files SET attempts = max(attempts - 1, 0) WHERE id = ? AND status = 0", [.int(id.rawValue)])
     }
 
-    /// Sends indexed files of `kinds` back to the queue (for example PDFs after an upgrade
-    /// unlocks visual page search) and failed files back for another try.
+    /// Sends indexed files of `kinds` back to the queue (for example after an extractor
+    /// improves) and failed files back for another try.
     public func requeue(kinds: Set<MediaKind>, includeFailed: Bool = false) throws {
         for kind in kinds {
             try db.run("UPDATE files SET status = 0, attempts = 0 WHERE kind = ? AND status = 1", [.text(kind.rawValue)])

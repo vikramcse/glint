@@ -13,7 +13,6 @@ final class AppResultActions: ResultActions {
     weak var panel: SearchPanelController?
     private var mainWindow: NSWindow?
     private var onboardingWindow: NSWindow?
-    private var upgradeWindow: NSWindow?
     private var playerWindows: [NSWindow] = []
     private var windowObservers: [any NSObjectProtocol] = []
     private var pdfWindows: [NSWindow] = []
@@ -53,13 +52,12 @@ final class AppResultActions: ResultActions {
     }
 
     func quickLook(_ results: [SearchResult], selected: SearchResult?) {
-        let candidates = results.filter { !$0.isLocked }
-        guard !candidates.isEmpty else { return }
+        guard !results.isEmpty else { return }
         panel?.keepOpenOnResign = true
         Task {
-            let urls = await localURLs(for: candidates)
+            let urls = await localURLs(for: results)
             guard !urls.isEmpty else { return }
-            let selectedIndex = selected.flatMap { selected in candidates.firstIndex { $0.id == selected.id } } ?? 0
+            let selectedIndex = selected.flatMap { selected in results.firstIndex { $0.id == selected.id } } ?? 0
             NSApp.activate()
             quickLook.show(urls, selectedIndex: min(selectedIndex, urls.count - 1))
         }
@@ -119,23 +117,6 @@ final class AppResultActions: ResultActions {
             mainWindow = window
         }
         present(mainWindow)
-    }
-
-    func showUpgrade(_ reason: PaywallReason) {
-        panel?.hide()
-        upgradeWindow?.close()
-        let window = makeWindow(
-            title: String(localized: "Glint Pro"),
-            root: UpgradeView(services: services, reason: reason) { [weak self] in self?.upgradeWindow?.close() },
-            size: NSSize(width: 500, height: 520),
-            style: [.titled, .closable, .fullSizeContentView]
-        )
-        upgradeWindow = window
-        present(window)
-    }
-
-    func openPurchasePage() {
-        if let url = AppConfiguration.current.purchasePage { NSWorkspace.shared.open(url) }
     }
 
     func openFullDiskAccessSettings() {
@@ -243,7 +224,6 @@ final class AppResultActions: ResultActions {
     private func windowClosed(_ window: NSWindow?) {
         playerWindows.removeAll { $0 === window }
         pdfWindows.removeAll { $0 === window }
-        if window === upgradeWindow { upgradeWindow = nil }
         returnToMenuBarIfIdle(closing: window)
     }
 
@@ -251,7 +231,7 @@ final class AppResultActions: ResultActions {
     /// up would deactivate the app and dismiss the panel.
     func returnToMenuBarIfIdle(closing window: NSWindow? = nil) {
         let anyOpen =
-            [mainWindow, onboardingWindow, upgradeWindow].contains { $0?.isVisible == true && $0 !== window }
+            [mainWindow, onboardingWindow].contains { $0?.isVisible == true && $0 !== window }
             || playerWindows.contains { $0.isVisible } || pdfWindows.contains { $0.isVisible }
             || panel?.isVisible == true
         if !anyOpen { NSApp.setActivationPolicy(.accessory) }

@@ -3,8 +3,6 @@ import SwiftUI
 /// Settings › Models: which model is active, download progress, and the quality preset.
 struct ModelStatusView: View {
     let models: any ModelControlling
-    let canChoose: Bool
-    let showUpgrade: () -> Void
     @State private var confirmingRemoval = false
 
     var body: some View {
@@ -40,18 +38,13 @@ struct ModelStatusView: View {
                 "Quality",
                 selection: Binding(
                     get: { models.dimensions },
-                    set: { value in
-                        if canChoose { models.setDimensions(value) } else { showUpgrade() }
-                    })
+                    set: { models.setDimensions($0) })
             ) {
                 Text("Best (768)").tag(768)
                 Text("Balanced (512)").tag(512)
                 Text("Compact (256)").tag(256)
             }
             .help(Text("Higher quality uses more disk and memory. Changing it updates the index in the background."))
-            if !canChoose {
-                Text("Quality presets are part of Glint Pro.").font(.caption).foregroundStyle(.secondary)
-            }
             Button("Remove Model…", role: .destructive) { confirmingRemoval = true }
                 .confirmationDialog(Text("Remove EmbeddingGemma 2?"), isPresented: $confirmingRemoval) {
                     Button("Remove", role: .destructive) { models.remove() }
