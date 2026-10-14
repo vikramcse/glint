@@ -7,7 +7,9 @@
 //                  [--baseline report.json] [--out report.json] [--margin M|off] [--z K|off] [--titles] [--loose-keywords N|all]
 //                  [--text-bits 8|16] [--media-bits 8|16] [--fusion rrf|scores] [--per-file] [--adaptive on|off]
 //                  [--semantic-weight W] [--keyword-weight W] [--confident S|off] [--confident-margin M]
-//                  [--fuse-text off] [--diagnose rankings.json]
+//                  [--fuse-text off] [--diagnose rankings.json] [--index-cache D] [--loose-support Z]
+//                  [--sound-labels off|keywords|embedded]
+//                  --index-cache keeps the index in D and reuses it next time (same corpus and model)
 //                  --diagnose writes where every relevant file ranks in the raw semantic and keyword
 //                  lists before any cutoff, to tell a model miss from a filter miss
 //   glint-eval query <text>... --model-dir D [--index index.sqlite] [--dimensions N] [--idle-unload S]
@@ -20,6 +22,7 @@
 import Foundation
 import GlintCore
 import GlintEmbedding
+import GlintExtractors
 import GlintIndexer
 import GlintSearch
 import GlintStore
@@ -179,6 +182,12 @@ case "run":
         if let loose = option("--loose-keywords", in: arguments) { runner.looseKeywordLimit = .some(Int(loose)) }
         if let fusion = option("--fusion", in: arguments) { runner.ranker.fusion = fusion == "rrf" ? .reciprocalRank : .scores }
         if arguments.contains("--per-file") { runner.ranker.fusesPerFile = true }
+        if let labels = option("--sound-labels", in: arguments) {
+            guard let mode = ExtractionOptions.SoundLabels(rawValue: labels) else { fail("--sound-labels off|keywords|embedded") }
+            runner.extractionOptions.soundLabels = mode
+        }
+        if let support = option("--loose-support", in: arguments) { runner.ranker.looseSemanticSupport = Float(support) }
+        if let cache = option("--index-cache", in: arguments) { runner.indexCache = URL(fileURLWithPath: cache, isDirectory: true) }
         if let adaptive = option("--adaptive", in: arguments) { runner.adaptsWeights = adaptive != "off" }
         if let weight = option("--semantic-weight", in: arguments).flatMap(Double.init) { runner.ranker.semanticWeight = weight }
         if let weight = option("--keyword-weight", in: arguments).flatMap(Double.init) {

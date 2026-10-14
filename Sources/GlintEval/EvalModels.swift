@@ -52,6 +52,8 @@ struct QueryOutcome: Codable, Sendable {
     var ndcgAt10: Double
     var latencyMilliseconds: Double
     var top: [String]
+    /// How each file in `top` matched ("semantic", "keyword+name", …).
+    var sources: [String]?
     var mustPass: Bool
     /// Results returned in all, and the fraction of them that are relevant.
     var returned: Int?

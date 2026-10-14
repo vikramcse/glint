@@ -74,6 +74,30 @@ struct AudioExtractorTests {
         #expect(parts.count == 2)
     }
 
+    @Test func soundLabelsDescribeTheirWindow() {
+        let labels = [
+            SoundLabel(start: 0, end: 1, name: "dog bark", confidence: 0.6),
+            SoundLabel(start: 0.5, end: 1.5, name: "dog bark", confidence: 0.9),
+            SoundLabel(start: 1, end: 2, name: "dog", confidence: 0.8),
+            SoundLabel(start: 11, end: 12, name: "rain", confidence: 0.7),
+        ]
+        #expect(labels.text(from: 0, to: 10) == "Sounds: dog bark, dog")
+        #expect(labels.text(from: 8, to: 12) == "Sounds: rain")
+        #expect(labels.text(from: 3, to: 10) == nil)
+        let crowded = (0..<8).map { SoundLabel(start: 0, end: 1, name: "sound \($0)", confidence: 0.5 + Double($0) / 100) }
+        #expect(crowded.text(from: 0, to: 1) == "Sounds: sound 7, sound 6, sound 5, sound 4, sound 3")
+    }
+
+    @Test func soundLabelsLeaveTheAudioVectorAloneForKeywords() async throws {
+        let url = try Fixtures.writeToneWAV(duration: 4, in: directory.url)
+        let chunks = try await collect(AudioExtractor(options: ExtractionOptions(soundLabels: .keywords)), url)
+        #expect(chunks.count == 1)
+        guard case .audio = chunks[0].input else {
+            Issue.record("Expected audio input: keyword labels must not change the embedding")
+            return
+        }
+    }
+
     @Test func transcriberIgnoredWhenDisabled() async throws {
         let url = try Fixtures.writeToneWAV(duration: 4, in: directory.url)
         let transcriber = FakeTranscriber(segments: [TranscriptSegment(start: 0, end: 1, text: "hello")])

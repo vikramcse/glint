@@ -14,6 +14,7 @@ struct EvalRunner {
     /// Overrides the model's similarity margin when set (`.some(nil)` turns it off), for tuning.
     var similarityMargin: Float??
     var indexerOptions = IndexerOptions()
+    var extractionOptions = ExtractionOptions()
     /// Partial keyword matches kept in the final phase (`.some(nil)`: all, at full weight).
     var looseKeywordLimit: Int??
     /// Overrides the model's minimum z-score when set (`.some(nil)` turns it off).
@@ -29,11 +30,15 @@ struct EvalRunner {
     /// Writes, per query, where every relevant file ranks in the raw semantic and keyword lists
     /// before any cutoff, to tell a model miss from a filter miss.
     var diagnosePath: URL?
+    /// Keeps the index here and reuses it on later runs over the same corpus and model, so
+    /// ranking experiments skip indexing.
+    var indexCache: URL?
 
     func run() async throws -> EvalReport {
-        let work = FileManager.default.temporaryDirectory.appendingPathComponent("glint-eval-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: work) }
+        let work = indexCache ?? FileManager.default.temporaryDirectory.appendingPathComponent("glint-eval-\(UUID().uuidString)")
+        defer { if indexCache == nil { try? FileManager.default.removeItem(at: work) } }
         let paths = AppPaths(root: work)
+        let cached = indexCache != nil && FileManager.default.fileExists(atPath: paths.database.path)
         try paths.createDirectories()
 
         let writer = try IndexWriter(url: paths.database)
@@ -41,7 +46,8 @@ struct EvalRunner {
         let vectorIndex = FlatVectorIndex(space: provider.descriptor.space)
         let thumbnails = ThumbnailStore(directory: paths.thumbnails)
         let indexer = Indexer(
-            writer: writer, extractors: ExtractorRegistry.standard(transcriber: nil).extractors, provider: provider,
+            writer: writer, extractors: ExtractorRegistry.standard(options: extractionOptions, transcriber: nil).extractors,
+            provider: provider,
             vectorIndex: vectorIndex, gate: gate, thumbnails: thumbnails, power: FixedPowerMonitor(),
             options: indexerOptions
         )
@@ -56,13 +62,8 @@ struct EvalRunner {
             adaptsWeights: adaptsWeights
         )
 
-        let indexing = Stopwatch()
         let root = FileScanner.canonicalPath(corpus)
-        try await indexer.addSource(corpus)
-        await indexer.drain()
-        let status = await indexer.currentStatus()
-        let indexingSeconds = indexing.milliseconds / 1_000
-        print(String(format: "Indexed %d files in %.1f s (%d failed)", status.totalIndexed, indexingSeconds, status.failed))
+        let (corpusFiles, indexingSeconds) = try await index(indexer: indexer, engine: engine, reusing: cached, at: work)
 
         // Warm the query path once so the first query's latency is representative.
         _ = try? await engine.mergedResults(for: SearchQuery(text: "warm up"))
@@ -72,7 +73,26 @@ struct EvalRunner {
             outcomes.append(try await outcome(of: query, engine: engine, root: root))
         }
         try await writeDiagnostics(engine: engine, reader: reader, encoder: queryEncoder, root: root)
-        return report(outcomes, corpusFiles: status.totalIndexed, indexingSeconds: indexingSeconds)
+        return report(outcomes, corpusFiles: corpusFiles, indexingSeconds: indexingSeconds)
+    }
+
+    /// Indexes the corpus, or loads the cached index. Returns the file count and indexing time.
+    private func index(indexer: Indexer, engine: SearchEngine, reusing cached: Bool, at work: URL) async throws
+        -> (files: Int, seconds: Double)
+    {
+        if cached {
+            let vectors = try await engine.loadVectors()
+            let files = Set(try await engine.recent(kinds: Set(MediaKind.allCases), limit: 1_000_000).map(\.file.id)).count
+            print("Reused the index in \(work.path): \(files) files, \(vectors) vectors")
+            return (files, 0)
+        }
+        let indexing = Stopwatch()
+        try await indexer.addSource(corpus)
+        await indexer.drain()
+        let status = await indexer.currentStatus()
+        let seconds = indexing.milliseconds / 1_000
+        print(String(format: "Indexed %d files in %.1f s (%d failed)", status.totalIndexed, seconds, status.failed))
+        return (status.totalIndexed, seconds)
     }
 
     private func outcome(of query: EvalQuery, engine: SearchEngine, root: String) async throws -> QueryOutcome {
@@ -80,7 +100,8 @@ struct EvalRunner {
         let results = try await engine.mergedResults(for: SearchQuery(text: query.text))
         let latency = stopwatch.milliseconds
         let ignored = Set(query.ignored ?? [])
-        let ranked = results.items.map { relativePath($0.file.path, root: root) }.filter { !ignored.contains($0) }
+        let items = results.items.filter { !ignored.contains(relativePath($0.file.path, root: root)) }
+        let ranked = items.map { relativePath($0.file.path, root: root) }
         let hits = ranked.filter { (query.relevant[$0] ?? 0) > 0 }.count
         let wanted = query.relevant.values.filter { $0 > 0 }.count
         return QueryOutcome(
@@ -91,6 +112,7 @@ struct EvalRunner {
             ndcgAt10: RetrievalMetrics.ndcg(ranked: ranked, relevant: query.relevant),
             latencyMilliseconds: latency,
             top: Array(ranked.prefix(5)),
+            sources: items.prefix(5).map(\.sources.label),
             mustPass: query.mustPass ?? false,
             returned: ranked.count,
             precision: ranked.isEmpty ? (query.isNegative ? 1 : 0) : Double(hits) / Double(ranked.count),
@@ -132,12 +154,13 @@ struct EvalRunner {
             let pathOf = Dictionary(uniqueKeysWithValues: records.map { ($0.key, relativePath($0.value.path, root: root)) })
             let fileByPath = Dictionary(pathOf.map { ($0.value, $0.key) }, uniquingKeysWith: { first, _ in first })
             let semanticRank = Dictionary(uniqueKeysWithValues: ids.enumerated().map { ($0.element, $0.offset + 1) })
+            let kindRank = Self.ranksWithinKind(ids, kinds: records.mapValues(\.kind))
             let relevant = query.relevant.filter { $0.value > 0 }.keys.map { path -> RelevantDiagnostic in
                 let id = fileByPath[path]
                 return RelevantDiagnostic(
-                    path: path, semanticRank: id.flatMap { semanticRank[$0] }, cosine: id.flatMap { bestPerFile[$0] },
-                    keywordAllRank: id.flatMap { keywordAll[$0] }, keywordAnyRank: id.flatMap { keywordAny[$0] },
-                    nameRank: id.flatMap { nameAny[$0] })
+                    path: path, semanticRank: id.flatMap { semanticRank[$0] }, kindRank: id.flatMap { kindRank[$0] },
+                    cosine: id.flatMap { bestPerFile[$0] }, keywordAllRank: id.flatMap { keywordAll[$0] },
+                    keywordAnyRank: id.flatMap { keywordAny[$0] }, nameRank: id.flatMap { nameAny[$0] })
             }
             results.append(
                 QueryDiagnostic(
@@ -148,6 +171,18 @@ struct EvalRunner {
                     keywordAnyCount: keywordAny.count, relevant: relevant))
         }
         return results
+    }
+
+    /// Each file's rank among files of its own media kind, given the ranking over all of them.
+    private static func ranksWithinKind(_ ids: [FileID], kinds: [FileID: MediaKind]) -> [FileID: Int] {
+        var ranks: [FileID: Int] = [:]
+        var counts: [MediaKind: Int] = [:]
+        for id in ids {
+            guard let kind = kinds[id] else { continue }
+            counts[kind, default: 0] += 1
+            ranks[id] = counts[kind]
+        }
+        return ranks
     }
 
     private func report(_ outcomes: [QueryOutcome], corpusFiles: Int, indexingSeconds: Double) -> EvalReport {
@@ -244,6 +279,8 @@ struct QueryDiagnostic: Codable {
 struct RelevantDiagnostic: Codable {
     var path: String
     var semanticRank: Int?
+    /// Rank among files of the same media kind only.
+    var kindRank: Int?
     var cosine: Float?
     var keywordAllRank: Int?
     var keywordAnyRank: Int?
