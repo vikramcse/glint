@@ -69,7 +69,6 @@ public final class IndexStatusModel {
         case .lowBattery: String(localized: "Paused to save battery")
         case .lowPowerMode: String(localized: "Paused in Low Power Mode")
         case .thermal: String(localized: "Paused while your Mac cools down")
-        case .itemLimitReached: String(localized: "Free limit of 10,000 items reached")
         }
     }
 }

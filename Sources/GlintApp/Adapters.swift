@@ -2,25 +2,8 @@ import Foundation
 import GlintCore
 import GlintExtractors
 import GlintStore
-import GlintTelemetry
 import GlintUI
 import UniformTypeIdentifiers
-
-/// Maps UI events to the opt-in telemetry schema.
-enum TelemetryBridge {
-    static func event(for event: UIEvent) -> TelemetryEvent? {
-        switch event {
-        case .searchPerformed(let latency, let count, let kinds):
-            .searchPerformed(latencyMilliseconds: latency, resultCount: count, kinds: kinds)
-        case .resultOpened(let rank, let kind):
-            .resultOpened(rank: rank, kind: kind)
-        case .paywallViewed(let reason):
-            PaywallTrigger(rawValue: reason.rawValue).map(TelemetryEvent.paywallViewed)
-        case .onboardingCompleted(let sources, let duration):
-            .onboardingCompleted(sourceCount: sources, duration: duration)
-        }
-    }
-}
 
 /// Embeds a dropped file for "find similar" when it is not in the index.
 struct FileExampleEncoder: ExampleEncoder {

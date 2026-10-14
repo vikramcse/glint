@@ -68,20 +68,6 @@ final class GlintAppUITests: XCTestCase {
         XCTAssertTrue(window.staticTexts["pasta.txt"].waitForExistence(timeout: 15))
     }
 
-    func testUpgradeSheetRejectsAnInvalidKey() {
-        let app = launch(["-GlintSkipOnboarding", "-GlintShowUpgrade"])
-        let window = app.windows["Glint Pro"]
-        XCTAssertTrue(window.waitForExistence(timeout: 10))
-        XCTAssertTrue(window.buttons["upgrade.buy"].exists)
-        let key = window.textFields["upgrade.key"]
-        key.click()
-        key.typeText("not-a-key")
-        window.buttons["upgrade.activate"].click()
-        XCTAssertTrue(window.staticTexts["upgrade.message"].waitForExistence(timeout: 5))
-        window.buttons["upgrade.notNow"].click()
-        XCTAssertFalse(window.waitForExistence(timeout: 2))
-    }
-
     func testSettingsShowsEveryTab() {
         let app = launch(["-GlintSkipOnboarding", "-GlintShowMainWindow"])
         XCTAssertTrue(app.windows["main"].waitForExistence(timeout: 10))
@@ -90,7 +76,7 @@ final class GlintAppUITests: XCTestCase {
         let settings = app.windows["com_apple_SwiftUI_Settings_window"]
         XCTAssertTrue(settings.waitForExistence(timeout: 10))
         let tabs = settings.toolbars.firstMatch
-        for tab in ["General", "Sources", "Search", "Models", "Privacy", "License"] {
+        for tab in ["General", "Sources", "Search", "Models", "Privacy"] {
             XCTAssertTrue(tabs.buttons[tab].exists, "missing tab \(tab)")
         }
         tabs.buttons["Sources"].click()

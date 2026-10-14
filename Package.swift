@@ -20,7 +20,6 @@ let package = Package(
         // the app code compiling under `swift build`.
         .executable(name: "glint-app", targets: ["GlintApp"]),
         .executable(name: "glint-eval", targets: ["GlintEval"]),
-        .executable(name: "glint-license", targets: ["GlintLicenseTool"]),
         .executable(name: "glint-mcp", targets: ["GlintMCPTool"]),
         .library(name: "GlintCore", targets: ["GlintCore"]),
         // Everything the Xcode app target (Glint.xcodeproj, generated from project.yml) links.
@@ -28,7 +27,7 @@ let package = Package(
             name: "GlintKit",
             targets: [
                 "GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch", "GlintIndexer",
-                "GlintLicensing", "GlintTelemetry", "GlintUI", "GlintLocalAPI",
+                "GlintUI", "GlintLocalAPI",
             ]),
         .library(name: "GlintMCP", targets: ["GlintMCP"]),
     ],
@@ -66,14 +65,12 @@ let package = Package(
             dependencies: ["GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore"],
             swiftSettings: strictSettings
         ),
-        .target(name: "GlintLicensing", dependencies: ["GlintCore"], swiftSettings: strictSettings),
-        .target(name: "GlintTelemetry", dependencies: ["GlintCore"], swiftSettings: strictSettings),
         .target(name: "GlintLocalAPI", dependencies: ["GlintCore", "GlintSearch"], swiftSettings: strictSettings),
         // Self-contained: speaks HTTP to the app, so the glint-mcp binary stays small.
         .target(name: "GlintMCP", swiftSettings: strictSettings),
         .target(
             name: "GlintUI",
-            dependencies: ["GlintCore", "GlintSearch", "GlintLicensing"],
+            dependencies: ["GlintCore", "GlintSearch"],
             swiftSettings: strictSettings
         ),
 
@@ -83,7 +80,7 @@ let package = Package(
             name: "GlintApp",
             dependencies: [
                 "GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch",
-                "GlintIndexer", "GlintLicensing", "GlintTelemetry", "GlintUI", "GlintLocalAPI",
+                "GlintIndexer", "GlintUI", "GlintLocalAPI",
                 .product(name: "Sparkle", package: "Sparkle"),
             ],
             swiftSettings: strictSettings,
@@ -98,11 +95,6 @@ let package = Package(
             swiftSettings: strictSettings
         ),
         .executableTarget(name: "GlintMCPTool", dependencies: ["GlintMCP"], swiftSettings: strictSettings),
-        .executableTarget(
-            name: "GlintLicenseTool",
-            dependencies: ["GlintCore", "GlintLicensing"],
-            swiftSettings: strictSettings
-        ),
 
         // MARK: Tests
 
@@ -153,15 +145,8 @@ let package = Package(
         ),
         .testTarget(name: "GlintMCPTests", dependencies: ["GlintMCP"], swiftSettings: strictSettings),
         .testTarget(
-            name: "GlintLicensingTests",
-            dependencies: ["GlintLicensing"],
-            resources: [.copy("Fixtures")],
-            swiftSettings: strictSettings
-        ),
-        .testTarget(name: "GlintTelemetryTests", dependencies: ["GlintTelemetry"], swiftSettings: strictSettings),
-        .testTarget(
             name: "GlintUITests",
-            dependencies: ["GlintUI", "GlintSearch", "GlintStore", "GlintLicensing", "GlintTestSupport"],
+            dependencies: ["GlintUI", "GlintSearch", "GlintStore", "GlintTestSupport"],
             swiftSettings: strictSettings
         ),
         .testTarget(

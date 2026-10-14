@@ -17,10 +17,6 @@ struct SourcesSettings: View {
             photosSource != nil
         } set: { isOn in
             guard isOn != (photosSource != nil) else { return }
-            guard !isOn || services.entitlements.allows(.photosLibrary) else {
-                services.actions?.showUpgrade(.feature)
-                return
-            }
             isUpdatingPhotos = true
             Task {
                 do {
@@ -78,11 +74,6 @@ struct SourcesSettings: View {
                     .disabled(selection == nil)
                     Button("Remove", role: .destructive) { pendingRemoval = selectedSource }
                         .disabled(selection == nil)
-                    Spacer()
-                    if let limit = services.entitlements.snapshot.sourceLimit {
-                        Text("\(services.status.sources.count) of \(limit) folders on Free")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
                 }
                 if let errorMessage {
                     Text(errorMessage).font(.caption).foregroundStyle(.red)
@@ -97,11 +88,7 @@ struct SourcesSettings: View {
                 }
                 .disabled(isUpdatingPhotos)
             } footer: {
-                Text(
-                    services.entitlements.allows(.photosLibrary)
-                        ? String(
-                            localized: "Searches photos and videos whose originals are on this Mac. Nothing is downloaded from iCloud.")
-                        : String(localized: "Searching your Photos library is part of Glint Pro."))
+                Text("Searches photos and videos whose originals are on this Mac. Nothing is downloaded from iCloud.")
             }
 
             Section("Excluded folders") {

@@ -49,15 +49,6 @@ public enum MediaKind: String, Sendable, Codable, CaseIterable, Hashable, Compar
         }
     }
 
-    /// The feature a user needs to search this kind, if any.
-    public var requiredFeature: Feature? {
-        switch self {
-        case .video: .videoSearch
-        case .audio: .audioSearch
-        case .image, .pdf, .document: nil
-        }
-    }
-
     public static func < (lhs: MediaKind, rhs: MediaKind) -> Bool {
         lhs.sortIndex < rhs.sortIndex
     }

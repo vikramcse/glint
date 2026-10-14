@@ -3,16 +3,15 @@ import Foundation
 /// Launch-time switches used by the UI test suite (`UITests/`). Never set in normal use.
 ///
 /// - `GLINT_UI_TEST_ROOT`: isolated support folder and settings domain; also selects the
-///   built-in model (no download), file-backed license storage and no local API.
+///   built-in model (no download) and no local API.
 /// - `GLINT_UI_TEST_SOURCE`: a fixture folder, copied into the test root and added as a source at launch.
-/// - `-GlintShowPanel`, `-GlintShowMainWindow`, `-GlintShowUpgrade`, `-GlintSkipOnboarding`.
+/// - `-GlintShowPanel`, `-GlintShowMainWindow`, `-GlintSkipOnboarding`.
 struct LaunchOptions {
     let testRoot: URL?
     /// The copy of the fixture folder that Glint indexes (see `prepareUITest()`).
     let testSource: URL?
     let showPanel: Bool
     let showMainWindow: Bool
-    let showUpgrade: Bool
     let skipOnboarding: Bool
     private let testFixtures: URL?
 
@@ -32,7 +31,6 @@ struct LaunchOptions {
         }
         showPanel = arguments.contains("-GlintShowPanel")
         showMainWindow = arguments.contains("-GlintShowMainWindow")
-        showUpgrade = arguments.contains("-GlintShowUpgrade")
         skipOnboarding = arguments.contains("-GlintSkipOnboarding")
     }
 

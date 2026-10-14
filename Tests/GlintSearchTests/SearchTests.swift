@@ -245,6 +245,32 @@ struct HybridRankerTests {
                 == [FileID(1)])
     }
 
+    @Test func keepsConfidentMatchesInALibraryOfLookalikes() {
+        var ranker = HybridRanker()
+        ranker.minimumSimilarity = 0.6
+        ranker.minimumZScore = 2.75
+        ranker.minimumRobustZScore = 3.5
+        // A library of one trip's train photos: everything scores high, so calibration (mean
+        // 0.608 + 2.75 × 0.068 = 0.795) drops the whole trip for "two people near a train".
+        let statistics = ScoreStatistics(mean: 0.608, deviation: 0.068, median: 0.62, robustDeviation: 0.06, count: 500)
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.773),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.750),
+            ScoredChunk(chunkID: ChunkID(3), fileID: FileID(3), score: 0.715),
+        ]
+        #expect(ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: statistics).isEmpty)
+
+        ranker.confidentSimilarity = 0.72
+        // Kept down to max(0.72, 0.773 - 0.05): file 3 is below the confident score.
+        #expect(
+            ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: statistics).map(\.fileID)
+                == [FileID(1), FileID(2)])
+
+        // A best match below the confident score changes nothing.
+        let weak = semantic.map { ScoredChunk(chunkID: $0.chunkID, fileID: $0.fileID, score: $0.score - 0.1) }
+        #expect(ranker.rank(semantic: weak, keyword: [], names: [], attributes: [:], statistics: statistics).isEmpty)
+    }
+
     @Test func partialKeywordMatchesOnlyAddFiles() {
         let ranker = HybridRanker()
         let semantic = [
@@ -286,6 +312,78 @@ struct HybridRankerTests {
             ) + ranker.rank(semantic: [], keyword: [], names: [hits[1]], attributes: [FileID(2): hits[1].attributes], now: now)
         #expect(ranked[1].score > ranked[0].score)
     }
+
+    @Test func scoreFusionWeighsHowStrongAMatchIs() {
+        var ranker = HybridRanker()
+        ranker.fusion = .reciprocalRank
+        ranker.minimumSimilarity = 0.3
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.80),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.78),
+        ]
+        // Almost the same meaning, but file 2's keyword match is ten times as strong.
+        let keyword = [
+            KeywordHit(fileID: FileID(2), chunkID: ChunkID(2), bm25: -10, attributes: attributes()),
+            KeywordHit(fileID: FileID(1), chunkID: ChunkID(1), bm25: -1, attributes: attributes()),
+        ]
+        // By rank alone each file wins one list: a tie, broken by file ID.
+        #expect(ranker.rank(semantic: semantic, keyword: keyword, names: [], attributes: [:]).map(\.fileID) == [FileID(1), FileID(2)])
+
+        ranker.fusion = .scores
+        let ranked = ranker.rank(semantic: semantic, keyword: keyword, names: [], attributes: [:])
+        #expect(ranked.map(\.fileID) == [FileID(2), FileID(1)])
+        // Cosine scales from the 0.3 floor to the best hit, BM25 against the best hit.
+        #expect(abs(ranked[0].score - (0.48 / 0.5 + 1)) < 0.001)
+        #expect(abs(ranked[1].score - (1 + 0.1)) < 0.001)
+    }
+
+    @Test func perFileFusionCountsMatchesOnDifferentPages() {
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(10), fileID: FileID(1), score: 0.9),
+            ScoredChunk(chunkID: ChunkID(11), fileID: FileID(1), score: 0.89),
+            ScoredChunk(chunkID: ChunkID(20), fileID: FileID(2), score: 0.85),
+            ScoredChunk(chunkID: ChunkID(30), fileID: FileID(3), score: 0.8),
+        ]
+        // File 3 matches the words on another page than the one that matched the meaning.
+        let keyword = [KeywordHit(fileID: FileID(3), chunkID: ChunkID(31), bm25: -3, attributes: attributes())]
+        var ranker = HybridRanker()
+        ranker.fusion = .reciprocalRank
+        let perChunk = ranker.rank(semantic: semantic, keyword: keyword, names: [], attributes: [:])
+        #expect(perChunk.first?.fileID == FileID(1))
+
+        ranker.fusesPerFile = true
+        let ranked = ranker.rank(semantic: semantic, keyword: keyword, names: [], attributes: [:])
+        #expect(ranked.map(\.fileID) == [FileID(3), FileID(1), FileID(2)])
+        #expect(ranked[0].sources == [.semantic, .keyword])
+        #expect(ranked[0].similarity == 0.8)
+        // File 1's second chunk shares its rank, so file 2 ranks second in the semantic list.
+        #expect(abs(ranked[2].score - 1 / 62) < 1e-9)
+    }
+}
+
+@Suite("QueryStyle")
+struct QueryStyleTests {
+    @Test(arguments: ["IMG_4821", "invoice 2024-0413", "report.pdf", "\"exact phrase\"", "iPhone backup", "v2 slides"])
+    func literal(_ text: String) {
+        #expect(QueryStyle(text) == .literal)
+    }
+
+    @Test(arguments: ["apple", "baseball bat", "flight confirmation", "the receipt from Goa"])
+    func balanced(_ text: String) {
+        #expect(QueryStyle(text) == .balanced)
+    }
+
+    @Test(arguments: [
+        "that photo of my dog at the lake", "5% of perinatal mortality is due to low birth weight.",
+    ])
+    func descriptive(_ text: String) {
+        #expect(QueryStyle(text) == .descriptive)
+    }
+
+    @Test func fullStopIsNotAFileName() {
+        #expect(!QueryStyle.looksLikeIdentifier("weight."))
+        #expect(QueryStyle.looksLikeIdentifier("notes.md"))
+    }
 }
 
 @Suite("Snippet")
@@ -319,15 +417,12 @@ struct QueryParserTests {
         #expect(parsed.tokens == [.kind(.video), .folder("Downloads"), .modifiedSince(.week)])
     }
 
-    @Test func freeTierOnlyAppliesKindFilters() {
+    @Test func appliesEveryFilterToken() {
         let parsed = QueryParser.parse("x kind:pdf in:Downloads date:today")
-        let free = parsed.filter(allowFullFilters: false, sources: ["/Users/a/Downloads"])
-        #expect(free.kinds == [.pdf])
-        #expect(free.folders.isEmpty)
-        #expect(free.modifiedAfter == nil)
-        let pro = parsed.filter(allowFullFilters: true, sources: ["/Users/a/Downloads"])
-        #expect(pro.folders == ["/Users/a/Downloads"])
-        #expect(pro.modifiedAfter != nil)
+        let filter = parsed.filter(sources: ["/Users/a/Downloads"])
+        #expect(filter.kinds == [.pdf])
+        #expect(filter.folders == ["/Users/a/Downloads"])
+        #expect(filter.modifiedAfter != nil)
     }
 
     @Test func unknownTokensStayInText() {

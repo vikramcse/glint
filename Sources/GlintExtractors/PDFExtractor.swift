@@ -6,7 +6,7 @@ import PDFKit
 import UniformTypeIdentifiers
 
 /// Extracts PDFs page by page: text chunks per page (OCR for pages without a text layer), a
-/// rendered page thumbnail, and one visual page chunk for Pro visual search.
+/// rendered page thumbnail, and one visual page chunk for visual search.
 public struct PDFExtractor: ContentExtractor {
     public static let contentTypes: Set<UTType> = [.pdf]
 
@@ -80,7 +80,7 @@ actor PDFCursor {
         }
         if let render {
             chunks.append(
-                Chunk(ordinal: 0, locator: .page(index), input: .image(render), requiredFeature: .pdfVisualSearch)
+                Chunk(ordinal: 0, locator: .page(index), input: .image(render))
             )
         }
         for position in chunks.indices {

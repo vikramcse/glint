@@ -284,8 +284,22 @@ public actor IndexWriter {
         return db.changes
     }
 
-    public func markFailed(_ id: FileID, category: ErrorCategory) throws {
+    /// Records a failure, unless the file changed from `version` meanwhile: a half-copied file
+    /// that failed to read stays pending so its finished copy gets indexed.
+    public func markFailed(_ id: FileID, category: ErrorCategory, version: FileVersion? = nil) throws {
+        guard try isCurrent(id, version: version) else { return }
         try db.run("UPDATE files SET status = 2, error = ? WHERE id = ?", [.text(category.rawValue), .int(id.rawValue)])
+    }
+
+    /// The file still exists and, when `version` is given, still has that size and modification date.
+    func isCurrent(_ id: FileID, version: FileVersion?) throws -> Bool {
+        guard let version else {
+            return try db.scalarInt("SELECT 1 FROM files WHERE id = ?", [.int(id.rawValue)]) != nil
+        }
+        return try db.scalarInt(
+            "SELECT 1 FROM files WHERE id = ? AND size = ? AND abs(modified - ?) <= 0.001",
+            [.int(id.rawValue), .int(version.size), .double(version.modified.timeIntervalSince1970)]
+        ) != nil
     }
 
     /// Returns a file to the queue without counting the attempt (for example when indexing
@@ -294,8 +308,8 @@ public actor IndexWriter {
         try db.run("UPDATE files SET attempts = max(attempts - 1, 0) WHERE id = ? AND status = 0", [.int(id.rawValue)])
     }
 
-    /// Sends indexed files of `kinds` back to the queue (for example PDFs after an upgrade
-    /// unlocks visual page search) and failed files back for another try.
+    /// Sends indexed files of `kinds` back to the queue (for example after an extractor
+    /// improves) and failed files back for another try.
     public func requeue(kinds: Set<MediaKind>, includeFailed: Bool = false) throws {
         for kind in kinds {
             try db.run("UPDATE files SET status = 0, attempts = 0 WHERE kind = ? AND status = 1", [.text(kind.rawValue)])

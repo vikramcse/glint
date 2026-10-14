@@ -32,10 +32,18 @@ public enum ModelCatalog {
         // rises from 0.46 to 0.94) applies to small libraries; from 200 vectors the z-score takes
         // over (COCO photo benchmark: category F1 0.55 -> 0.59, negative queries 35 -> 3.4 results).
         similarityMargin: 0.05,
-        minimumZScore: 2.75,
+        // 3.0 once camera photos stopped carrying their OCR noise: COCO negative queries 5.3 -> 3.0
+        // results and precision +3 points for 1.4 points of recall; themed trains and SciFact
+        // keep their recall within 0.4 points with better precision.
+        minimumZScore: 3.0,
         // Keeps a folder of train photos for "train" (best z 2.4 against the mean, 4.1 against
         // the median). COCO: Recall@10 0.770 -> 0.779 and F1 unchanged; 3.25 costs 0.02 precision.
         minimumRobustZScore: 3.5,
+        // A library that is mostly one trip's train photos hides every match for "two people near
+        // a train" from calibration. Themed COCO benchmark (coco_theme_bench.py): Recall@10
+        // 0.24 -> 0.54; COCO and SciFact unchanged, negative queries unchanged. 0.70 costs
+        // SciFact 0.4 points of recall; 0.75 keeps only half the themed gain.
+        confidentSimilarity: 0.72,
         limitsLooseKeywords: true
     )
 

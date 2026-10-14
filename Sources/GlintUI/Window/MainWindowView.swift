@@ -17,9 +17,7 @@ public struct MainWindowView: View {
         _model = State(
             initialValue: SearchModel(
                 engine: services.engine,
-                entitlements: { services.entitlements },
-                sourcePaths: { services.status.sources.map(\.path) },
-                report: services.report
+                sourcePaths: { services.status.sources.map(\.path) }
             ))
         _library = State(initialValue: LibraryModel(engine: services.engine, saved: savedSearches))
     }
@@ -84,7 +82,8 @@ public struct MainWindowView: View {
     }
 
     private var title: String {
-        switch sidebar {
+        if let name = model.similarExampleName { return String(localized: "Similar to \(name)") }
+        return switch sidebar {
         case .kind(let kind): kind.sectionTitle
         case .source(let id): services.status.sources.first { $0.id == id }?.displayName ?? String(localized: "Folder")
         case .saved(let id): library.savedSearches.first { $0.id == id }?.name ?? String(localized: "Saved Search")
@@ -95,10 +94,8 @@ public struct MainWindowView: View {
     private var suggestedTokens: [SearchToken] {
         guard model.tokens.isEmpty, !model.text.isEmpty else { return [] }
         var tokens = MediaKind.allCases.sorted().map(SearchToken.kind)
-        if services.entitlements.allows(.fullFilters) {
-            tokens += [.modifiedSince(.today), .modifiedSince(.week), .modifiedSince(.month)]
-            tokens += services.status.sources.map { .folder($0.path) }
-        }
+        tokens += [.modifiedSince(.today), .modifiedSince(.week), .modifiedSince(.month)]
+        tokens += services.status.sources.map { .folder($0.path) }
         return tokens
     }
 
@@ -125,6 +122,16 @@ public struct MainWindowView: View {
     }
 
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
+        if model.isFindingSimilar {
+            ToolbarItem {
+                Button {
+                    model.clear()
+                } label: {
+                    Label("Clear Similar", systemImage: "xmark.circle")
+                }
+                .help(Text("Go back to the library"))
+            }
+        }
         ToolbarItem {
             Picker(selection: layoutBinding) {
                 Label("Grid", systemImage: "square.grid.2x2").tag(ResultsLayout.grid)
@@ -137,12 +144,8 @@ public struct MainWindowView: View {
         }
         ToolbarItem {
             Button {
-                if services.entitlements.allows(.savedSearches) {
-                    savedSearchName = model.text
-                    savingSearch = true
-                } else {
-                    services.actions?.showUpgrade(.feature)
-                }
+                savedSearchName = model.text
+                savingSearch = true
             } label: {
                 Label("Save Search", systemImage: "bookmark")
             }
@@ -186,7 +189,7 @@ struct ResultsArea: View {
     let services: GlintServices
     @Binding var layout: ResultsLayout
 
-    private var isBrowsing: Bool { model.currentQuery.isEmpty && model.similarTo == nil }
+    private var isBrowsing: Bool { model.currentQuery.isEmpty && !model.isFindingSimilar }
     private var items: [SearchResult] { isBrowsing ? library.items : model.displayOrder }
 
     var body: some View {
@@ -207,10 +210,6 @@ struct ResultsArea: View {
         }
         .dropDestination(for: URL.self) { urls, _ in
             guard let url = urls.first else { return false }
-            guard services.entitlements.allows(.findSimilar) else {
-                services.actions?.showUpgrade(.feature)
-                return false
-            }
             model.findSimilar(toFileAt: url)
             return true
         }
@@ -276,11 +275,6 @@ struct ResultsArea: View {
     }
 
     private func open(_ result: SearchResult) {
-        guard !result.isLocked else {
-            services.actions?.showUpgrade(.lockedResult)
-            return
-        }
-        services.report(.resultOpened(rank: model.rank(of: result), kind: result.file.kind))
         services.actions?.open(result)
     }
 }

@@ -34,10 +34,7 @@ struct MediaKindTests {
         #expect(MediaKind(contentType: .applicationBundle) == nil)
     }
 
-    @Test func videoAndAudioRequirePro() {
-        #expect(MediaKind.video.requiredFeature == .videoSearch)
-        #expect(MediaKind.audio.requiredFeature == .audioSearch)
-        #expect(MediaKind.image.requiredFeature == nil)
+    @Test func cheapMediaIndexesFirst() {
         #expect(MediaKind.document.indexingPriority < MediaKind.audio.indexingPriority)
         #expect(MediaKind.audio.indexingPriority < MediaKind.video.indexingPriority)
     }
@@ -130,32 +127,10 @@ struct ExclusionRulesTests {
     }
 }
 
-@Suite("FeatureGate")
-struct FeatureGateTests {
-    @Test func freeLocksVideoAndAudio() {
-        #expect(!FeatureGateSnapshot.free.allows(.video))
-        #expect(!FeatureGateSnapshot.free.allows(.audio))
-        #expect(FeatureGateSnapshot.free.allows(.image))
-        #expect(FeatureGateSnapshot.free.itemLimit == 10_000)
-        #expect(FeatureGateSnapshot.free.sourceLimit == 3)
-    }
-
-    @Test func proAllowsEverything() {
-        for kind in MediaKind.allCases { #expect(FeatureGateSnapshot.pro.allows(kind)) }
-        #expect(FeatureGateSnapshot.pro.itemLimit == nil)
-    }
-
-    @Test func boxUpdatesAtomically() {
-        let box = FeatureGateBox(.free)
-        box.update(.pro)
-        #expect(box.current == .pro)
-    }
-}
-
 @Suite("IndexStatus")
 struct IndexStatusTests {
-    @Test func progressExcludesLockedFiles() {
-        let status = IndexStatus(phase: .indexing, indexed: [.image: 30, .document: 20], pending: 50, locked: 100)
+    @Test func progressCountsIndexedAgainstPending() {
+        let status = IndexStatus(phase: .indexing, indexed: [.image: 30, .document: 20], pending: 50)
         #expect(status.totalIndexed == 50)
         #expect(status.progress == 0.5)
         #expect(status.isBusy)

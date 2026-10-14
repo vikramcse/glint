@@ -74,7 +74,7 @@ struct EvalReport: Codable, Sendable {
     var outcomes: [QueryOutcome]
 }
 
-/// Regression gates from the PRD: no metric may drop more than 1 point overall or 2 points
+/// Regression gates: no metric may drop more than 1 point overall or 2 points
 /// for any media type, and no must-pass query may fall out of the top 10.
 enum EvalGates {
     static func failures(report: EvalReport, baseline: EvalReport?) -> [String] {
@@ -87,6 +87,22 @@ enum EvalGates {
         for (kind, base) in baseline.perKind {
             guard let current = report.perKind[kind] else { continue }
             failures += compare(kind, current, base, tolerance: 0.02)
+        }
+        // Queries for things the corpus doesn't contain: a looser cutoff must not start
+        // returning unrelated files for them.
+        if let now = report.negatives, let before = baseline.negatives {
+            if before.emptyRate - now.emptyRate > 0.1 + 1e-9 {
+                failures.append(
+                    String(
+                        format: "negative queries returning nothing dropped from %.0f%% to %.0f%%", before.emptyRate * 100,
+                        now.emptyRate * 100))
+            }
+            if now.averageReturned - before.averageReturned > 1 + 1e-9 {
+                failures.append(
+                    String(
+                        format: "negative queries return %.1f results on average, up from %.1f", now.averageReturned, before.averageReturned
+                    ))
+            }
         }
         return failures
     }

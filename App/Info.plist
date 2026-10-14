@@ -42,17 +42,6 @@
 	<false/>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 Glint</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>app.glint.mac.activate</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>glint</string>
-			</array>
-		</dict>
-	</array>
 	<key>NSDesktopFolderUsageDescription</key>
 	<string>Glint indexes files on your Desktop so you can search them. Nothing leaves your Mac.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
@@ -67,13 +56,6 @@
 	<string>Glint transcribes speech in your recordings on this Mac so you can search what was said.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Glint searches photos already on this Mac. Nothing is uploaded.</string>
-	<!-- Endpoints (read by AppConfiguration). Empty license server = offline activation for development. -->
-	<key>GlintPurchaseURL</key>
-	<string>https://glint.app/buy</string>
-	<key>GlintLicenseServerURL</key>
-	<string></string>
-	<key>GlintTelemetryURL</key>
-	<string>https://telemetry.glint.app/v1/events</string>
 	<!-- Sparkle updates. The updater stays off until both are set (scripts/release/README.md). -->
 	<key>SUFeedURL</key>
 	<string></string>

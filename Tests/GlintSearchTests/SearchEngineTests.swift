@@ -24,10 +24,9 @@ private struct FakeEncoder: QueryEncoding {
 private struct Harness {
     let engine: SearchEngine
     let writer: IndexWriter
-    let gate: FeatureGateBox
     let ids: [String: FileID]
 
-    static func make(gate: FeatureGateSnapshot = .pro, limitsLooseKeywords: Bool = false) async throws -> Harness {
+    static func make(limitsLooseKeywords: Bool = false) async throws -> Harness {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("glint-search-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let url = directory.appendingPathComponent("index.sqlite")
@@ -61,7 +60,6 @@ private struct Harness {
             ids[record.name] = record.id
         }
 
-        let box = FeatureGateBox(gate)
         let engine = SearchEngine(
             reader: try IndexReader(url: url),
             vectorIndex: FlatVectorIndex(space: space, useGPU: false),
@@ -69,11 +67,10 @@ private struct Harness {
                 space: space, table: ["dog on the sand": 0, "when was the deadline": 2],
                 // Closer to the standup than to the pitch, which has the word "revenue".
                 mixed: ["revenue lunch": [0, 0.6, 0.8, 0, 0, 0, 0, 0]], limitsLooseKeywords: limitsLooseKeywords),
-            thumbnails: ThumbnailStore(directory: directory.appendingPathComponent("Thumbnails")),
-            gate: box
+            thumbnails: ThumbnailStore(directory: directory.appendingPathComponent("Thumbnails"))
         )
         #expect(try await engine.loadVectors() == 4)
-        return Harness(engine: engine, writer: writer, gate: box, ids: ids)
+        return Harness(engine: engine, writer: writer, ids: ids)
     }
 }
 
@@ -120,16 +117,6 @@ struct SearchEngineTests {
         let query = SearchQuery(text: "when was the deadline", filter: SearchFilter(kinds: [.image]))
         let results = try await harness.engine.mergedResults(for: query)
         #expect(results.items.allSatisfy { $0.file.kind == .image })
-    }
-
-    @Test func lockedKindsStayVisibleButLocked() async throws {
-        let harness = try await Harness.make(gate: .free)
-        let results = try await harness.engine.mergedResults(for: SearchQuery(text: "when was the deadline"))
-        let audio = try #require(results.items.first { $0.file.kind == .audio })
-        #expect(audio.isLocked)
-        harness.gate.update(.pro)
-        let unlocked = try await harness.engine.mergedResults(for: SearchQuery(text: "when was the deadline "))  // new query bypasses cache
-        #expect(unlocked.items.first { $0.file.kind == .audio }?.isLocked == false)
     }
 
     @Test func similarExcludesTheExample() async throws {

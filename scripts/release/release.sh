@@ -3,7 +3,7 @@
 # Works with any build (scripts/build_app.sh or xcodebuild) — pass the .app path.
 #
 #   SIGN_IDENTITY="Developer ID Application: …" NOTARY_PROFILE=glint-notary \
-#   DOWNLOAD_URL_PREFIX=https://downloads.glint.app/ \
+#   DOWNLOAD_URL_PREFIX=https://example.com/glint/ \
 #   scripts/release/release.sh path/to/Glint.app [updates-folder]
 source "$(dirname "$0")/common.sh"
 

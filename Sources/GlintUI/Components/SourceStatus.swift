@@ -34,12 +34,8 @@ public enum SourceIndexState: Hashable, Sendable {
         case .unreadable: String(localized: "Can’t read this folder")
         case .scanning: String(localized: "Looking for files…")
         case .indexing(let done, let total): String(localized: "Indexing \(done.formatted()) of \(total.formatted())")
-        case .paused(let reason, let done, let total):
-            if reason == .itemLimitReached {
-                String(localized: "Free limit reached · \(done.formatted()) of \(total.formatted())")
-            } else {
-                String(localized: "Paused · \(done.formatted()) of \(total.formatted())")
-            }
+        case .paused(_, let done, let total):
+            String(localized: "Paused · \(done.formatted()) of \(total.formatted())")
         case .complete(let indexed): String(localized: "Indexed · \(indexed.formatted()) items")
         case .empty: String(localized: "No searchable files")
         }
@@ -87,14 +83,7 @@ struct SourceStatusView: View {
     }
 
     static func footnote(for source: SourceInfo) -> String? {
-        var parts: [String] = []
-        if source.locked > 0 {
-            parts.append(String(localized: "\(source.locked.formatted()) video and audio files need Pro"))
-        }
-        if source.failed > 0 {
-            parts.append(String(localized: "\(source.failed.formatted()) couldn’t be read"))
-        }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+        source.failed > 0 ? String(localized: "\(source.failed.formatted()) couldn’t be read") : nil
     }
 
     static func accessibilityLabel(source: SourceInfo, state: SourceIndexState) -> String {
@@ -185,9 +174,7 @@ struct IndexingStatusBar: View {
                     .frame(maxWidth: 220, maxHeight: 4)
             }
             Spacer()
-            if case .paused(.itemLimitReached) = status.phase {
-                Button("Upgrade…") { services.actions?.showUpgrade(.itemLimit) }
-            } else if case .paused(.user) = status.phase {
+            if case .paused(.user) = status.phase {
                 Button("Resume") { Task { await services.indexing.resume() } }
             } else if status.isBusy {
                 Button("Pause") { Task { await services.indexing.pause() } }

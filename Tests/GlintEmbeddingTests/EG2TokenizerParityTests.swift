@@ -41,7 +41,7 @@ struct EG2TokenizerParityTests {
             guard url.pathExtension == "swift", let text = try? String(contentsOf: url, encoding: .utf8) else { continue }
             texts.append(text)
         }
-        for name in ["README.md", "PRD.md"] {
+        for name in ["README.md", "CONTRIBUTING.md"] {
             if let text = try? String(contentsOf: root.appendingPathComponent(name), encoding: .utf8) { texts.append(text) }
         }
         let captions = FileManager.default.homeDirectoryForCurrentUser

@@ -11,14 +11,13 @@ public final class AppSettings {
     public var hotKey: KeyCombo { didSet { save(hotKey, for: .hotKey) } }
     public var launchAtLogin: Bool { didSet { defaults.set(launchAtLogin, forKey: Key.launchAtLogin.rawValue) } }
     public var hideMenuBarItemWhenIdle: Bool { didSet { defaults.set(hideMenuBarItemWhenIdle, forKey: Key.hideMenuBarItem.rawValue) } }
-    public var analyticsEnabled: Bool { didSet { defaults.set(analyticsEnabled, forKey: Key.analytics.rawValue) } }
     public var groupResultsByKind: Bool { didSet { defaults.set(groupResultsByKind, forKey: Key.groupResults.rawValue) } }
     public var defaultKinds: Set<MediaKind> { didSet { save(defaultKinds, for: .defaultKinds) } }
     public var transcribeAudio: Bool { didSet { defaults.set(transcribeAudio, forKey: Key.transcribe.rawValue) } }
     /// Matryoshka output size of the search model: 768, 512 (default) or 256.
     public var modelDimensions: Int { didSet { defaults.set(modelDimensions, forKey: Key.modelDimensions.rawValue) } }
     public var videoOnlyOnPower: Bool { didSet { defaults.set(videoOnlyOnPower, forKey: Key.videoOnPower.rawValue) } }
-    /// Allow apps and agents on this Mac to search Glint through the local API (Pro). Off by default.
+    /// Allow apps and agents on this Mac to search Glint through the local API. Off by default.
     public var localAPIEnabled: Bool { didSet { defaults.set(localAPIEnabled, forKey: Key.localAPI.rawValue) } }
     public var hasCompletedOnboarding: Bool { didSet { defaults.set(hasCompletedOnboarding, forKey: Key.onboarded.rawValue) } }
     public var hasSearched: Bool { didSet { defaults.set(hasSearched, forKey: Key.searched.rawValue) } }
@@ -32,7 +31,6 @@ public final class AppSettings {
         hotKey = Self.load(KeyCombo.self, from: defaults, key: .hotKey) ?? .defaultSearch
         launchAtLogin = defaults.bool(forKey: Key.launchAtLogin.rawValue)
         hideMenuBarItemWhenIdle = defaults.bool(forKey: Key.hideMenuBarItem.rawValue)
-        analyticsEnabled = defaults.bool(forKey: Key.analytics.rawValue)
         groupResultsByKind = defaults.object(forKey: Key.groupResults.rawValue) as? Bool ?? true
         defaultKinds = Self.load(Set<MediaKind>.self, from: defaults, key: .defaultKinds) ?? []
         transcribeAudio = defaults.bool(forKey: Key.transcribe.rawValue)
@@ -55,7 +53,6 @@ public final class AppSettings {
         case hotKey = "glint.hotKey"
         case launchAtLogin = "glint.launchAtLogin"
         case hideMenuBarItem = "glint.hideMenuBarItemWhenIdle"
-        case analytics = "glint.analyticsEnabled"
         case groupResults = "glint.groupResultsByKind"
         case defaultKinds = "glint.defaultKinds"
         case transcribe = "glint.transcribeAudio"

@@ -17,9 +17,6 @@ public struct MenuBarContent: View {
         if status.status.isBusy {
             Text("\(Int(status.status.progress * 100))% complete")
         }
-        if status.status.locked > 0 {
-            Text("\(status.status.locked.formatted()) video and audio files need Pro")
-        }
         if let models = services.models, models.state.isBusy {
             Text(models.state.summary)
         }
@@ -35,9 +32,6 @@ public struct MenuBarContent: View {
                 .disabled(!status.status.isBusy && status.status.pending == 0)
         }
         Divider()
-        if services.entitlements.showsUpgrade {
-            Button("Upgrade to Pro…") { services.actions?.showUpgrade(.menu) }
-        }
         if let updates = services.updates, updates.isAvailable {
             Button("Check for Updates…") { updates.checkForUpdates() }
                 .disabled(!updates.canCheckForUpdates)

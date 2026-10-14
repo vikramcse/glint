@@ -30,15 +30,37 @@ public struct ImageExtractor: ContentExtractor {
         try ExtractionError.checkReadable(file.url)
         guard ExtractionError.fileSize(file.url) > 0 else { throw ExtractionError.empty }
 
-        let (image, text) = try decodeAndRead(file.url, options: options)
-        let thumbnail = ImageProcessing.scaled(image, maxPixel: options.thumbnailMaxPixel)
+        let decoded = try decodeAndRead(file.url, options: options)
+        let thumbnail = ImageProcessing.scaled(decoded.image, maxPixel: options.thumbnailMaxPixel)
+        var input = EmbeddingInput.image(decoded.image)
+        if let text = decoded.text, decoded.source != .camera, readsLikeText(text) {
+            input = .interleaved([input, .text(String(text.prefix(600)))])
+        }
         return Chunk(
             ordinal: 0,
             locator: .whole,
-            text: text,
-            input: .image(image),
+            text: decoded.text,
+            input: input,
             preview: ChunkPreview(thumbnail: thumbnail, thumbnailKey: "i")
         )
+    }
+
+    /// A decoded image with what OCR read from it and how it was read.
+    struct Decoded {
+        var image: CGImage
+        var text: String?
+        var source: OCRSource?
+    }
+
+    /// Whether to embed the OCR text together with the image. Screenshots and scans read as
+    /// sentences, and the words are what the user remembers; camera photos yield a few garbled
+    /// signs ("TasT ENTRY → 1 TO SEAT SLEEP") that pull the vector away from what the photo
+    /// shows (COCO Recall@10 0.77 -> 0.86 without them). Camera metadata settles it first;
+    /// photos without it (messaging apps strip it) rely on this check alone.
+    static func readsLikeText(_ text: String, minimumWords: Int = 6) -> Bool {
+        let words = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline })
+        let wordy = words.filter { word in word.count >= 3 && word.allSatisfy(\.isLetter) }
+        return wordy.count >= minimumWords && wordy.count * 3 >= words.count
     }
 
     /// Decodes the image once and reads its text.
@@ -50,10 +72,10 @@ public struct ImageExtractor: ContentExtractor {
     ///   and thumbnail are scaled from that, and the fast recognizer runs only when the text
     ///   detector (reliable at this size, unlike at preview size) finds text.
     /// Explicit `.fast`/`.accurate` levels read the preview, as before.
-    static func decodeAndRead(_ url: URL, options: ExtractionOptions) throws -> (image: CGImage, text: String?) {
+    static func decodeAndRead(_ url: URL, options: ExtractionOptions) throws -> Decoded {
         let previewSize = options.embeddingImageMaxPixel
         guard options.ocrEnabled else {
-            return (try ImageProcessing.downscaledImage(at: url, maxPixel: previewSize), nil)
+            return Decoded(image: try ImageProcessing.downscaledImage(at: url, maxPixel: previewSize))
         }
         let recognizer = TextRecognizer(level: options.ocrLevel)
         func read(_ image: CGImage, _ source: OCRSource) -> String? {
@@ -67,18 +89,18 @@ public struct ImageExtractor: ContentExtractor {
         }
         guard options.ocrLevel == .automatic else {
             let preview = try ImageProcessing.downscaledImage(at: url, maxPixel: previewSize)
-            return (preview, read(preview, .screen))
+            return Decoded(image: preview, text: read(preview, .screen), source: .screen)
         }
         let longSide = ImageProcessing.pixelSize(at: url).map { max($0.width, $0.height) } ?? 0
         if ImageProcessing.isCameraPhoto(at: url) || longSide <= previewSize {
             let preview = try ImageProcessing.downscaledImage(at: url, maxPixel: previewSize)
             let source: OCRSource = ImageProcessing.isCameraPhoto(at: url) ? .camera : .screen
-            guard source == .screen || TextRecognizer.containsText(preview) else { return (preview, nil) }
-            return (preview, read(preview, source))
+            guard source == .screen || TextRecognizer.containsText(preview) else { return Decoded(image: preview, source: source) }
+            return Decoded(image: preview, text: read(preview, source), source: source)
         }
         let large = try ImageProcessing.downscaledImage(at: url, maxPixel: options.ocrMaxPixel)
         let preview = ImageProcessing.scaled(large, maxPixel: previewSize)
-        guard TextRecognizer.containsText(large) else { return (preview, nil) }
-        return (preview, read(large, .screen))
+        guard TextRecognizer.containsText(large) else { return Decoded(image: preview, source: .screen) }
+        return Decoded(image: preview, text: read(large, .screen), source: .screen)
     }
 }

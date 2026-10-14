@@ -10,16 +10,14 @@ public struct SourceInfo: Sendable, Hashable, Identifiable, Codable {
     public var itemCount: Int
     /// Files whose content is searchable.
     public var indexed: Int
-    /// Files waiting to be indexed that can be indexed now.
+    /// Files waiting to be indexed.
     public var pending: Int
-    /// Files waiting for a Pro feature (video and audio on Free).
-    public var locked: Int
     /// Files that could not be read.
     public var failed: Int
 
     public init(
         id: SourceID, path: String, isExternalVolume: Bool, isAccessible: Bool, itemCount: Int,
-        indexed: Int = 0, pending: Int = 0, locked: Int = 0, failed: Int = 0
+        indexed: Int = 0, pending: Int = 0, failed: Int = 0
     ) {
         self.id = id
         self.path = path
@@ -28,7 +26,6 @@ public struct SourceInfo: Sendable, Hashable, Identifiable, Codable {
         self.itemCount = itemCount
         self.indexed = indexed
         self.pending = pending
-        self.locked = locked
         self.failed = failed
     }
 
@@ -40,7 +37,7 @@ public struct SourceInfo: Sendable, Hashable, Identifiable, Codable {
     /// Every file that can be indexed now has been.
     public var isComplete: Bool { pending == 0 }
 
-    /// Fraction of indexable-now files that are done (locked files excluded).
+    /// Fraction of indexable files that are done.
     public var progress: Double {
         let total = indexed + pending
         return total == 0 ? 1 : Double(indexed) / Double(total)
@@ -92,7 +89,6 @@ public enum PauseReason: String, Sendable, Hashable, Codable {
     case lowBattery
     case lowPowerMode
     case thermal
-    case itemLimitReached
 }
 
 /// Honest, user-facing state of the index.
@@ -109,8 +105,6 @@ public struct IndexStatus: Sendable, Hashable {
     public var indexed: [MediaKind: Int]
     /// Files waiting to be indexed.
     public var pending: Int
-    /// Files waiting for a Pro feature (video and audio on Free).
-    public var locked: Int
     /// Files that could not be read.
     public var failed: Int
     /// Number of sources, and how many are currently unreadable (permission denied, unplugged).
@@ -121,7 +115,6 @@ public struct IndexStatus: Sendable, Hashable {
         phase: Phase = .idle,
         indexed: [MediaKind: Int] = [:],
         pending: Int = 0,
-        locked: Int = 0,
         failed: Int = 0,
         sourceCount: Int = 0,
         inaccessibleSources: Int = 0
@@ -129,7 +122,6 @@ public struct IndexStatus: Sendable, Hashable {
         self.phase = phase
         self.indexed = indexed
         self.pending = pending
-        self.locked = locked
         self.failed = failed
         self.sourceCount = sourceCount
         self.inaccessibleSources = inaccessibleSources
@@ -137,7 +129,7 @@ public struct IndexStatus: Sendable, Hashable {
 
     public var totalIndexed: Int { indexed.values.reduce(0, +) }
 
-    /// Fraction done, counting only work that can run now (locked files excluded).
+    /// Fraction done.
     public var progress: Double {
         let total = totalIndexed + pending
         return total == 0 ? 1 : Double(totalIndexed) / Double(total)

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Tunables for every extractor. Defaults follow the PRD extraction table.
+/// Tunables for every extractor.
 public struct ExtractionOptions: Sendable, Hashable {
     /// Vision OCR accuracy level.
     public enum OCRLevel: String, Sendable, Hashable, Codable {

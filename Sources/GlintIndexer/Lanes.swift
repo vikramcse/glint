@@ -152,7 +152,8 @@ actor CommitBatcher {
                     let file = request.file
                     do {
                         let vectors = try await writer.commit(
-                            fileID: file.fileID, contentHash: file.contentHash, space: file.space, chunks: file.chunks, media: file.media)
+                            fileID: file.fileID, contentHash: file.contentHash, space: file.space, chunks: file.chunks, media: file.media,
+                            version: file.version)
                         request.continuation.resume(returning: vectors)
                     } catch {
                         request.continuation.resume(throwing: error)

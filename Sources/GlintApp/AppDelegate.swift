@@ -1,13 +1,11 @@
 import AppKit
 import GlintCore
-import GlintLicensing
-import GlintTelemetry
 import GlintUI
 import Observation
 import ServiceManagement
 
 /// Owns the app lifecycle: builds the environment, the panel and the hotkey, and keeps
-/// settings, license state and services in sync.
+/// settings and services in sync.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let launch = LaunchOptions.current
@@ -17,7 +15,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: SearchPanelController?
     private let hotKeys = HotKeyCenter()
     private let updater = UpdaterController()
-    private var timers: [Timer] = []
     private var launchError: (any Error)?
 
     override init() {
@@ -48,14 +45,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.panel = panel
 
         registerHotKey()
-        wireLicense(environment)
         observeSettings(environment)
         environment.metricKit.start()
         environment.services.status.start()
-        scheduleMaintenance(environment)
 
         Task {
-            await environment.telemetry.record(.appLaunched(AppLaunchInfo.current()))
             await environment.start()
             if self.launch.isUITest { environment.localAPI.stop() } else { await environment.localAPI.apply() }
             if let source = self.launch.testSource, self.settings.hasCompletedOnboarding {
@@ -65,7 +59,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if launch.skipOnboarding { settings.hasCompletedOnboarding = true }
         if launch.showMainWindow { actions.showMainWindow() }
-        if launch.showUpgrade { actions.showUpgrade(.menu) }
         if launch.showPanel { panel.show() }
         if !settings.hasCompletedOnboarding {
             actions.showOnboarding(suggestions: launch.testSource.map { [$0] }) { [weak self] in self?.panel?.show() }
@@ -75,17 +68,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag { actions?.showMainWindow() }
         return true
-    }
-
-    func application(_ application: NSApplication, open urls: [URL]) {
-        guard let environment else { return }
-        for url in urls where url.scheme == "glint" {
-            Task {
-                if await environment.license.handle(url: url) {
-                    actions?.showMainWindow()
-                }
-            }
-        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -107,26 +89,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func wireLicense(_ environment: AppEnvironment) {
-        let license = environment.license
-        var wasLicensed = license.entitlements.isLicensed
-        license.onChange = { entitlements in
-            Task { @MainActor in await environment.localAPI.apply() }
-            environment.features.update(entitlements.snapshot)
-            Task { await environment.indexer.entitlementsDidChange() }
-            if entitlements.isLicensed, !wasLicensed {
-                Task { await environment.telemetry.record(.licenseActivated) }
-            }
-            wasLicensed = entitlements.isLicensed
-        }
-        if license.startTrialIfNeeded() {
-            Task { await environment.telemetry.record(.trialStarted) }
-        }
-        license.refresh()
-        environment.features.update(license.entitlements.snapshot)
-        Task { await license.revalidateIfNeeded() }
-    }
-
     private func observeSettings(_ environment: AppEnvironment) {
         observe {
             self.settings.hotKey
@@ -137,11 +99,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self.settings.localAPIEnabled
         } onChange: { _ in
             Task { await environment.localAPI.apply() }
-        }
-        observe {
-            self.settings.analyticsEnabled
-        } onChange: { enabled in
-            Task { await environment.telemetry.setEnabled(enabled) }
         }
         observe {
             self.settings.launchAtLogin
@@ -175,23 +132,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.observe(value, onChange: onChange)
             }
         }
-    }
-
-    private func scheduleMaintenance(_ environment: AppEnvironment) {
-        // Hourly: send the telemetry batch if a day has passed (no-op when opted out).
-        timers.append(
-            Timer.scheduledTimer(withTimeInterval: 3_600, repeats: true) { _ in
-                Task { await environment.telemetrySender.flushIfDue() }
-            })
-        // Daily: license re-validation (itself limited to weekly) and the index progress event.
-        timers.append(
-            Timer.scheduledTimer(withTimeInterval: 86_400, repeats: true) { _ in
-                Task { @MainActor in
-                    await environment.license.revalidateIfNeeded()
-                    let status = await environment.indexer.currentStatus()
-                    await environment.telemetry.record(.indexProgress(itemsPerKind: status.indexed, pending: status.pending))
-                }
-            })
     }
 
     private func presentLaunchFailure() {

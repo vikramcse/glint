@@ -80,24 +80,23 @@ private struct PhotosHarness {
     let engine: SearchEngine
     let library: FakePhotoLibrary
 
-    init(gate: FeatureGateSnapshot = .pro, library: FakePhotoLibrary = FakePhotoLibrary()) throws {
+    init(library: FakePhotoLibrary = FakePhotoLibrary()) throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("glint-photos-\(UUID().uuidString)")
         let paths = AppPaths(root: root)
         try paths.createDirectories()
         let provider = HashingEmbeddingProvider()
         let writer = try IndexWriter(url: paths.database)
-        let features = FeatureGateBox(gate)
         let vectorIndex = FlatVectorIndex(space: provider.descriptor.space, useGPU: false)
         let priority = PriorityGate(quietPeriod: .milliseconds(1))
         let thumbnails = ThumbnailStore(directory: paths.thumbnails)
         self.library = library
         indexer = Indexer(
             writer: writer, extractors: [TextAsImageExtractor()], provider: provider, vectorIndex: vectorIndex,
-            gate: priority, thumbnails: thumbnails, features: features, power: FixedPowerMonitor(),
+            gate: priority, thumbnails: thumbnails, power: FixedPowerMonitor(),
             options: IndexerOptions(concurrentFiles: 2), photos: library)
         engine = SearchEngine(
             reader: try IndexReader(url: paths.database), vectorIndex: vectorIndex,
-            encoder: GatedQueryEncoder(provider: provider, gate: priority), thumbnails: thumbnails, gate: features)
+            encoder: GatedQueryEncoder(provider: provider, gate: priority), thumbnails: thumbnails)
     }
 
     func names(_ query: String) async throws -> [String] {
@@ -123,13 +122,6 @@ struct PhotosLibraryTests {
         let first = try #require(results.first)
         #expect(first.file.name == "IMG_0001.HEIC")
         #expect(PhotosLibraryPath.assetIdentifier(fromPath: first.file.path) == "A1/L0/001")
-    }
-
-    @Test func requiresPro() async throws {
-        let harness = try PhotosHarness(gate: .free)
-        await #expect(throws: EntitlementError.photosLibraryRequiresPro) {
-            try await harness.indexer.addSource(PhotosLibraryPath.libraryURL)
-        }
     }
 
     @Test func deniedAccessAddsNothing() async throws {

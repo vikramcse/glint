@@ -3,7 +3,7 @@ import GlintCore
 import GlintSearch
 import Observation
 
-/// A saved search as the UI sees it (Pro).
+/// A saved search as the UI sees it.
 public struct SavedSearchItem: Sendable, Hashable, Identifiable {
     public var id: Int64
     public var name: String

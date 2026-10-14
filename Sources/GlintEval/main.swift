@@ -5,7 +5,11 @@
 //   glint-eval sample <dir>                     write <dir>/corpus and <dir>/queries.json
 //   glint-eval run <dir> [--queries q.json] [--model gemma|apple|hashing] [--model-dir D] [--dimensions N]
 //                  [--baseline report.json] [--out report.json] [--margin M|off] [--z K|off] [--titles] [--loose-keywords N|all]
-//                  [--text-bits 8|16] [--media-bits 8|16]
+//                  [--text-bits 8|16] [--media-bits 8|16] [--fusion rrf|scores] [--per-file] [--adaptive on|off]
+//                  [--semantic-weight W] [--keyword-weight W] [--confident S|off] [--confident-margin M]
+//                  [--fuse-text off] [--diagnose rankings.json]
+//                  --diagnose writes where every relevant file ranks in the raw semantic and keyword
+//                  lists before any cutoff, to tell a model miss from a filter miss
 //   glint-eval query <text>... --model-dir D [--index index.sqlite] [--dimensions N] [--idle-unload S]
 //                    run queries against a real index (read-only) and print every
 //                    semantic score next to what the app would show
@@ -167,8 +171,20 @@ case "run":
         if let margin = option("--margin", in: arguments) { runner.similarityMargin = .some(Float(margin)) }
         if let z = option("--z", in: arguments) { runner.minimumZScore = .some(Float(z)) }
         if let z = option("--robust-z", in: arguments) { runner.minimumRobustZScore = .some(Float(z)) }
+        if let confident = option("--confident", in: arguments) { runner.confidentSimilarity = .some(Float(confident)) }
+        if let path = option("--diagnose", in: arguments) { runner.diagnosePath = URL(fileURLWithPath: path) }
+        if option("--fuse-text", in: arguments) == "off" { runner.indexerOptions.fuseTextIntoMedia = false }
+        if let margin = option("--confident-margin", in: arguments).flatMap(Float.init) { runner.ranker.confidentMargin = margin }
         if arguments.contains("--titles") { runner.indexerOptions.documentTitles = true }
         if let loose = option("--loose-keywords", in: arguments) { runner.looseKeywordLimit = .some(Int(loose)) }
+        if let fusion = option("--fusion", in: arguments) { runner.ranker.fusion = fusion == "rrf" ? .reciprocalRank : .scores }
+        if arguments.contains("--per-file") { runner.ranker.fusesPerFile = true }
+        if let adaptive = option("--adaptive", in: arguments) { runner.adaptsWeights = adaptive != "off" }
+        if let weight = option("--semantic-weight", in: arguments).flatMap(Double.init) { runner.ranker.semanticWeight = weight }
+        if let weight = option("--keyword-weight", in: arguments).flatMap(Double.init) {
+            runner.ranker.keywordWeight = weight
+            runner.ranker.nameWeight = weight * 1.2
+        }
         let report = try await runner.run()
         let failures = EvalGates.failures(report: report, baseline: baseline)
         printReport(report, failures: failures)
@@ -204,7 +220,7 @@ case "query":
         let vectorIndex = FlatVectorIndex(space: provider.descriptor.space)
         let engine = SearchEngine(
             reader: try IndexReader(url: database), vectorIndex: vectorIndex, encoder: encoder,
-            thumbnails: ThumbnailStore(directory: paths.thumbnails), gate: FeatureGateBox(.pro))
+            thumbnails: ThumbnailStore(directory: paths.thumbnails))
         let loaded = try await engine.loadVectors()
         print("Loaded \(loaded) vectors in \(provider.descriptor.space); semantic cutoff \(encoder.minimumSimilarity)")
         let names = Dictionary(

@@ -15,7 +15,7 @@ public enum LocalAPIError: GlintError, Equatable {
     }
 }
 
-/// A loopback-only HTTP/1.1 server for the local API (Pro). One request per connection,
+/// A loopback-only HTTP/1.1 server for the local API. One request per connection,
 /// bounded request sizes, a per-connection deadline and a connection cap.
 public final class LocalAPIServer: @unchecked Sendable {
     public let router: LocalAPIRouter

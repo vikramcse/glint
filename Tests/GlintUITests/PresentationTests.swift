@@ -1,6 +1,5 @@
 import Foundation
 import GlintCore
-import GlintLicensing
 import GlintSearch
 import Testing
 
@@ -25,10 +24,9 @@ struct PresentationTests {
         #expect(AccessibilityText.label(for: result) == "Video, Beach trip, moment at 12 minutes, 4 seconds")
     }
 
-    @Test func voiceOverLabelMentionsLockAndPage() {
-        var result = SearchResult.fixture(name: "deck.pdf", kind: .pdf, locator: .page(1))
-        result.isLocked = true
-        #expect(AccessibilityText.label(for: result) == "PDF, deck, page 2, requires Glint Pro")
+    @Test func voiceOverLabelMentionsPage() {
+        let result = SearchResult.fixture(name: "deck.pdf", kind: .pdf, locator: .page(1))
+        #expect(AccessibilityText.label(for: result) == "PDF, deck, page 2")
     }
 
     @Test func keyComboDisplay() {
@@ -38,8 +36,6 @@ struct PresentationTests {
     }
 
     @Test func errorsMapToUserMessages() {
-        #expect(ErrorPresenter.message(for: EntitlementError.sourceLimitReached(limit: 3)).contains("3 folders"))
-        #expect(ErrorPresenter.message(for: LicenseError.seatLimitReached).contains("2 Macs"))
         #expect(ErrorPresenter.message(for: CocoaError(.fileReadNoPermission)).contains("permission"))
         #expect(ErrorPresenter.message(for: CancellationError()) == "Cancelled.")
     }
@@ -75,7 +71,7 @@ extension SearchResult {
                 chunkID: nil, locator: locator,
                 snippet: snippet.map { Snippet.make(from: $0, terms: ["pricing", "deadline"]) }, thumbnailURL: nil
             ),
-            score: 1, sources: [.semantic], isLocked: false
+            score: 1, sources: [.semantic]
         )
     }
 }

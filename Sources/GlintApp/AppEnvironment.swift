@@ -3,10 +3,8 @@ import GlintCore
 import GlintEmbedding
 import GlintExtractors
 import GlintIndexer
-import GlintLicensing
 import GlintSearch
 import GlintStore
-import GlintTelemetry
 import GlintUI
 
 /// The composition root: builds the object graph once and owns it for the app's lifetime.
@@ -19,14 +17,10 @@ final class AppEnvironment {
     let reader: IndexReader
     let provider: any EmbeddingProvider
     let priorityGate = PriorityGate()
-    let features: FeatureGateBox
     let vectorIndex: FlatVectorIndex
     let thumbnails: ThumbnailStore
     let engine: SearchEngine
     let indexer: Indexer
-    let license: LicenseManager
-    let telemetry: OptInTelemetryClient
-    let telemetrySender: QueuedTelemetryClient
     let metricKit: MetricKitReporter
     let services: GlintServices
     let savedSearches: AppSavedSearches
@@ -46,31 +40,26 @@ final class AppEnvironment {
         provider = Self.makeProvider()
         thumbnails = ThumbnailStore(directory: paths.thumbnails)
 
-        license = try Self.makeLicense(paths: paths, isUITest: launch.isUITest)
-        features = FeatureGateBox(license.entitlements.snapshot)
-
         vectorIndex = FlatVectorIndex(space: provider.descriptor.space)
         let registry = ExtractorRegistry.standard(options: Self.extractionOptions(settings))
         engine = SearchEngine(
             reader: reader, vectorIndex: vectorIndex, encoder: GatedQueryEncoder(provider: provider, gate: priorityGate),
-            exampleEncoder: FileExampleEncoder(registry: registry, provider: provider), thumbnails: thumbnails, gate: features
+            exampleEncoder: FileExampleEncoder(registry: registry, provider: provider), thumbnails: thumbnails
         )
         indexer = Indexer(
             writer: writer, extractors: registry.extractors, provider: provider, vectorIndex: vectorIndex,
-            gate: priorityGate, thumbnails: thumbnails, features: features,
+            gate: priorityGate, thumbnails: thumbnails,
             options: IndexerOptions(videoOnlyOnPower: settings.videoOnlyOnPower),
             photos: photos
         )
 
-        telemetrySender = Self.makeTelemetrySender(queueURL: paths.telemetryQueue)
-        telemetry = OptInTelemetryClient(sender: telemetrySender, isEnabled: settings.analyticsEnabled)
         metricKit = MetricKitReporter(directory: paths.diagnostics)
         savedSearches = AppSavedSearches(writer: writer, reader: reader)
 
         services = GlintServices(
-            engine: engine, indexing: indexer, license: license, settings: settings,
-            modelDescription: Self.modelDescription(active: provider.descriptor), report: Self.reporter(telemetry),
-            storageUsage: Self.storageUsage(paths: paths, thumbnails: thumbnails), analyticsPreview: Self.analyticsPreview(telemetry)
+            engine: engine, indexing: indexer, settings: settings,
+            modelDescription: Self.modelDescription(active: provider.descriptor),
+            storageUsage: Self.storageUsage(paths: paths, thumbnails: thumbnails)
         )
 
         let options = Self.extractionOptions(settings)
@@ -80,7 +69,7 @@ final class AppEnvironment {
             registry: { ExtractorRegistry.standard(options: options) }
         )
         services.models = models
-        localAPI = LocalAPIController(paths: paths, engine: engine, indexing: indexer, features: features, settings: settings)
+        localAPI = LocalAPIController(paths: paths, engine: engine, indexing: indexer, settings: settings)
         services.localAPI = localAPI.control
     }
 
@@ -103,40 +92,9 @@ final class AppEnvironment {
 
     // MARK: Factories
 
-    private static func makeLicense(paths: AppPaths, isUITest: Bool) throws -> LicenseManager {
-        LicenseManager(
-            verifier: try LicenseVerifier.production(),
-            store: isUITest
-                ? FileSecureStore(url: paths.root.appendingPathComponent("license.json"))
-                : SecureStoreFactory.make(fallbackDirectory: paths.root),
-            // Without GlintLicenseServerURL in Info.plist, signed keys activate offline (development).
-            activationService: AppConfiguration.current.licenseServer.map { HTTPActivationService(baseURL: $0) }
-        )
-    }
-
-    /// Records UI events through telemetry, which drops them unless the user opted in.
-    private static func reporter(_ telemetry: OptInTelemetryClient) -> @MainActor (UIEvent) -> Void {
-        { event in
-            guard let mapped = TelemetryBridge.event(for: event) else { return }
-            Task { await telemetry.record(mapped) }
-        }
-    }
-
     /// Where EmbeddingGemma 2 downloads from (Info.plist `GlintModelBaseURL`), if overridden.
     private static var modelBaseURL: URL? {
         (Bundle.main.object(forInfoDictionaryKey: "GlintModelBaseURL") as? String).flatMap(URL.init(string:))
-    }
-
-    private static func analyticsPreview(_ telemetry: OptInTelemetryClient) -> @Sendable () async -> String {
-        { await telemetry.pendingPayloadPreview() }
-    }
-
-    private static func makeTelemetrySender(queueURL: URL) -> QueuedTelemetryClient {
-        QueuedTelemetryClient(
-            queueURL: queueURL,
-            transport: HTTPTelemetryTransport(endpoint: AppConfiguration.current.telemetryEndpoint),
-            keyValueStore: UserDefaultsKeyValueStore()
-        )
     }
 
     private static func storageUsage(paths: AppPaths, thumbnails: ThumbnailStore) -> @Sendable () async -> Int64 {

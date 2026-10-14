@@ -35,6 +35,11 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
     /// the query's median score are kept even below `minimumZScore`. When many files match, they
     /// lift the mean and standard deviation until none of them stands out; the median doesn't move.
     public var minimumRobustZScore: Float?
+    /// Semantic matches at or above this cosine similarity, and within `similarityMargin` of the
+    /// query's best match, are kept even when calibration would drop them. A library that is
+    /// mostly one trip's train photos makes every train photo the "background", so "two people
+    /// near a train" stands out from nothing; a high absolute score still means a real match.
+    public var confidentSimilarity: Float?
     /// Whether semantic matches are reliable enough that partial (any-word) keyword matches
     /// should only add a few files instead of boosting files already found. True for
     /// EmbeddingGemma 2 (SciFact MRR 0.61 -> 0.80); the built-in model needs the keyword boost
@@ -56,6 +61,7 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
         similarityMargin: Float? = nil,
         minimumZScore: Float? = nil,
         minimumRobustZScore: Float? = nil,
+        confidentSimilarity: Float? = nil,
         limitsLooseKeywords: Bool = false
     ) {
         self.id = id
@@ -72,6 +78,7 @@ public struct ModelDescriptor: Sendable, Hashable, Codable, Identifiable {
         self.similarityMargin = similarityMargin
         self.minimumZScore = minimumZScore
         self.minimumRobustZScore = minimumRobustZScore
+        self.confidentSimilarity = confidentSimilarity
         self.limitsLooseKeywords = limitsLooseKeywords
     }
 

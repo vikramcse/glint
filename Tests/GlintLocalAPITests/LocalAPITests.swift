@@ -105,15 +105,6 @@ struct LocalAPIRouterTests {
         #expect(await harness.send(localhost).status == 200)
     }
 
-    @Test func freeTierGetsAClearProError() async throws {
-        let harness = try await APIHarness.make(gate: .free)
-        let response = await harness.send(APIHarness.request("POST", "/v1/search", body: #"{"query":"beach"}"#))
-        #expect(response.status == 402)
-        #expect(response.errorCode == "pro_required")
-        harness.features.update(.pro)
-        #expect(await harness.send(APIHarness.request("GET", "/v1/status")).status == 200)
-    }
-
     @Test func statusAndSources() async throws {
         let harness = try await APIHarness.make()
         let status = await harness.send(APIHarness.request("GET", "/v1/status"))

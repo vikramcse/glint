@@ -52,8 +52,6 @@ public struct Chunk: Sendable {
     public var text: String?
     /// What to embed. `nil` makes this a keyword-only chunk.
     public var input: EmbeddingInput?
-    /// A feature the user needs for this chunk to be embedded (for example visual PDF pages).
-    public var requiredFeature: Feature?
     public var preview: ChunkPreview
 
     public init(
@@ -61,14 +59,12 @@ public struct Chunk: Sendable {
         locator: ChunkLocator,
         text: String? = nil,
         input: EmbeddingInput? = nil,
-        requiredFeature: Feature? = nil,
         preview: ChunkPreview = .none
     ) {
         self.ordinal = ordinal
         self.locator = locator
         self.text = text
         self.input = input
-        self.requiredFeature = requiredFeature
         self.preview = preview
     }
 }

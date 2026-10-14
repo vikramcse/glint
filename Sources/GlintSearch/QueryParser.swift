@@ -14,11 +14,6 @@ public enum SearchToken: Sendable, Hashable, Identifiable {
         case .modifiedSince(let preset): "date:\(preset.rawValue)"
         }
     }
-
-    /// Whether this token needs the Pro "full filters" feature (kind is free, the rest are Pro).
-    public var requiresFullFilters: Bool {
-        if case .kind = self { false } else { true }
-    }
 }
 
 /// Relative date ranges offered as tokens.
@@ -46,10 +41,10 @@ public struct ParsedQuery: Sendable, Hashable {
         self.tokens = tokens
     }
 
-    /// Builds the filter; Pro-only tokens are ignored when `allowFullFilters` is false.
-    public func filter(allowFullFilters: Bool, sources: [String] = [], now: Date = Date()) -> SearchFilter {
+    /// Builds the filter.
+    public func filter(sources: [String] = [], now: Date = Date()) -> SearchFilter {
         var filter = SearchFilter()
-        for token in tokens where allowFullFilters || !token.requiresFullFilters {
+        for token in tokens {
             switch token {
             case .kind(let kind):
                 filter.kinds.insert(kind)

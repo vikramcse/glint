@@ -1,6 +1,5 @@
 import Foundation
 import GlintCore
-import GlintLicensing
 import GlintSearch
 import GlintStore
 import GlintTestSupport
@@ -24,7 +23,7 @@ private struct TableEncoder: QueryEncoding {
 
 /// A small indexed library: one file per kind plus extra documents for grouping.
 @MainActor
-func makeEngine(encoderDelay: Duration = .zero, gate: FeatureGateSnapshot = .pro) async throws -> (SearchEngine, TemporaryDirectory) {
+func makeEngine(encoderDelay: Duration = .zero) async throws -> (SearchEngine, TemporaryDirectory) {
     let directory = try TemporaryDirectory(prefix: "glint-ui")
     let url = directory.url.appendingPathComponent("index.sqlite")
     let space = VectorSpace(modelID: "ui/1", dimension: 4)
@@ -57,7 +56,7 @@ func makeEngine(encoderDelay: Duration = .zero, gate: FeatureGateSnapshot = .pro
     let engine = SearchEngine(
         reader: try IndexReader(url: url), vectorIndex: FlatVectorIndex(space: space, useGPU: false),
         encoder: TableEncoder(space: space, delay: encoderDelay),
-        thumbnails: ThumbnailStore(directory: directory.url), gate: FeatureGateBox(gate)
+        thumbnails: ThumbnailStore(directory: directory.url)
     )
     try await engine.loadVectors()
     return (engine, directory)
@@ -77,9 +76,7 @@ struct SearchModelTests {
     @Test func keywordResultsArriveThenMergedResults() async throws {
         let (engine, directory) = try await makeEngine(encoderDelay: .milliseconds(150))
         _ = directory
-        var events: [UIEvent] = []
-        let model = SearchModel(
-            engine: engine, entitlements: { Entitlements(state: .trial(daysLeft: 3, endsAt: .now)) }, report: { events.append($0) })
+        let model = SearchModel(engine: engine)
         model.text = "beach"
         await waitUntil { model.phase == .keyword }
         #expect(model.phase == .keyword)
@@ -87,13 +84,12 @@ struct SearchModelTests {
         await waitUntil { model.phase == .merged }
         #expect(model.phase == .merged)
         #expect(!model.isMerging)
-        #expect(events.contains { if case .searchPerformed = $0 { true } else { false } })
     }
 
     @Test func newKeystrokeCancelsInFlightMerge() async throws {
         let (engine, directory) = try await makeEngine(encoderDelay: .milliseconds(200))
         _ = directory
-        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trialExpired) })
+        let model = SearchModel(engine: engine)
         model.text = "beach"
         try await Task.sleep(for: .milliseconds(60))
         model.text = "packing"
@@ -105,7 +101,7 @@ struct SearchModelTests {
     @Test func selectionStaysPutWhenResultsMerge() async throws {
         let (engine, directory) = try await makeEngine(encoderDelay: .milliseconds(150))
         _ = directory
-        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trial(daysLeft: 3, endsAt: .now)) })
+        let model = SearchModel(engine: engine)
         model.groupByKind = false
         model.text = "beach"
         await waitUntil { model.phase == .keyword }
@@ -120,7 +116,7 @@ struct SearchModelTests {
     @Test func groupsTopHitsThenKindsAndWalksInDisplayOrder() async throws {
         let (engine, directory) = try await makeEngine()
         _ = directory
-        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trial(daysLeft: 3, endsAt: .now)) })
+        let model = SearchModel(engine: engine)
         model.text = "beach"
         await waitUntil { model.phase == .merged }
         let sections = model.sections
@@ -132,24 +128,24 @@ struct SearchModelTests {
         #expect(model.selection == model.displayOrder.first?.id)
         model.moveSelection(by: 100)
         #expect(model.selection == model.displayOrder.last?.id)
-        #expect(model.rank(of: model.displayOrder[1]) == 2)
     }
 
-    @Test func freeTierIgnoresProFiltersButKeepsKindFilters() async throws {
-        let (engine, directory) = try await makeEngine(gate: .free)
+    @Test func filterTokensNarrowResults() async throws {
+        let (engine, directory) = try await makeEngine()
         _ = directory
-        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trialExpired) })
+        let model = SearchModel(engine: engine)
         model.text = "beach kind:pdf in:Elsewhere"
         #expect(model.currentQuery.filter.kinds == [.pdf])
-        #expect(model.currentQuery.filter.folders.isEmpty)
+        #expect(model.currentQuery.filter.folders == ["Elsewhere"])
+        model.text = "beach kind:pdf"
         await waitUntil { model.phase == .merged }
         #expect(model.results.map(\.file.name) == ["deck.pdf"])
     }
 
-    @Test func sidebarFolderScopesSearchOnEveryTier() async throws {
-        let (engine, directory) = try await makeEngine(gate: .free)
+    @Test func sidebarFolderScopesSearch() async throws {
+        let (engine, directory) = try await makeEngine()
         _ = directory
-        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trialExpired) })
+        let model = SearchModel(engine: engine)
         model.folderScope = "/elsewhere"
         model.text = "beach"
         #expect(model.currentQuery.filter.folders == ["/elsewhere"])
@@ -161,37 +157,59 @@ struct SearchModelTests {
         #expect(model.results.count == 6)
     }
 
-    @Test func lockedResultsAreVisibleOnFree() async throws {
-        let (engine, directory) = try await makeEngine(gate: .free)
-        _ = directory
-        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trialExpired) })
-        model.text = "waves"
-        await waitUntil { model.phase == .merged }
-        let video = try #require(model.results.first { $0.file.kind == .video })
-        #expect(video.isLocked)
-    }
-
     @Test func emptyStatesAreHonest() async throws {
         let (engine, directory) = try await makeEngine()
         _ = directory
-        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trialExpired) })
+        let model = SearchModel(engine: engine)
         #expect(model.emptyState(status: IndexStatus(sourceCount: 0)) == .noSources)
         #expect(model.emptyState(status: IndexStatus(sourceCount: 1)) == .start)
         model.text = "zzzz qqqq kind:audio"
         await waitUntil { model.phase == .merged || !model.isMerging }
         try await Task.sleep(for: .milliseconds(50))
         #expect(model.emptyState(status: IndexStatus(pending: 12, sourceCount: 1)) == .stillIndexing(pending: 12))
-        #expect(model.emptyState(status: IndexStatus(locked: 3, sourceCount: 1)) == .noResults(lockedKinds: true))
+        #expect(model.emptyState(status: IndexStatus(sourceCount: 1)) == .noResults)
     }
 
-    @Test func findSimilarRequiresPro() async throws {
+    @Test func droppedFileShowsSimilarResultsEvenAfterTyping() async throws {
         let (engine, directory) = try await makeEngine()
         _ = directory
-        let model = SearchModel(engine: engine, entitlements: { Entitlements(state: .trialExpired) })
+        let model = SearchModel(engine: engine)
+        model.text = "beach"
+        await waitUntil { model.phase == .merged }
+        model.findSimilar(toFileAt: URL(fileURLWithPath: "/lib/beach.jpg"))
+        await waitUntil { !model.isMerging }
+        #expect(model.text.isEmpty)
+        #expect(model.isFindingSimilar)
+        #expect(model.similarExampleName == "beach.jpg")
+        #expect(model.results.map(\.file.name).contains("Beach trip.mov"))
+        #expect(!model.results.map(\.file.name).contains("beach.jpg"))
+
+        model.clear()
+        #expect(!model.isFindingSimilar)
+    }
+
+    @Test func droppedFileThatCannotBeReadSaysSo() async throws {
+        let (engine, directory) = try await makeEngine()
+        _ = directory
+        let model = SearchModel(engine: engine)
+        model.findSimilar(toFileAt: URL(fileURLWithPath: "/elsewhere/holiday.jpg"))
+        await waitUntil { !model.isMerging }
+        guard case .failed = model.emptyState(status: IndexStatus(sourceCount: 1)) else {
+            Issue.record("Expected a failure state, got \(String(describing: model.emptyState(status: IndexStatus(sourceCount: 1))))")
+            return
+        }
+    }
+
+    @Test func findSimilarFromAResult() async throws {
+        let (engine, directory) = try await makeEngine()
+        _ = directory
+        let model = SearchModel(engine: engine)
         model.text = "beach"
         await waitUntil { model.phase == .merged }
         let first = try #require(model.results.first)
         model.findSimilar(to: first)
-        #expect(model.similarTo == nil)
+        #expect(model.similarTo == first)
+        await waitUntil { !model.isMerging }
+        #expect(!model.results.contains { $0.id == first.id })
     }
 }

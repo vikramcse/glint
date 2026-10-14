@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Fails when a module imports a Glint module it is not allowed to depend on.
-# Dependencies point inward toward GlintCore; this mirrors the module table in the PRD.
+# Dependencies point inward toward GlintCore; this mirrors the module graph in Package.swift.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -12,13 +12,10 @@ allowed() {
     GlintStore)       echo "GlintCore" ;;
     GlintSearch)      echo "GlintCore GlintStore" ;;
     GlintIndexer)     echo "GlintCore GlintExtractors GlintEmbedding GlintStore" ;;
-    GlintLicensing)   echo "GlintCore" ;;
-    GlintTelemetry)   echo "GlintCore" ;;
-    GlintUI)          echo "GlintCore GlintSearch GlintLicensing" ;;
+    GlintUI)          echo "GlintCore GlintSearch" ;;
     GlintLocalAPI)    echo "GlintCore GlintSearch" ;;
     GlintMCP)         echo "" ;;
     GlintMCPTool)     echo "GlintMCP" ;;
-    GlintLicenseTool) echo "GlintCore GlintLicensing" ;;
     GlintEval)        echo "GlintCore GlintExtractors GlintEmbedding GlintStore GlintSearch GlintIndexer GlintTestSupport" ;;
     GlintApp)         echo "*" ;;
     *)                echo "UNKNOWN" ;;

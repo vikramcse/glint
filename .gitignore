@@ -9,5 +9,10 @@ Evals/reports/
 .claude/worktrees/
 Evals/sample/
 Evals/coco/
+Evals/coco-train/
 Evals/scifact/
+Evals/mixed/
 Xcode/
+default.profraw
+*.profraw
+temp

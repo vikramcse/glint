@@ -35,7 +35,6 @@ public actor SearchEngine {
     private var encoder: (any QueryEncoding)?
     private var exampleEncoder: (any ExampleEncoder)?
     private let thumbnails: ThumbnailStore
-    private let gate: FeatureGateBox
     private var ranker: HybridRanker
     private let now: @Sendable () -> Date
     private var keywordCache: KeywordCache?
@@ -48,6 +47,8 @@ public actor SearchEngine {
     /// push the real match down (SciFact: MRR 0.61 -> 0.80, Recall@10 0.82 -> 0.93 with them
     /// limited). `nil` keeps them all at full weight, as without a model or with a weaker one.
     public let looseKeywordLimit: Int?
+    /// Leans each query's fusion towards keywords or meaning by how it reads (`QueryStyle`).
+    public let adaptsWeights: Bool
 
     public init(
         reader: IndexReader,
@@ -55,25 +56,26 @@ public actor SearchEngine {
         encoder: (any QueryEncoding)?,
         exampleEncoder: (any ExampleEncoder)? = nil,
         thumbnails: ThumbnailStore,
-        gate: FeatureGateBox,
         ranker: HybridRanker = HybridRanker(),
         resultLimit: Int = 60,
         looseKeywordLimit: Int? = 3,
+        adaptsWeights: Bool = true,
         now: @escaping @Sendable () -> Date = Date.init
     ) {
         self.looseKeywordLimit = looseKeywordLimit
+        self.adaptsWeights = adaptsWeights
         self.reader = reader
         self.vectorIndex = vectorIndex
         self.encoder = encoder
         self.exampleEncoder = exampleEncoder
         self.thumbnails = thumbnails
-        self.gate = gate
         self.ranker = ranker
         if let encoder {
             self.ranker.minimumSimilarity = encoder.minimumSimilarity
             self.ranker.similarityMargin = encoder.similarityMargin
             self.ranker.minimumZScore = encoder.minimumZScore
             self.ranker.minimumRobustZScore = encoder.minimumRobustZScore
+            self.ranker.confidentSimilarity = encoder.confidentSimilarity
         }
         self.resultLimit = resultLimit
         self.now = now
@@ -91,6 +93,7 @@ public actor SearchEngine {
         ranker.similarityMargin = newEncoder.similarityMargin
         ranker.minimumZScore = newEncoder.minimumZScore
         ranker.minimumRobustZScore = newEncoder.minimumRobustZScore
+        ranker.confidentSimilarity = newEncoder.confidentSimilarity
         vectorIndex = newIndex
         keywordCache = nil
         try await loadVectors()
@@ -160,6 +163,13 @@ public actor SearchEngine {
             (semantic, statistics) = try await vectorIndex.searchWithStatistics(embedding, limit: resultLimit * 4, filter: query.filter)
         }
         try Task.checkCancellation()
+        var ranker = ranker
+        if adaptsWeights {
+            let weights = QueryStyle(query.text).weights
+            ranker.semanticWeight *= weights.semantic
+            ranker.keywordWeight *= weights.keyword
+            ranker.nameWeight *= weights.keyword
+        }
         let ranked = ranker.rank(
             semantic: semantic, keyword: chunks, names: names, looseKeyword: looseChunks, looseNames: looseNames,
             attributes: attributes(chunks + names + looseChunks + looseNames), statistics: statistics, now: now())
@@ -200,6 +210,7 @@ public actor SearchEngine {
         // "Find similar" is for browsing neighbours, not deciding what matches.
         ranker.similarityMargin = nil
         ranker.minimumZScore = nil
+        ranker.confidentSimilarity = nil
         let ranked = ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], now: now())
         let items = try await hydrate(ranked, terms: [])
         return SearchResults(query: SearchQuery(text: "", filter: filter), phase: .merged, items: items, elapsedMilliseconds: 0)
@@ -211,7 +222,6 @@ public actor SearchEngine {
     public func recent(kinds: Set<MediaKind>, limit: Int, offset: Int = 0) async throws -> [SearchResult] {
         let records = try await reader.recentFiles(kinds: kinds, limit: limit, offset: offset)
         let firstChunks = try await reader.firstChunks(of: records.map(\.id))
-        let snapshot = gate.current
         return records.map { record in
             let chunk = firstChunks[record.id]
             return SearchResult(
@@ -221,7 +231,7 @@ public actor SearchEngine {
                     snippet: chunk?.text.map { Snippet.make(from: $0, terms: []) },
                     thumbnailURL: chunk?.thumbnail.map(thumbnails.url(forRelativePath:))
                 ),
-                score: 0, sources: [], isLocked: !snapshot.allows(record.kind)
+                score: 0, sources: []
             )
         }
     }
@@ -270,7 +280,6 @@ public actor SearchEngine {
         let files = try await reader.files(top.map(\.fileID))
         let chunks = try await reader.chunks(top.compactMap(\.bestChunk))
         let fallbacks = try await reader.firstChunks(of: top.filter { $0.bestChunk == nil }.map(\.fileID))
-        let snapshot = gate.current
 
         return top.compactMap { ranked -> SearchResult? in
             guard let record = files[ranked.fileID] else { return nil }
@@ -285,8 +294,7 @@ public actor SearchEngine {
                     thumbnailURL: chunk?.thumbnail.map(thumbnails.url(forRelativePath:))
                 ),
                 score: ranked.score,
-                sources: ranked.sources,
-                isLocked: !snapshot.allows(record.kind)
+                sources: ranked.sources
             )
         }
     }
