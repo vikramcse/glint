@@ -1,9 +1,9 @@
 {
   "corpusFiles" : 12,
-  "date" : "2026-10-11T14:44:34Z",
+  "date" : "2026-10-14T08:35:27Z",
   "indexingSeconds" : 4.968379542,
-  "latencyP50Milliseconds" : 44.153542,
-  "latencyP95Milliseconds" : 70.43425,
+  "latencyP50Milliseconds" : 7.196833,
+  "latencyP95Milliseconds" : 24.463375,
   "model" : "google.embeddinggemma-2\/2.0@512",
   "negatives" : {
     "averageReturned" : 0.6666666666666666,
@@ -15,7 +15,7 @@
       "id" : "flight-confirmation",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 38.177292,
+      "latencyMilliseconds" : 8.086041,
       "mustPass" : true,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -23,6 +23,9 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic+keyword"
+      ],
       "top" : [
         "Screenshots\/flight.png"
       ]
@@ -31,7 +34,7 @@
       "id" : "hotel-receipt-goa",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 54.575417,
+      "latencyMilliseconds" : 24.463375,
       "mustPass" : true,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -39,6 +42,10 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 2,
+      "sources" : [
+        "semantic",
+        "keyword+name"
+      ],
       "top" : [
         "Screenshots\/receipt.png",
         "travel\/goa-itinerary.md"
@@ -48,7 +55,7 @@
       "id" : "wifi-password",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 34.757709,
+      "latencyMilliseconds" : 8.118875,
       "mustPass" : true,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -56,6 +63,9 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "Screenshots\/wifi.png"
       ]
@@ -64,7 +74,7 @@
       "id" : "pricing-chart",
       "isNegative" : false,
       "kind" : "pdf",
-      "latencyMilliseconds" : 43.665458,
+      "latencyMilliseconds" : 7.598291,
       "mustPass" : true,
       "ndcgAt10" : 1,
       "precision" : 0.5,
@@ -72,6 +82,10 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 2,
+      "sources" : [
+        "semantic",
+        "keyword"
+      ],
       "top" : [
         "work\/Acme pitch.pdf",
         "notes\/product-launch.md"
@@ -81,7 +95,7 @@
       "id" : "revenue-by-region",
       "isNegative" : false,
       "kind" : "pdf",
-      "latencyMilliseconds" : 9.197208,
+      "latencyMilliseconds" : 7.297667,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -89,6 +103,10 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 2,
+      "sources" : [
+        "semantic",
+        "keyword"
+      ],
       "top" : [
         "work\/Acme pitch.pdf",
         "finance\/q3-summary.txt"
@@ -98,7 +116,7 @@
       "id" : "client-deadline",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 8.049833,
+      "latencyMilliseconds" : 7.097625,
       "mustPass" : true,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -106,6 +124,9 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic+keyword"
+      ],
       "top" : [
         "notes\/standup-2026-09-14.txt"
       ]
@@ -114,7 +135,7 @@
       "id" : "tomato-recipe",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 9.246667,
+      "latencyMilliseconds" : 7.1485,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -122,6 +143,9 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "recipes\/pasta.txt"
       ]
@@ -130,7 +154,7 @@
       "id" : "baking",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 69.555416,
+      "latencyMilliseconds" : 7.242833,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -138,6 +162,9 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "recipes\/bread.txt"
       ]
@@ -146,7 +173,7 @@
       "id" : "launch-plan",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 38.272541,
+      "latencyMilliseconds" : 6.803334,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -154,6 +181,9 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic+keyword"
+      ],
       "top" : [
         "notes\/product-launch.md"
       ]
@@ -162,7 +192,7 @@
       "id" : "goa-trip",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 49.971208,
+      "latencyMilliseconds" : 7.196833,
       "mustPass" : false,
       "ndcgAt10" : 0.9639404333166532,
       "precision" : 0.6666666666666666,
@@ -170,6 +200,11 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 3,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "travel\/goa-itinerary.md",
         "Screenshots\/receipt.png",
@@ -180,7 +215,7 @@
       "id" : "flaky-ci",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 52.083959,
+      "latencyMilliseconds" : 7.101208,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -188,6 +223,9 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "work\/retro.txt"
       ]
@@ -196,7 +234,7 @@
       "id" : "quarterly-results",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 44.153542,
+      "latencyMilliseconds" : 6.967292,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -204,6 +242,9 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "finance\/q3-summary.txt"
       ]
@@ -212,7 +253,7 @@
       "id" : "matrix-code",
       "isNegative" : false,
       "kind" : "document",
-      "latencyMilliseconds" : 70.43425,
+      "latencyMilliseconds" : 7.199208,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -220,6 +261,9 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic+keyword"
+      ],
       "top" : [
         "code\/vector_scan.swift"
       ]
@@ -228,13 +272,16 @@
       "id" : "none-elephant",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 64.370208,
+      "latencyMilliseconds" : 7.385458,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "travel\/goa-itinerary.md"
       ]
@@ -243,13 +290,16 @@
       "id" : "none-guitar",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 53.454916,
+      "latencyMilliseconds" : 6.922458,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 1,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 0,
+      "sources" : [
+
+      ],
       "top" : [
 
       ]
@@ -258,13 +308,16 @@
       "id" : "none-dentist",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 56.22325,
+      "latencyMilliseconds" : 7.08275,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "notes\/standup-2026-09-14.txt"
       ]

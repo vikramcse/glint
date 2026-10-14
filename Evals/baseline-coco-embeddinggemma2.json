@@ -1,12 +1,12 @@
 {
   "corpusFiles" : 600,
-  "date" : "2026-10-11T14:52:31Z",
+  "date" : "2026-10-14T08:35:43Z",
   "indexingSeconds" : 129.335979666,
-  "latencyP50Milliseconds" : 9.683041,
-  "latencyP95Milliseconds" : 10.1745,
+  "latencyP50Milliseconds" : 9.637542,
+  "latencyP95Milliseconds" : 10.465958,
   "model" : "google.embeddinggemma-2\/2.0@512",
   "negatives" : {
-    "averageReturned" : 3.0833333333333335,
+    "averageReturned" : 3,
     "emptyRate" : 0,
     "queries" : 12
   },
@@ -15,7 +15,7 @@
       "id" : "cat-apple",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 8.28825,
+      "latencyMilliseconds" : 7.343,
       "mustPass" : false,
       "ndcgAt10" : 0.5799490067305524,
       "precision" : 0.45454545454545453,
@@ -23,6 +23,13 @@
       "recallAt10" : 0.5,
       "reciprocalRank" : 1,
       "returned" : 11,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "216277.jpg",
         "335658.jpg",
@@ -35,7 +42,7 @@
       "id" : "cat-backpack",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.69925,
+      "latencyMilliseconds" : 7.168042,
       "mustPass" : false,
       "ndcgAt10" : 0.489847616713576,
       "precision" : 1,
@@ -43,6 +50,12 @@
       "recallAt10" : 0.3333333333333333,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "370478.jpg",
         "545594.jpg",
@@ -54,7 +67,7 @@
       "id" : "cat-banana",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.495292,
+      "latencyMilliseconds" : 7.135542,
       "mustPass" : false,
       "ndcgAt10" : 0.9646527146481411,
       "precision" : 1,
@@ -62,6 +75,13 @@
       "recallAt10" : 0.8888888888888888,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "161820.jpg",
         "139260.jpg",
@@ -74,19 +94,26 @@
       "id" : "cat-baseball-bat",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.674625,
+      "latencyMilliseconds" : 7.505208,
       "mustPass" : false,
-      "ndcgAt10" : 0.9674679834891693,
+      "ndcgAt10" : 1,
       "precision" : 0.3333333333333333,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "57232.jpg",
         "158227.jpg",
-        "235836.jpg",
         "462031.jpg",
+        "235836.jpg",
         "574823.jpg"
       ]
     },
@@ -94,7 +121,7 @@
       "id" : "cat-bed",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.368083,
+      "latencyMilliseconds" : 7.139459,
       "mustPass" : false,
       "ndcgAt10" : 0.955830517697074,
       "precision" : 1,
@@ -102,6 +129,13 @@
       "recallAt10" : 0.4,
       "reciprocalRank" : 1,
       "returned" : 14,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "65074.jpg",
         "435299.jpg",
@@ -114,7 +148,7 @@
       "id" : "cat-bench",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.200917,
+      "latencyMilliseconds" : 6.772208,
       "mustPass" : false,
       "ndcgAt10" : 0.863443834987606,
       "precision" : 1,
@@ -122,6 +156,13 @@
       "recallAt10" : 0.4166666666666667,
       "reciprocalRank" : 1,
       "returned" : 16,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "577182.jpg",
         "417043.jpg",
@@ -134,7 +175,7 @@
       "id" : "cat-bicycle",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.06525,
+      "latencyMilliseconds" : 6.71075,
       "mustPass" : false,
       "ndcgAt10" : 0.7426411929919041,
       "precision" : 1,
@@ -142,6 +183,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "203317.jpg",
         "573094.jpg",
@@ -154,7 +202,7 @@
       "id" : "cat-bird",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.58275,
+      "latencyMilliseconds" : 6.805792,
       "mustPass" : false,
       "ndcgAt10" : 0.8226321277096644,
       "precision" : 0.875,
@@ -162,19 +210,26 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "284279.jpg",
         "508602.jpg",
         "98261.jpg",
         "197870.jpg",
-        "492992.jpg"
+        "250205.jpg"
       ]
     },
     {
       "id" : "cat-boat",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.427417,
+      "latencyMilliseconds" : 7.577458,
       "mustPass" : false,
       "ndcgAt10" : 0.8194628375907036,
       "precision" : 0.7777777777777778,
@@ -182,6 +237,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "472298.jpg",
         "209972.jpg",
@@ -194,14 +256,21 @@
       "id" : "cat-book",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.2,
+      "latencyMilliseconds" : 7.311458,
       "mustPass" : false,
-      "ndcgAt10" : 0.771486602014509,
+      "ndcgAt10" : 0.7683164250826091,
       "precision" : 0.75,
       "recall" : 0.75,
       "recallAt10" : 0.75,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "578545.jpg",
         "99182.jpg",
@@ -214,17 +283,24 @@
       "id" : "cat-bottle",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.971459,
+      "latencyMilliseconds" : 7.069792,
       "mustPass" : false,
-      "ndcgAt10" : 0.7268751201479756,
+      "ndcgAt10" : 0.8214428182424929,
       "precision" : 0.875,
       "recall" : 0.5,
       "recallAt10" : 0.5,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
-        "532058.jpg",
         "460929.jpg",
+        "532058.jpg",
         "132329.jpg",
         "284991.jpg",
         "173091.jpg"
@@ -234,7 +310,7 @@
       "id" : "cat-bowl",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.778041,
+      "latencyMilliseconds" : 6.734,
       "mustPass" : false,
       "ndcgAt10" : 0.5637884576902256,
       "precision" : 1,
@@ -242,6 +318,12 @@
       "recallAt10" : 0.14814814814814814,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "192871.jpg",
         "132116.jpg",
@@ -253,7 +335,7 @@
       "id" : "cat-broccoli",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.813917,
+      "latencyMilliseconds" : 6.751625,
       "mustPass" : false,
       "ndcgAt10" : 0.9191677261551536,
       "precision" : 0.7692307692307693,
@@ -261,6 +343,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 13,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "358427.jpg",
         "527695.jpg",
@@ -273,7 +362,7 @@
       "id" : "cat-bus",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.96425,
+      "latencyMilliseconds" : 6.744666,
       "mustPass" : false,
       "ndcgAt10" : 0.8899541168509598,
       "precision" : 0.9,
@@ -281,6 +370,13 @@
       "recallAt10" : 0.4090909090909091,
       "reciprocalRank" : 1,
       "returned" : 20,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "95843.jpg",
         "1584.jpg",
@@ -293,18 +389,25 @@
       "id" : "cat-cake",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.089458,
+      "latencyMilliseconds" : 6.645,
       "mustPass" : false,
-      "ndcgAt10" : 0.9493386673577204,
+      "ndcgAt10" : 0.9472991714509883,
       "precision" : 0.6,
       "recall" : 0.8571428571428571,
       "recallAt10" : 0.8571428571428571,
       "reciprocalRank" : 1,
       "returned" : 10,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "327780.jpg",
-        "173383.jpg",
         "450100.jpg",
+        "173383.jpg",
         "109916.jpg",
         "493334.jpg"
       ]
@@ -313,17 +416,24 @@
       "id" : "cat-car",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.83525,
+      "latencyMilliseconds" : 6.704375,
       "mustPass" : false,
-      "ndcgAt10" : 0.6884075427421795,
-      "precision" : 0.7777777777777778,
+      "ndcgAt10" : 0.6304871329908439,
+      "precision" : 0.875,
       "recall" : 0.2692307692307692,
       "recallAt10" : 0.2692307692307692,
       "reciprocalRank" : 1,
-      "returned" : 9,
+      "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
-        "543043.jpg",
         "1532.jpg",
+        "543043.jpg",
         "421455.jpg",
         "76417.jpg",
         "526392.jpg"
@@ -333,7 +443,7 @@
       "id" : "cat-carrot",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.739417,
+      "latencyMilliseconds" : 6.617,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -341,6 +451,11 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 3,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "116206.jpg",
         "221872.jpg",
@@ -351,7 +466,7 @@
       "id" : "cat-cat",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.021709,
+      "latencyMilliseconds" : 6.802459,
       "mustPass" : false,
       "ndcgAt10" : 0.9432379215722527,
       "precision" : 0.9655172413793104,
@@ -359,6 +474,13 @@
       "recallAt10" : 0.3448275862068966,
       "reciprocalRank" : 1,
       "returned" : 29,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "399560.jpg",
         "574315.jpg",
@@ -371,7 +493,7 @@
       "id" : "cat-cell-phone",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.858625,
+      "latencyMilliseconds" : 6.915334,
       "mustPass" : false,
       "ndcgAt10" : 0.8230000719966977,
       "precision" : 0.7777777777777778,
@@ -379,6 +501,13 @@
       "recallAt10" : 0.875,
       "reciprocalRank" : 1,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "216277.jpg",
         "288391.jpg",
@@ -391,14 +520,21 @@
       "id" : "cat-chair",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.808084,
+      "latencyMilliseconds" : 6.623,
       "mustPass" : false,
-      "ndcgAt10" : 0.5488710312935471,
+      "ndcgAt10" : 0.5257272906479546,
       "precision" : 1,
-      "recall" : 0.15384615384615385,
-      "recallAt10" : 0.15384615384615385,
+      "recall" : 0.1346153846153846,
+      "recallAt10" : 0.1346153846153846,
       "reciprocalRank" : 1,
-      "returned" : 8,
+      "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "513688.jpg",
         "42528.jpg",
@@ -411,7 +547,7 @@
       "id" : "cat-clock",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.858125,
+      "latencyMilliseconds" : 6.646875,
       "mustPass" : false,
       "ndcgAt10" : 0.5919132943898102,
       "precision" : 1,
@@ -419,10 +555,17 @@
       "recallAt10" : 0.8,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "289516.jpg",
-        "295797.jpg",
         "545007.jpg",
+        "295797.jpg",
         "217425.jpg",
         "150930.jpg"
       ]
@@ -431,14 +574,21 @@
       "id" : "cat-couch",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.07,
+      "latencyMilliseconds" : 6.734333,
       "mustPass" : false,
-      "ndcgAt10" : 0.7262708448163925,
-      "precision" : 0.8181818181818182,
-      "recall" : 0.36,
-      "recallAt10" : 0.32,
+      "ndcgAt10" : 0.7898916330153442,
+      "precision" : 0.8333333333333334,
+      "recall" : 0.4,
+      "recallAt10" : 0.36,
       "reciprocalRank" : 1,
-      "returned" : 11,
+      "returned" : 12,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "515077.jpg",
         "89045.jpg",
@@ -451,7 +601,7 @@
       "id" : "cat-cow",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.911459,
+      "latencyMilliseconds" : 7.513958,
       "mustPass" : false,
       "ndcgAt10" : 0.9554771573476026,
       "precision" : 0.75,
@@ -459,6 +609,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "124636.jpg",
         "518213.jpg",
@@ -471,7 +628,7 @@
       "id" : "cat-cup",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.6515,
+      "latencyMilliseconds" : 7.337875,
       "mustPass" : false,
       "ndcgAt10" : 0.19580365278882045,
       "precision" : 0.5,
@@ -479,6 +636,10 @@
       "recallAt10" : 0.05263157894736842,
       "reciprocalRank" : 0.5,
       "returned" : 2,
+      "sources" : [
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "393014.jpg",
         "450100.jpg"
@@ -488,7 +649,7 @@
       "id" : "cat-dining-table",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.781042,
+      "latencyMilliseconds" : 6.885791,
       "mustPass" : false,
       "ndcgAt10" : 0.21222636597291455,
       "precision" : 1,
@@ -496,6 +657,10 @@
       "recallAt10" : 0.03278688524590164,
       "reciprocalRank" : 1,
       "returned" : 2,
+      "sources" : [
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "322352.jpg",
         "572678.jpg"
@@ -505,14 +670,21 @@
       "id" : "cat-dog",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.017167,
+      "latencyMilliseconds" : 6.92025,
       "mustPass" : false,
       "ndcgAt10" : 0.9477344873475498,
-      "precision" : 0.8181818181818182,
+      "precision" : 0.8571428571428571,
       "recall" : 0.9473684210526315,
       "recallAt10" : 0.5263157894736842,
       "reciprocalRank" : 1,
-      "returned" : 22,
+      "returned" : 21,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "139872.jpg",
         "297830.jpg",
@@ -525,7 +697,7 @@
       "id" : "cat-donut",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.02475,
+      "latencyMilliseconds" : 6.901792,
       "mustPass" : false,
       "ndcgAt10" : 0.9616004340312126,
       "precision" : 0.7777777777777778,
@@ -533,6 +705,13 @@
       "recallAt10" : 0.875,
       "reciprocalRank" : 1,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "377814.jpg",
         "345469.jpg",
@@ -545,7 +724,7 @@
       "id" : "cat-fire-hydrant",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.098791,
+      "latencyMilliseconds" : 7.673041,
       "mustPass" : false,
       "ndcgAt10" : 0.923850248283177,
       "precision" : 0.8888888888888888,
@@ -553,6 +732,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "439623.jpg",
         "152465.jpg",
@@ -565,27 +751,32 @@
       "id" : "cat-fork",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.820916,
+      "latencyMilliseconds" : 6.754167,
       "mustPass" : false,
-      "ndcgAt10" : 0.8385935820050331,
-      "precision" : 0.8,
-      "recall" : 0.6666666666666666,
-      "recallAt10" : 0.6666666666666666,
+      "ndcgAt10" : 0.7656666936920211,
+      "precision" : 0.75,
+      "recall" : 0.5,
+      "recallAt10" : 0.5,
       "reciprocalRank" : 1,
-      "returned" : 5,
+      "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "358427.jpg",
         "327780.jpg",
         "138241.jpg",
-        "104669.jpg",
-        "466256.jpg"
+        "104669.jpg"
       ]
     },
     {
       "id" : "cat-frisbee",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.686875,
+      "latencyMilliseconds" : 6.632041,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.75,
@@ -593,6 +784,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "139883.jpg",
         "102805.jpg",
@@ -604,7 +801,7 @@
       "id" : "cat-handbag",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.679,
+      "latencyMilliseconds" : 6.735667,
       "mustPass" : false,
       "ndcgAt10" : 0.17342765698823945,
       "precision" : 0.3333333333333333,
@@ -612,6 +809,11 @@
       "recallAt10" : 0.14285714285714285,
       "reciprocalRank" : 0.5,
       "returned" : 3,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "86582.jpg",
         "151000.jpg",
@@ -622,7 +824,7 @@
       "id" : "cat-horse",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.035292,
+      "latencyMilliseconds" : 6.734333,
       "mustPass" : false,
       "ndcgAt10" : 0.8368073639624858,
       "precision" : 0.85,
@@ -630,6 +832,13 @@
       "recallAt10" : 0.5882352941176471,
       "reciprocalRank" : 1,
       "returned" : 20,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "319721.jpg",
         "51309.jpg",
@@ -642,14 +851,21 @@
       "id" : "cat-hot-dog",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.102083,
+      "latencyMilliseconds" : 6.951125,
       "mustPass" : false,
-      "ndcgAt10" : 0.9366015508445983,
+      "ndcgAt10" : 0.9422235572775716,
       "precision" : 0.6666666666666666,
       "recall" : 0.8571428571428571,
       "recallAt10" : 0.8571428571428571,
       "reciprocalRank" : 1,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "460929.jpg",
         "581206.jpg",
@@ -662,7 +878,7 @@
       "id" : "cat-keyboard",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.861334,
+      "latencyMilliseconds" : 6.682042,
       "mustPass" : false,
       "ndcgAt10" : 0.9418936707114044,
       "precision" : 0.7272727272727273,
@@ -670,6 +886,13 @@
       "recallAt10" : 0.8888888888888888,
       "reciprocalRank" : 1,
       "returned" : 11,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "68765.jpg",
         "335658.jpg",
@@ -682,7 +905,7 @@
       "id" : "cat-knife",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.821333,
+      "latencyMilliseconds" : 6.641875,
       "mustPass" : false,
       "ndcgAt10" : 0.8534811121179371,
       "precision" : 0.7142857142857143,
@@ -690,6 +913,13 @@
       "recallAt10" : 0.8333333333333334,
       "reciprocalRank" : 1,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "2592.jpg",
         "15079.jpg",
@@ -702,27 +932,34 @@
       "id" : "cat-laptop",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.007708,
+      "latencyMilliseconds" : 6.793916,
       "mustPass" : false,
-      "ndcgAt10" : 0.8257045171699665,
+      "ndcgAt10" : 0.81927435268468,
       "precision" : 0.8461538461538461,
       "recall" : 1,
       "recallAt10" : 0.45454545454545453,
       "reciprocalRank" : 1,
       "returned" : 26,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "239318.jpg",
         "399560.jpg",
         "513688.jpg",
-        "86582.jpg",
-        "370478.jpg"
+        "370478.jpg",
+        "86582.jpg"
       ]
     },
     {
       "id" : "cat-microwave",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.777083,
+      "latencyMilliseconds" : 6.6545,
       "mustPass" : false,
       "ndcgAt10" : 0.9674679834891693,
       "precision" : 0.75,
@@ -730,6 +967,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "237928.jpg",
         "446005.jpg",
@@ -741,19 +984,26 @@
       "id" : "cat-motorcycle",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.929042,
+      "latencyMilliseconds" : 6.723875,
       "mustPass" : false,
-      "ndcgAt10" : 0.9173631000131927,
+      "ndcgAt10" : 0.9284989590839047,
       "precision" : 0.8235294117647058,
       "recall" : 0.875,
       "recallAt10" : 0.625,
       "reciprocalRank" : 1,
       "returned" : 17,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "85376.jpg",
         "343934.jpg",
-        "579902.jpg",
         "462756.jpg",
+        "579902.jpg",
         "394199.jpg"
       ]
     },
@@ -761,7 +1011,7 @@
       "id" : "cat-orange",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.913208,
+      "latencyMilliseconds" : 6.652,
       "mustPass" : false,
       "ndcgAt10" : 0.9127148335613016,
       "precision" : 0.8333333333333334,
@@ -769,6 +1019,13 @@
       "recallAt10" : 0.7142857142857143,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "351609.jpg",
         "386277.jpg",
@@ -781,7 +1038,7 @@
       "id" : "cat-oven",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.835334,
+      "latencyMilliseconds" : 7.255667,
       "mustPass" : false,
       "ndcgAt10" : 0.6432054362464253,
       "precision" : 0.8181818181818182,
@@ -789,6 +1046,13 @@
       "recallAt10" : 0.5,
       "reciprocalRank" : 1,
       "returned" : 11,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "384661.jpg",
         "397133.jpg",
@@ -801,7 +1065,7 @@
       "id" : "cat-parking-meter",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.847458,
+      "latencyMilliseconds" : 7.479792,
       "mustPass" : false,
       "ndcgAt10" : 0.7251857822460015,
       "precision" : 0.6666666666666666,
@@ -809,6 +1073,13 @@
       "recallAt10" : 0.6666666666666666,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "568147.jpg",
         "64495.jpg",
@@ -821,7 +1092,7 @@
       "id" : "cat-potted-plant",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.755583,
+      "latencyMilliseconds" : 7.297417,
       "mustPass" : false,
       "ndcgAt10" : 0.3676373418270537,
       "precision" : 1,
@@ -829,6 +1100,11 @@
       "recallAt10" : 0.3333333333333333,
       "reciprocalRank" : 1,
       "returned" : 3,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "86582.jpg",
         "522007.jpg",
@@ -839,7 +1115,7 @@
       "id" : "cat-refrigerator",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.727375,
+      "latencyMilliseconds" : 7.557916,
       "mustPass" : false,
       "ndcgAt10" : 0.8340558366528847,
       "precision" : 1,
@@ -847,6 +1123,13 @@
       "recallAt10" : 0.5625,
       "reciprocalRank" : 1,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "132329.jpg",
         "512330.jpg",
@@ -859,7 +1142,7 @@
       "id" : "cat-sandwich",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.987583,
+      "latencyMilliseconds" : 7.495125,
       "mustPass" : false,
       "ndcgAt10" : 0.9620607609907954,
       "precision" : 0.5238095238095238,
@@ -867,10 +1150,17 @@
       "recallAt10" : 0.8181818181818182,
       "reciprocalRank" : 1,
       "returned" : 21,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "15079.jpg",
-        "120853.jpg",
         "173091.jpg",
+        "120853.jpg",
         "533206.jpg",
         "250901.jpg"
       ]
@@ -879,7 +1169,7 @@
       "id" : "cat-sheep",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.970167,
+      "latencyMilliseconds" : 7.043625,
       "mustPass" : false,
       "ndcgAt10" : 0.7893017290164017,
       "precision" : 0.75,
@@ -887,6 +1177,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "230166.jpg",
         "288685.jpg",
@@ -899,19 +1196,26 @@
       "id" : "cat-sink",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.820625,
+      "latencyMilliseconds" : 6.833292,
       "mustPass" : false,
-      "ndcgAt10" : 0.7225967092884412,
+      "ndcgAt10" : 0.7212141210862367,
       "precision" : 0.9090909090909091,
       "recall" : 0.9090909090909091,
       "recallAt10" : 0.8181818181818182,
       "reciprocalRank" : 1,
       "returned" : 11,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "368940.jpg",
         "92124.jpg",
-        "501523.jpg",
         "453634.jpg",
+        "501523.jpg",
         "209747.jpg"
       ]
     },
@@ -919,7 +1223,7 @@
       "id" : "cat-skateboard",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.991083,
+      "latencyMilliseconds" : 7.279708,
       "mustPass" : false,
       "ndcgAt10" : 0.9470115466494725,
       "precision" : 0.875,
@@ -927,6 +1231,13 @@
       "recallAt10" : 0.875,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "393115.jpg",
         "3553.jpg",
@@ -939,7 +1250,7 @@
       "id" : "cat-spoon",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.601208,
+      "latencyMilliseconds" : 6.730584,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
@@ -947,6 +1258,9 @@
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "358427.jpg"
       ]
@@ -955,7 +1269,7 @@
       "id" : "cat-stop-sign",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.348792,
+      "latencyMilliseconds" : 7.292917,
       "mustPass" : false,
       "ndcgAt10" : 0.966027603143476,
       "precision" : 0.34615384615384615,
@@ -963,6 +1277,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 26,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "79408.jpg",
         "460229.jpg",
@@ -975,14 +1296,21 @@
       "id" : "cat-suitcase",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.747792,
+      "latencyMilliseconds" : 6.749333,
       "mustPass" : false,
-      "ndcgAt10" : 1,
+      "ndcgAt10" : 0.9968307098810392,
       "precision" : 0.875,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "294855.jpg",
         "265108.jpg",
@@ -995,7 +1323,7 @@
       "id" : "cat-teddy-bear",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.99675,
+      "latencyMilliseconds" : 6.865167,
       "mustPass" : false,
       "ndcgAt10" : 0.9558644683520688,
       "precision" : 0.8333333333333334,
@@ -1003,6 +1331,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "73118.jpg",
         "70229.jpg",
@@ -1015,7 +1350,7 @@
       "id" : "cat-tennis-racket",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.138458,
+      "latencyMilliseconds" : 6.945167,
       "mustPass" : false,
       "ndcgAt10" : 0.7807789774739649,
       "precision" : 0.8,
@@ -1023,6 +1358,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "316404.jpg",
         "121744.jpg",
@@ -1035,27 +1377,32 @@
       "id" : "cat-tie",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.930417,
+      "latencyMilliseconds" : 6.773542,
       "mustPass" : false,
       "ndcgAt10" : 0.937708058067494,
-      "precision" : 0.8,
+      "precision" : 1,
       "recall" : 0.8,
       "recallAt10" : 0.8,
       "reciprocalRank" : 1,
-      "returned" : 5,
+      "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "67534.jpg",
         "67315.jpg",
         "206025.jpg",
-        "18770.jpg",
-        "1532.jpg"
+        "18770.jpg"
       ]
     },
     {
       "id" : "cat-toilet",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.957542,
+      "latencyMilliseconds" : 6.776834,
       "mustPass" : false,
       "ndcgAt10" : 0.6924539360149479,
       "precision" : 0.7777777777777778,
@@ -1063,6 +1410,13 @@
       "recallAt10" : 0.7142857142857143,
       "reciprocalRank" : 1,
       "returned" : 18,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "564023.jpg",
         "455981.jpg",
@@ -1075,14 +1429,21 @@
       "id" : "cat-traffic-light",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.075333,
+      "latencyMilliseconds" : 7.548,
       "mustPass" : false,
-      "ndcgAt10" : 0.5979022771543353,
-      "precision" : 0.42857142857142855,
+      "ndcgAt10" : 0.6065263271719099,
+      "precision" : 0.4,
       "recall" : 1,
       "recallAt10" : 0.8333333333333334,
       "reciprocalRank" : 1,
-      "returned" : 14,
+      "returned" : 15,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "88218.jpg",
         "568147.jpg",
@@ -1095,7 +1456,7 @@
       "id" : "cat-train",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.962166,
+      "latencyMilliseconds" : 7.506416,
       "mustPass" : false,
       "ndcgAt10" : 0.9537125187088151,
       "precision" : 0.782608695652174,
@@ -1103,10 +1464,17 @@
       "recallAt10" : 0.5263157894736842,
       "reciprocalRank" : 1,
       "returned" : 23,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "253835.jpg",
-        "426268.jpg",
         "249643.jpg",
+        "426268.jpg",
         "444879.jpg",
         "307598.jpg"
       ]
@@ -1115,7 +1483,7 @@
       "id" : "cat-truck",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.204,
+      "latencyMilliseconds" : 7.05225,
       "mustPass" : false,
       "ndcgAt10" : 0.8354476510703749,
       "precision" : 1,
@@ -1123,11 +1491,18 @@
       "recallAt10" : 0.5294117647058824,
       "reciprocalRank" : 1,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "81394.jpg",
         "442456.jpg",
-        "188439.jpg",
         "515266.jpg",
+        "188439.jpg",
         "460229.jpg"
       ]
     },
@@ -1135,7 +1510,7 @@
       "id" : "cat-tv",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.905833,
+      "latencyMilliseconds" : 6.847,
       "mustPass" : false,
       "ndcgAt10" : 0.7753193422768571,
       "precision" : 0.9444444444444444,
@@ -1143,6 +1518,13 @@
       "recallAt10" : 0.4166666666666667,
       "reciprocalRank" : 1,
       "returned" : 18,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "533536.jpg",
         "169076.jpg",
@@ -1155,7 +1537,7 @@
       "id" : "cat-umbrella",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 7.104375,
+      "latencyMilliseconds" : 6.971708,
       "mustPass" : false,
       "ndcgAt10" : 0.9258936567941141,
       "precision" : 1,
@@ -1163,6 +1545,13 @@
       "recallAt10" : 0.8333333333333334,
       "reciprocalRank" : 1,
       "returned" : 10,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "121506.jpg",
         "370711.jpg",
@@ -1175,7 +1564,7 @@
       "id" : "cat-vase",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.741041,
+      "latencyMilliseconds" : 6.7,
       "mustPass" : false,
       "ndcgAt10" : 0.9306514554231109,
       "precision" : 0.6666666666666666,
@@ -1183,6 +1572,13 @@
       "recallAt10" : 0.8,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "429530.jpg",
         "550426.jpg",
@@ -1195,7 +1591,7 @@
       "id" : "cat-wine-glass",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 6.782333,
+      "latencyMilliseconds" : 6.783,
       "mustPass" : false,
       "ndcgAt10" : 0.6576630675781056,
       "precision" : 1,
@@ -1203,6 +1599,9 @@
       "recallAt10" : 0.25,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "416885.jpg"
       ]
@@ -1211,7 +1610,7 @@
       "id" : "cap-331569",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 15.68575,
+      "latencyMilliseconds" : 15.609667,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -1219,6 +1618,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "331569.jpg",
         "173091.jpg",
@@ -1231,7 +1637,7 @@
       "id" : "cap-558213",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.07325,
+      "latencyMilliseconds" : 9.75475,
       "mustPass" : false,
       "ndcgAt10" : 0.4306765580733931,
       "precision" : 0.058823529411764705,
@@ -1239,6 +1645,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.25,
       "returned" : 17,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "161799.jpg",
         "538458.jpg",
@@ -1251,7 +1664,7 @@
       "id" : "cap-92091",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.929416,
+      "latencyMilliseconds" : 9.700625,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.16666666666666666,
@@ -1259,6 +1672,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "92091.jpg",
         "194716.jpg",
@@ -1271,7 +1691,7 @@
       "id" : "cap-308328",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.887208,
+      "latencyMilliseconds" : 9.943291,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -1279,6 +1699,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "308328.jpg",
         "417249.jpg",
@@ -1291,7 +1718,7 @@
       "id" : "cap-230166",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.132666,
+      "latencyMilliseconds" : 9.894084,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.07142857142857142,
@@ -1299,6 +1726,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 14,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "230166.jpg",
         "152740.jpg",
@@ -1311,7 +1745,7 @@
       "id" : "cap-360943",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.014833,
+      "latencyMilliseconds" : 9.825792,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.08333333333333333,
@@ -1319,6 +1753,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 12,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "360943.jpg",
         "63552.jpg",
@@ -1331,34 +1772,46 @@
       "id" : "cap-250205",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.035667,
+      "latencyMilliseconds" : 10.177167,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.2,
+      "precision" : 0.25,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 5,
+      "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "250205.jpg",
         "544811.jpg",
         "58393.jpg",
-        "2923.jpg",
-        "490125.jpg"
+        "2923.jpg"
       ]
     },
     {
       "id" : "cap-569059",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.1745,
+      "latencyMilliseconds" : 10.011041,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.05,
+      "precision" : 0.05263157894736842,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 20,
+      "returned" : 19,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "569059.jpg",
         "68765.jpg",
@@ -1371,7 +1824,7 @@
       "id" : "cap-188439",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.897042,
+      "latencyMilliseconds" : 9.944791,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.25,
@@ -1379,6 +1832,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "188439.jpg",
         "81394.jpg",
@@ -1390,7 +1849,7 @@
       "id" : "cap-18193",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.988875,
+      "latencyMilliseconds" : 9.989791,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -1398,6 +1857,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "18193.jpg",
         "142620.jpg",
@@ -1410,7 +1876,7 @@
       "id" : "cap-410428",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.975792,
+      "latencyMilliseconds" : 9.713625,
       "mustPass" : false,
       "ndcgAt10" : 0.6309297535714574,
       "precision" : 0.1111111111111111,
@@ -1418,6 +1884,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.5,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "230166.jpg",
         "410428.jpg",
@@ -1430,7 +1903,7 @@
       "id" : "cap-377000",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.808042,
+      "latencyMilliseconds" : 9.71225,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.09090909090909091,
@@ -1438,6 +1911,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 11,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "377000.jpg",
         "360943.jpg",
@@ -1450,14 +1930,21 @@
       "id" : "cap-410712",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.434375,
+      "latencyMilliseconds" : 10.247416,
       "mustPass" : false,
       "ndcgAt10" : 0.4306765580733931,
-      "precision" : 0.03125,
+      "precision" : 0.030303030303030304,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 0.25,
-      "returned" : 32,
+      "returned" : 33,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "1532.jpg",
         "544605.jpg",
@@ -1470,7 +1957,7 @@
       "id" : "cap-527695",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.069708,
+      "latencyMilliseconds" : 9.833958,
       "mustPass" : false,
       "ndcgAt10" : 0.5,
       "precision" : 0.07142857142857142,
@@ -1478,6 +1965,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.3333333333333333,
       "returned" : 14,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "132116.jpg",
         "358427.jpg",
@@ -1490,7 +1984,7 @@
       "id" : "cap-202228",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.096292,
+      "latencyMilliseconds" : 9.789625,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.125,
@@ -1498,6 +1992,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "202228.jpg",
         "63552.jpg",
@@ -1510,14 +2011,21 @@
       "id" : "cap-370478",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.025125,
+      "latencyMilliseconds" : 9.8685,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.16666666666666666,
+      "precision" : 0.14285714285714285,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 6,
+      "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "370478.jpg",
         "393569.jpg",
@@ -1530,27 +2038,34 @@
       "id" : "cap-261732",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 17.82275,
+      "latencyMilliseconds" : 17.306458,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.038461538461538464,
+      "precision" : 0.037037037037037035,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 26,
+      "returned" : 27,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "261732.jpg",
         "303713.jpg",
         "88970.jpg",
         "376900.jpg",
-        "121744.jpg"
+        "74092.jpg"
       ]
     },
     {
       "id" : "cap-327780",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.037584,
+      "latencyMilliseconds" : 10.440541,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.09090909090909091,
@@ -1558,6 +2073,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 11,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "327780.jpg",
         "15079.jpg",
@@ -1570,7 +2092,7 @@
       "id" : "cap-66771",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.052041,
+      "latencyMilliseconds" : 9.911666,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -1578,6 +2100,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "66771.jpg",
         "224807.jpg",
@@ -1590,7 +2119,7 @@
       "id" : "cap-506178",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.9315,
+      "latencyMilliseconds" : 9.910792,
       "mustPass" : false,
       "ndcgAt10" : 0.6309297535714574,
       "precision" : 0.14285714285714285,
@@ -1598,6 +2127,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.5,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "302536.jpg",
         "506178.jpg",
@@ -1610,7 +2146,7 @@
       "id" : "cap-273198",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.947375,
+      "latencyMilliseconds" : 9.869666,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -1618,6 +2154,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "273198.jpg",
         "566923.jpg",
@@ -1630,7 +2173,7 @@
       "id" : "cap-351609",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.683041,
+      "latencyMilliseconds" : 9.807666,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.16666666666666666,
@@ -1638,6 +2181,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "351609.jpg",
         "192871.jpg",
@@ -1650,14 +2200,21 @@
       "id" : "cap-122606",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.825708,
+      "latencyMilliseconds" : 9.788041,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.125,
+      "precision" : 0.1111111111111111,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 8,
+      "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "122606.jpg",
         "220732.jpg",
@@ -1670,7 +2227,7 @@
       "id" : "cap-509699",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.911625,
+      "latencyMilliseconds" : 9.848667,
       "mustPass" : false,
       "ndcgAt10" : 0.38685280723454163,
       "precision" : 0.05555555555555555,
@@ -1678,6 +2235,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.2,
       "returned" : 18,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "482917.jpg",
         "97337.jpg",
@@ -1690,14 +2254,21 @@
       "id" : "cap-533206",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.056333,
+      "latencyMilliseconds" : 9.83,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.058823529411764705,
+      "precision" : 0.0625,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 17,
+      "returned" : 16,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "533206.jpg",
         "120853.jpg",
@@ -1710,7 +2281,7 @@
       "id" : "cap-207728",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.856709,
+      "latencyMilliseconds" : 9.679916,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.1111111111111111,
@@ -1718,6 +2289,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "207728.jpg",
         "451144.jpg",
@@ -1730,7 +2308,7 @@
       "id" : "cap-92124",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.753791,
+      "latencyMilliseconds" : 9.918125,
       "mustPass" : false,
       "ndcgAt10" : 0.6309297535714574,
       "precision" : 0.1,
@@ -1738,6 +2316,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.5,
       "returned" : 10,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "453634.jpg",
         "92124.jpg",
@@ -1750,18 +2335,25 @@
       "id" : "cap-262682",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.729166,
+      "latencyMilliseconds" : 10.281125,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.1111111111111111,
+      "precision" : 0.1,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 9,
+      "returned" : 10,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "262682.jpg",
-        "298396.jpg",
         "56127.jpg",
+        "298396.jpg",
         "552883.jpg",
         "522007.jpg"
       ]
@@ -1770,7 +2362,7 @@
       "id" : "cap-239318",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.956625,
+      "latencyMilliseconds" : 10.062042,
       "mustPass" : false,
       "ndcgAt10" : 0.6309297535714574,
       "precision" : 0.038461538461538464,
@@ -1778,6 +2370,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.5,
       "returned" : 26,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "513688.jpg",
         "239318.jpg",
@@ -1790,7 +2389,7 @@
       "id" : "cap-377239",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.958792,
+      "latencyMilliseconds" : 9.93675,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.125,
@@ -1798,6 +2397,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "377239.jpg",
         "370711.jpg",
@@ -1810,7 +2416,7 @@
       "id" : "cap-393569",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.876,
+      "latencyMilliseconds" : 9.847292,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.25,
@@ -1818,18 +2424,24 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "393569.jpg",
         "453634.jpg",
-        "144798.jpg",
-        "105249.jpg"
+        "105249.jpg",
+        "144798.jpg"
       ]
     },
     {
       "id" : "cap-451043",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.775666,
+      "latencyMilliseconds" : 9.939625,
       "mustPass" : false,
       "ndcgAt10" : 0.38685280723454163,
       "precision" : 0.09090909090909091,
@@ -1837,6 +2449,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.2,
       "returned" : 11,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "80671.jpg",
         "85682.jpg",
@@ -1849,7 +2468,7 @@
       "id" : "cap-434996",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.710833,
+      "latencyMilliseconds" : 9.564083,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -1857,6 +2476,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "434996.jpg",
         "61333.jpg",
@@ -1869,14 +2495,21 @@
       "id" : "cap-302107",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.755375,
+      "latencyMilliseconds" : 9.608916,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.125,
+      "precision" : 0.1111111111111111,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 8,
+      "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "302107.jpg",
         "485480.jpg",
@@ -1889,7 +2522,7 @@
       "id" : "cap-18770",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.837708,
+      "latencyMilliseconds" : 9.56975,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.125,
@@ -1897,6 +2530,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "18770.jpg",
         "206025.jpg",
@@ -1909,7 +2549,7 @@
       "id" : "cap-124659",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.971583,
+      "latencyMilliseconds" : 10.437333,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.1,
@@ -1917,6 +2557,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 10,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "124659.jpg",
         "106235.jpg",
@@ -1929,14 +2576,21 @@
       "id" : "cap-32817",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.665208,
+      "latencyMilliseconds" : 10.422083,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.14285714285714285,
+      "precision" : 0.125,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 7,
+      "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "32817.jpg",
         "557258.jpg",
@@ -1949,7 +2603,7 @@
       "id" : "cap-421455",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.7435,
+      "latencyMilliseconds" : 9.773417,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.16666666666666666,
@@ -1957,6 +2611,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "421455.jpg",
         "42528.jpg",
@@ -1969,7 +2630,7 @@
       "id" : "cap-475732",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.700834,
+      "latencyMilliseconds" : 9.84775,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -1977,6 +2638,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "475732.jpg",
         "286708.jpg",
@@ -1989,7 +2657,7 @@
       "id" : "cap-491725",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.6685,
+      "latencyMilliseconds" : 10.81625,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.16666666666666666,
@@ -1997,6 +2665,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "491725.jpg",
         "2923.jpg",
@@ -2009,7 +2684,7 @@
       "id" : "cap-632",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.70475,
+      "latencyMilliseconds" : 10.086208,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.07142857142857142,
@@ -2017,6 +2692,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 14,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "632.jpg",
         "393569.jpg",
@@ -2029,7 +2711,7 @@
       "id" : "cap-76417",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.868625,
+      "latencyMilliseconds" : 9.637542,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.25,
@@ -2037,6 +2719,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "76417.jpg",
         "421455.jpg",
@@ -2048,7 +2736,7 @@
       "id" : "cap-386277",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.589,
+      "latencyMilliseconds" : 9.6935,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -2056,6 +2744,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "386277.jpg",
         "185599.jpg",
@@ -2068,18 +2763,23 @@
       "id" : "cap-532901",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.915708,
+      "latencyMilliseconds" : 9.949917,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recall" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
-      "returned" : 5,
+      "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "322352.jpg",
         "396580.jpg",
-        "333697.jpg",
         "361142.jpg",
         "552883.jpg"
       ]
@@ -2088,7 +2788,7 @@
       "id" : "cap-472298",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.718542,
+      "latencyMilliseconds" : 9.523541,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.125,
@@ -2096,6 +2796,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "472298.jpg",
         "396580.jpg",
@@ -2108,7 +2815,7 @@
       "id" : "cap-451435",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.148416,
+      "latencyMilliseconds" : 10.045833,
       "mustPass" : false,
       "ndcgAt10" : 0.5,
       "precision" : 0.038461538461538464,
@@ -2116,6 +2823,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.3333333333333333,
       "returned" : 26,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "504415.jpg",
         "239537.jpg",
@@ -2128,7 +2842,7 @@
       "id" : "cap-559956",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.086667,
+      "latencyMilliseconds" : 9.77225,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -2136,6 +2850,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "559956.jpg",
         "288685.jpg",
@@ -2148,7 +2869,7 @@
       "id" : "cap-105912",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.63175,
+      "latencyMilliseconds" : 9.479292,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
@@ -2156,6 +2877,10 @@
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 2,
+      "sources" : [
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "456496.jpg",
         "295713.jpg"
@@ -2165,7 +2890,7 @@
       "id" : "cap-217425",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.817166,
+      "latencyMilliseconds" : 9.670041,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.07142857142857142,
@@ -2173,6 +2898,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 14,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "217425.jpg",
         "295797.jpg",
@@ -2185,7 +2917,7 @@
       "id" : "cap-152465",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.782333,
+      "latencyMilliseconds" : 9.79175,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.09090909090909091,
@@ -2193,6 +2925,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 11,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "152465.jpg",
         "439623.jpg",
@@ -2205,7 +2944,7 @@
       "id" : "cap-151000",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.696541,
+      "latencyMilliseconds" : 9.905875,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -2213,6 +2952,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "151000.jpg",
         "66771.jpg",
@@ -2225,7 +2971,7 @@
       "id" : "cap-525247",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.347125,
+      "latencyMilliseconds" : 10.162416,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.025,
@@ -2233,19 +2979,26 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 40,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "525247.jpg",
         "399560.jpg",
         "4795.jpg",
-        "115885.jpg",
-        "51008.jpg"
+        "51008.jpg",
+        "115885.jpg"
       ]
     },
     {
       "id" : "cap-544811",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.947792,
+      "latencyMilliseconds" : 10.314334,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.1111111111111111,
@@ -2253,6 +3006,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 9,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "544811.jpg",
         "250205.jpg",
@@ -2265,7 +3025,7 @@
       "id" : "cap-457078",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.7295,
+      "latencyMilliseconds" : 9.79675,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.25,
@@ -2273,6 +3033,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "457078.jpg",
         "569059.jpg",
@@ -2284,7 +3050,7 @@
       "id" : "cap-86582",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.852792,
+      "latencyMilliseconds" : 9.788458,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.05555555555555555,
@@ -2292,19 +3058,26 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 18,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "86582.jpg",
         "239318.jpg",
         "370478.jpg",
-        "115885.jpg",
-        "413247.jpg"
+        "413247.jpg",
+        "115885.jpg"
       ]
     },
     {
       "id" : "cap-45596",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.617583,
+      "latencyMilliseconds" : 9.814208,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.3333333333333333,
@@ -2312,6 +3085,11 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 3,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "45596.jpg",
         "320232.jpg",
@@ -2322,7 +3100,7 @@
       "id" : "cap-1000",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.999917,
+      "latencyMilliseconds" : 9.627291,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.08333333333333333,
@@ -2330,6 +3108,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 12,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "1000.jpg",
         "451435.jpg",
@@ -2342,7 +3127,7 @@
       "id" : "cap-565469",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.881417,
+      "latencyMilliseconds" : 9.632084,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.08333333333333333,
@@ -2350,6 +3135,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 12,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "565469.jpg",
         "168330.jpg",
@@ -2362,7 +3154,7 @@
       "id" : "cap-226802",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.728416,
+      "latencyMilliseconds" : 9.731458,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 1,
@@ -2370,6 +3162,9 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "226802.jpg"
       ]
@@ -2378,26 +3173,34 @@
       "id" : "cap-42528",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.769125,
+      "latencyMilliseconds" : 9.711917,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.25,
+      "precision" : 0.2,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 4,
+      "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "42528.jpg",
         "216277.jpg",
         "166478.jpg",
-        "382030.jpg"
+        "382030.jpg",
+        "288391.jpg"
       ]
     },
     {
       "id" : "cap-297085",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.962583,
+      "latencyMilliseconds" : 9.700917,
       "mustPass" : false,
       "ndcgAt10" : 0.4306765580733931,
       "precision" : 0.043478260869565216,
@@ -2405,6 +3208,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.25,
       "returned" : 23,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "533536.jpg",
         "25560.jpg",
@@ -2417,7 +3227,7 @@
       "id" : "cap-125778",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.896709,
+      "latencyMilliseconds" : 10.473958,
       "mustPass" : false,
       "ndcgAt10" : 0.6309297535714574,
       "precision" : 0.14285714285714285,
@@ -2425,6 +3235,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.5,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "97337.jpg",
         "125778.jpg",
@@ -2437,7 +3254,7 @@
       "id" : "cap-242060",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.914208,
+      "latencyMilliseconds" : 10.415792,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.25,
@@ -2445,6 +3262,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "242060.jpg",
         "331817.jpg",
@@ -2456,7 +3279,7 @@
       "id" : "cap-441442",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.826375,
+      "latencyMilliseconds" : 9.814875,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -2464,6 +3287,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "441442.jpg",
         "553990.jpg",
@@ -2476,7 +3306,7 @@
       "id" : "cap-107094",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.533833,
+      "latencyMilliseconds" : 9.725375,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.09090909090909091,
@@ -2484,6 +3314,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 11,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "107094.jpg",
         "253819.jpg",
@@ -2496,7 +3333,7 @@
       "id" : "cap-98018",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.755167,
+      "latencyMilliseconds" : 9.776042,
       "mustPass" : false,
       "ndcgAt10" : 0.5,
       "precision" : 0.14285714285714285,
@@ -2504,19 +3341,26 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.3333333333333333,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "266206.jpg",
         "189310.jpg",
         "98018.jpg",
-        "525083.jpg",
-        "502136.jpg"
+        "502136.jpg",
+        "525083.jpg"
       ]
     },
     {
       "id" : "cap-73118",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.60775,
+      "latencyMilliseconds" : 9.775167,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.5,
@@ -2524,6 +3368,10 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 2,
+      "sources" : [
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "73118.jpg",
         "35963.jpg"
@@ -2533,7 +3381,7 @@
       "id" : "cap-295713",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.916667,
+      "latencyMilliseconds" : 9.771708,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -2541,10 +3389,17 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "295713.jpg",
-        "456496.jpg",
         "349184.jpg",
+        "456496.jpg",
         "176857.jpg",
         "391375.jpg"
       ]
@@ -2553,7 +3408,7 @@
       "id" : "cap-178744",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.757458,
+      "latencyMilliseconds" : 9.6155,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.25,
@@ -2561,6 +3416,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "178744.jpg",
         "384949.jpg",
@@ -2572,27 +3433,32 @@
       "id" : "cap-384661",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.650167,
+      "latencyMilliseconds" : 9.826625,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.2,
+      "precision" : 0.25,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 5,
+      "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "384661.jpg",
         "237928.jpg",
         "522007.jpg",
-        "429598.jpg",
-        "298396.jpg"
+        "429598.jpg"
       ]
     },
     {
       "id" : "cap-253002",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.729333,
+      "latencyMilliseconds" : 9.815416,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.16666666666666666,
@@ -2600,6 +3466,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "253002.jpg",
         "98392.jpg",
@@ -2612,7 +3485,7 @@
       "id" : "cap-216497",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.754,
+      "latencyMilliseconds" : 9.869584,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.16666666666666666,
@@ -2620,6 +3493,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "216497.jpg",
         "519569.jpg",
@@ -2632,7 +3512,7 @@
       "id" : "cap-533816",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.790375,
+      "latencyMilliseconds" : 9.953208,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.1,
@@ -2640,6 +3520,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 10,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "533816.jpg",
         "1000.jpg",
@@ -2652,7 +3539,7 @@
       "id" : "cap-11197",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.885,
+      "latencyMilliseconds" : 10.171,
       "mustPass" : false,
       "ndcgAt10" : 0.6309297535714574,
       "precision" : 0.5,
@@ -2660,6 +3547,10 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.5,
       "returned" : 2,
+      "sources" : [
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "99114.jpg",
         "11197.jpg"
@@ -2669,7 +3560,7 @@
       "id" : "cap-295797",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.973542,
+      "latencyMilliseconds" : 9.919833,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -2677,6 +3568,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "295797.jpg",
         "28285.jpg",
@@ -2689,7 +3587,7 @@
       "id" : "cap-458325",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.61325,
+      "latencyMilliseconds" : 9.927208,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -2697,6 +3595,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "458325.jpg",
         "171382.jpg",
@@ -2709,7 +3614,7 @@
       "id" : "cap-273711",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.225667,
+      "latencyMilliseconds" : 9.874916,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.1,
@@ -2717,6 +3622,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 10,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "273711.jpg",
         "331817.jpg",
@@ -2729,14 +3641,21 @@
       "id" : "cap-306437",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.938042,
+      "latencyMilliseconds" : 9.781917,
       "mustPass" : false,
       "ndcgAt10" : 0.5,
-      "precision" : 0.045454545454545456,
+      "precision" : 0.043478260869565216,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 0.3333333333333333,
-      "returned" : 22,
+      "returned" : 23,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "451084.jpg",
         "576566.jpg",
@@ -2749,7 +3668,7 @@
       "id" : "cap-233139",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.874166,
+      "latencyMilliseconds" : 9.57225,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -2757,6 +3676,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "233139.jpg",
         "370711.jpg",
@@ -2769,7 +3695,7 @@
       "id" : "cap-477689",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.957417,
+      "latencyMilliseconds" : 9.63125,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.125,
@@ -2777,6 +3703,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 8,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "477689.jpg",
         "88345.jpg",
@@ -2789,7 +3722,7 @@
       "id" : "cap-227399",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.79475,
+      "latencyMilliseconds" : 9.736584,
       "mustPass" : false,
       "ndcgAt10" : 0.6309297535714574,
       "precision" : 0.25,
@@ -2797,6 +3730,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.5,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "184611.jpg",
         "227399.jpg",
@@ -2808,7 +3747,7 @@
       "id" : "cap-236721",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.707667,
+      "latencyMilliseconds" : 9.717292,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.25,
@@ -2816,6 +3755,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "236721.jpg",
         "29596.jpg",
@@ -2827,14 +3772,21 @@
       "id" : "cap-29187",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.784209,
+      "latencyMilliseconds" : 9.606916,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.09090909090909091,
+      "precision" : 0.08333333333333333,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 11,
+      "returned" : 12,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "29187.jpg",
         "47571.jpg",
@@ -2847,7 +3799,7 @@
       "id" : "cap-407646",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.40925,
+      "latencyMilliseconds" : 10.845917,
       "mustPass" : false,
       "ndcgAt10" : 0.2890648263178878,
       "precision" : 0.04,
@@ -2855,6 +3807,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.1,
       "returned" : 25,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "504415.jpg",
         "303713.jpg",
@@ -2867,14 +3826,21 @@
       "id" : "cap-298396",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.057625,
+      "latencyMilliseconds" : 10.133583,
       "mustPass" : false,
       "ndcgAt10" : 0,
-      "precision" : 0.05,
+      "precision" : 0.05263157894736842,
       "recall" : 1,
       "recallAt10" : 0,
       "reciprocalRank" : 0.08333333333333333,
-      "returned" : 20,
+      "returned" : 19,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "248111.jpg",
         "525083.jpg",
@@ -2887,7 +3853,7 @@
       "id" : "cap-60835",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.601333,
+      "latencyMilliseconds" : 10.554083,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.25,
@@ -2895,6 +3861,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "60835.jpg",
         "169076.jpg",
@@ -2906,7 +3878,7 @@
       "id" : "cap-554579",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.68175,
+      "latencyMilliseconds" : 10.4555,
       "mustPass" : false,
       "ndcgAt10" : 0.6309297535714574,
       "precision" : 0.2,
@@ -2914,6 +3886,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.5,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "554002.jpg",
         "554579.jpg",
@@ -2926,7 +3905,7 @@
       "id" : "cap-181542",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.765125,
+      "latencyMilliseconds" : 9.785583,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.25,
@@ -2934,6 +3913,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "181542.jpg",
         "254814.jpg",
@@ -2945,7 +3930,7 @@
       "id" : "cap-566923",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.872,
+      "latencyMilliseconds" : 9.677333,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -2953,19 +3938,26 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "566923.jpg",
         "273198.jpg",
         "390301.jpg",
-        "152465.jpg",
-        "439623.jpg"
+        "439623.jpg",
+        "152465.jpg"
       ]
     },
     {
       "id" : "cap-449198",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.990292,
+      "latencyMilliseconds" : 9.778333,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.14285714285714285,
@@ -2973,6 +3965,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "449198.jpg",
         "170545.jpg",
@@ -2985,7 +3984,7 @@
       "id" : "cap-327601",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.601875,
+      "latencyMilliseconds" : 9.912542,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -2993,6 +3992,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "327601.jpg",
         "509699.jpg",
@@ -3005,7 +4011,7 @@
       "id" : "cap-314182",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.751125,
+      "latencyMilliseconds" : 9.904209,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -3013,6 +4019,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "314182.jpg",
         "167572.jpg",
@@ -3025,7 +4038,7 @@
       "id" : "cap-569565",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.762959,
+      "latencyMilliseconds" : 9.633292,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.2,
@@ -3033,6 +4046,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "569565.jpg",
         "188439.jpg",
@@ -3045,7 +4065,7 @@
       "id" : "cap-46048",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.946541,
+      "latencyMilliseconds" : 9.611834,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.16666666666666666,
@@ -3053,6 +4073,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "46048.jpg",
         "393569.jpg",
@@ -3065,7 +4092,7 @@
       "id" : "cap-530466",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.335625,
+      "latencyMilliseconds" : 10.109583,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.05555555555555555,
@@ -3073,6 +4100,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 18,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "530466.jpg",
         "129135.jpg",
@@ -3085,7 +4119,7 @@
       "id" : "cap-109916",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.895125,
+      "latencyMilliseconds" : 10.442708,
       "mustPass" : false,
       "ndcgAt10" : 0.5,
       "precision" : 0.25,
@@ -3093,6 +4127,12 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.3333333333333333,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "384661.jpg",
         "98018.jpg",
@@ -3104,14 +4144,21 @@
       "id" : "cap-322959",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.68075,
+      "latencyMilliseconds" : 10.465958,
       "mustPass" : false,
       "ndcgAt10" : 1,
-      "precision" : 0.14285714285714285,
+      "precision" : 0.16666666666666666,
       "recall" : 1,
       "recallAt10" : 1,
       "reciprocalRank" : 1,
-      "returned" : 7,
+      "returned" : 6,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "322959.jpg",
         "273711.jpg",
@@ -3124,7 +4171,7 @@
       "id" : "cap-205105",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.036792,
+      "latencyMilliseconds" : 10.742291,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0.038461538461538464,
@@ -3132,6 +4179,13 @@
       "recallAt10" : 0,
       "reciprocalRank" : 0.05263157894736842,
       "returned" : 26,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "504415.jpg",
         "451435.jpg",
@@ -3144,7 +4198,7 @@
       "id" : "cap-460929",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 9.715625,
+      "latencyMilliseconds" : 10.005167,
       "mustPass" : false,
       "ndcgAt10" : 1,
       "precision" : 0.09090909090909091,
@@ -3152,6 +4206,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 1,
       "returned" : 11,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "460929.jpg",
         "533206.jpg",
@@ -3164,7 +4225,7 @@
       "id" : "cap-172856",
       "isNegative" : false,
       "kind" : "image",
-      "latencyMilliseconds" : 10.44225,
+      "latencyMilliseconds" : 10.47475,
       "mustPass" : false,
       "ndcgAt10" : 0.6309297535714574,
       "precision" : 0.058823529411764705,
@@ -3172,6 +4233,13 @@
       "recallAt10" : 1,
       "reciprocalRank" : 0.5,
       "returned" : 17,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "460229.jpg",
         "172856.jpg",
@@ -3184,13 +4252,16 @@
       "id" : "none-elephant",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.916375,
+      "latencyMilliseconds" : 6.861667,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "545826.jpg"
       ]
@@ -3199,13 +4270,16 @@
       "id" : "none-giraffe",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.689833,
+      "latencyMilliseconds" : 6.624584,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "573094.jpg"
       ]
@@ -3214,13 +4288,17 @@
       "id" : "none-zebra",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.720125,
+      "latencyMilliseconds" : 6.656083,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 2,
+      "sources" : [
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "232563.jpg",
         "267933.jpg"
@@ -3230,13 +4308,19 @@
       "id" : "none-bear",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.59275,
+      "latencyMilliseconds" : 6.574709,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 4,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "70229.jpg",
         "73118.jpg",
@@ -3248,32 +4332,44 @@
       "id" : "none-airplane",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.661541,
+      "latencyMilliseconds" : 6.668458,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "236721.jpg",
         "84270.jpg",
         "11615.jpg",
-        "308328.jpg",
-        "157847.jpg"
+        "157847.jpg",
+        "308328.jpg"
       ]
     },
     {
       "id" : "none-pizza",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.638875,
+      "latencyMilliseconds" : 6.593,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 3,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "397133.jpg",
         "393014.jpg",
@@ -3284,18 +4380,25 @@
       "id" : "none-surfboard",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.67225,
+      "latencyMilliseconds" : 6.566083,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 5,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "172935.jpg",
         "243989.jpg",
-        "393469.jpg",
         "393115.jpg",
+        "393469.jpg",
         "308165.jpg"
       ]
     },
@@ -3303,13 +4406,17 @@
       "id" : "none-kite",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.710208,
+      "latencyMilliseconds" : 6.716459,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 2,
+      "sources" : [
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "2923.jpg",
         "265108.jpg"
@@ -3319,13 +4426,18 @@
       "id" : "none-a-herd-of-elephants",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.619625,
+      "latencyMilliseconds" : 7.091209,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 3,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "267933.jpg",
         "51309.jpg",
@@ -3336,13 +4448,16 @@
       "id" : "none-giraffe-eating-leaves",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.650958,
+      "latencyMilliseconds" : 6.863084,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 1,
+      "sources" : [
+        "semantic"
+      ],
       "top" : [
         "284279.jpg"
       ]
@@ -3351,13 +4466,20 @@
       "id" : "none-a-slice-of-pizza",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.854667,
+      "latencyMilliseconds" : 6.891583,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
       "returned" : 7,
+      "sources" : [
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "533206.jpg",
         "393014.jpg",
@@ -3370,38 +4492,41 @@
       "id" : "none-plane-taking-off",
       "isNegative" : true,
       "kind" : "negative",
-      "latencyMilliseconds" : 6.779167,
+      "latencyMilliseconds" : 6.793583,
       "mustPass" : false,
       "ndcgAt10" : 0,
       "precision" : 0,
       "recallAt10" : 0,
       "reciprocalRank" : 0,
-      "returned" : 3,
+      "returned" : 2,
+      "sources" : [
+        "semantic",
+        "semantic"
+      ],
       "top" : [
         "157847.jpg",
-        "172935.jpg",
-        "308328.jpg"
+        "172935.jpg"
       ]
     }
   ],
   "overall" : {
-    "f1" : 0.4259339105854901,
+    "f1" : 0.4256194591341802,
     "mrr" : 0.8854200719189278,
-    "ndcgAt10" : 0.8340536211077377,
-    "precision" : 0.39475473006558076,
+    "ndcgAt10" : 0.8343388364119024,
+    "precision" : 0.39638847808556876,
     "queries" : 161,
-    "recall" : 0.8896550007872953,
-    "recallAt10" : 0.8478327649454753
+    "recall" : 0.888748805533274,
+    "recallAt10" : 0.846926569691454
   },
   "perKind" : {
     "image" : {
-      "f1" : 0.4259339105854901,
+      "f1" : 0.4256194591341802,
       "mrr" : 0.8854200719189278,
-      "ndcgAt10" : 0.8340536211077377,
-      "precision" : 0.39475473006558076,
+      "ndcgAt10" : 0.8343388364119024,
+      "precision" : 0.39638847808556876,
       "queries" : 161,
-      "recall" : 0.8896550007872953,
-      "recallAt10" : 0.8478327649454753
+      "recall" : 0.888748805533274,
+      "recallAt10" : 0.846926569691454
     }
   }
 }

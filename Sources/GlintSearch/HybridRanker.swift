@@ -52,6 +52,14 @@ public struct HybridRanker: Sendable {
     /// only add files nothing else found, and rank low: boosting files already found reorders
     /// them by weak evidence (SciFact MRR 0.80 -> 0.73).
     public var looseKeywordWeight: Double = 0.25
+    /// Partial keyword and name matches are kept only for files whose meaning is at least this
+    /// many standard deviations above the query's mean score over the library (`nil`: all kept).
+    /// A shared rare term ("PCNA" in a paper on PCNA) comes with related meaning; a shared common
+    /// word ("error" in a DNA repair paper, for "javascript promise error") does not. Needs the
+    /// statistics passed to `rank`, and a library of `calibrationMinimumRows` vectors. At 2: media
+    /// eval precision 0.12 -> 0.20 and empty answers for absent things 17% -> 42%, SciFact
+    /// Recall@10 0.921 -> 0.925, no benchmark losing a relevant file.
+    public var looseSemanticSupport: Float? = 2
     /// Semantic hits below this cosine similarity are dropped as noise.
     public var minimumSimilarity: Float = 0.25
     /// Semantic hits more than this below the best hit are dropped too (`nil`: off).
@@ -94,7 +102,11 @@ public struct HybridRanker: Sendable {
             files[hit.fileID, default: .empty(hit.fileID)].score += score
             files[hit.fileID]?.sources.insert(.name)
         }
-        files.merge(looseFiles(keyword: looseKeyword, names: looseNames, excluding: files)) { current, _ in current }
+        let supported = semanticallySupported(semantic, statistics: statistics)
+        func isSupported(_ hit: KeywordHit) -> Bool { supported?.contains(hit.fileID) ?? true }
+        files.merge(
+            looseFiles(keyword: looseKeyword.filter(isSupported), names: looseNames.filter(isSupported), excluding: files)
+        ) { current, _ in current }
 
         let ranked = files.values.map { file -> RankedFile in
             var file = file
@@ -176,6 +188,16 @@ public struct HybridRanker: Sendable {
             loose[hit.fileID]?.sources.insert(.name)
         }
         return loose
+    }
+
+    /// Files whose best semantic score clears `looseSemanticSupport`, or `nil` when every file
+    /// passes (off, or too few vectors to calibrate).
+    private func semanticallySupported(_ semantic: [ScoredChunk], statistics: ScoreStatistics?) -> Set<FileID>? {
+        guard let looseSemanticSupport, let statistics, statistics.deviation > 0,
+            statistics.count >= calibrationMinimumRows
+        else { return nil }
+        let threshold = statistics.mean + looseSemanticSupport * statistics.deviation
+        return Set(semantic.filter { $0.score >= threshold }.map(\.fileID))
     }
 
     /// What each hit of one list (best first, higher `raw` is better) adds to its chunk or file.
