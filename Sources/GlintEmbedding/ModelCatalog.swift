@@ -41,9 +41,13 @@ public enum ModelCatalog {
         minimumRobustZScore: 3.5,
         // A library that is mostly one trip's train photos hides every match for "two people near
         // a train" from calibration. Themed COCO benchmark (coco_theme_bench.py): Recall@10
-        // 0.24 -> 0.54; COCO and SciFact unchanged, negative queries unchanged. 0.70 costs
-        // SciFact 0.4 points of recall; 0.75 keeps only half the themed gain.
-        confidentSimilarity: 0.72,
+        // 0.24 -> 0.54 at 0.72. 0.68 keeps a real trip library's sunglasses photos (best 0.701,
+        // z 2.7) and all three backpack videos (0.736, 0.706, 0.695) that 0.72 dropped:
+        // coco-train Recall@10 0.637 -> 0.784 for precision 0.47 -> 0.38; media photos 0.863 ->
+        // 0.883 and videos 0.838 -> 0.850 for video precision 0.29 -> 0.26; sample, mixed,
+        // SciFact and COCO within a point, negative queries unchanged. Audio keeps 0.72
+        // (`HybridRanker.confidentSimilarityByKind`). 0.66 costs mixed F1 a point.
+        confidentSimilarity: 0.68,
         limitsLooseKeywords: true
     )
 

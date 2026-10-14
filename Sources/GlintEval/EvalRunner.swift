@@ -243,7 +243,7 @@ struct EvalRunner {
 }
 
 /// Wraps the model's query encoder with a different similarity margin or z-scores.
-private struct MarginOverride: QueryEncoding {
+struct MarginOverride: QueryEncoding {
     let base: any QueryEncoding
     let margin: Float??
     let zScore: Float??

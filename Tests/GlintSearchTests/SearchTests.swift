@@ -271,6 +271,38 @@ struct HybridRankerTests {
         #expect(ranker.rank(semantic: weak, keyword: [], names: [], attributes: [:], statistics: statistics).isEmpty)
     }
 
+    @Test func confidentMatchesNeedMoreForKindsWhoseScoresMeanLess() {
+        var ranker = HybridRanker()
+        ranker.minimumSimilarity = 0.6
+        ranker.minimumZScore = 3
+        ranker.confidentSimilarity = 0.68
+        // Mean 0.586 + 3 × 0.042 = 0.712: nothing clears calibration.
+        let statistics = ScoreStatistics(mean: 0.586, deviation: 0.042, count: 500)
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.705),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.701),
+            ScoredChunk(chunkID: ChunkID(3), fileID: FileID(3), score: 0.690),
+        ]
+        let kinds: [FileID: MediaKind] = [FileID(1): .audio, FileID(2): .image, FileID(3): .video]
+        // The recording scores best but is below audio's 0.72.
+        #expect(
+            ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: statistics, kinds: kinds)
+                .map(\.fileID) == [FileID(2), FileID(3)])
+
+        // Only recordings: nothing is confident.
+        let audio = kinds.mapValues { _ in MediaKind.audio }
+        #expect(
+            ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: statistics, kinds: audio)
+                .isEmpty)
+
+        // A recording at 0.72 is.
+        var loud = semantic
+        loud[0].score = 0.725
+        #expect(
+            ranker.rank(semantic: loud, keyword: [], names: [], attributes: [:], statistics: statistics, kinds: kinds)
+                .map(\.fileID).contains(FileID(1)))
+    }
+
     @Test func partialKeywordMatchesNeedRelatedMeaning() {
         var ranker = HybridRanker()
         ranker.minimumSimilarity = 0.6

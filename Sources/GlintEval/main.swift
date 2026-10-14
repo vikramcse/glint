@@ -225,11 +225,18 @@ case "query":
             directory: URL(fileURLWithPath: modelDir), towers: .text, dimensions: dimensions,
             idleUnload: idle.map { .milliseconds(Int($0 * 1_000)) })
         let gate = PriorityGate(quietPeriod: .milliseconds(1))
-        let encoder = GatedQueryEncoder(provider: provider, gate: gate)
+        // --z, --robust-z, --confident and --confident-margin try other cutoffs on a real library.
+        let encoder = MarginOverride(
+            base: GatedQueryEncoder(provider: provider, gate: gate), margin: nil,
+            zScore: option("--z", in: arguments).map { Float($0) },
+            robustZScore: option("--robust-z", in: arguments).map { Float($0) },
+            confident: option("--confident", in: arguments).map { Float($0) })
+        var ranker = HybridRanker()
+        if let margin = option("--confident-margin", in: arguments).flatMap(Float.init) { ranker.confidentMargin = margin }
         let vectorIndex = FlatVectorIndex(space: provider.descriptor.space)
         let engine = SearchEngine(
             reader: try IndexReader(url: database), vectorIndex: vectorIndex, encoder: encoder,
-            thumbnails: ThumbnailStore(directory: paths.thumbnails))
+            thumbnails: ThumbnailStore(directory: paths.thumbnails), ranker: ranker)
         let loaded = try await engine.loadVectors()
         print("Loaded \(loaded) vectors in \(provider.descriptor.space); semantic cutoff \(encoder.minimumSimilarity)")
         let names = Dictionary(
@@ -242,7 +249,10 @@ case "query":
             var best: [FileID: Float] = [:]
             let (hits, statistics) = try await vectorIndex.searchWithStatistics(embedding, limit: 100_000, filter: .none)
             if let statistics {
-                print(String(format: "  library mean %.3f, deviation %.3f over %d rows", statistics.mean, statistics.deviation, loaded))
+                print(
+                    String(
+                        format: "  library mean %.3f, deviation %.3f, median %.3f, robust deviation %.3f over %d rows",
+                        statistics.mean, statistics.deviation, statistics.median, statistics.robustDeviation, loaded))
             }
             for hit in hits {
                 best[hit.fileID] = max(best[hit.fileID] ?? -1, hit.score)
