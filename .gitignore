@@ -12,6 +12,7 @@ Evals/coco/
 Evals/coco-train/
 Evals/scifact/
 Evals/mixed/
+Evals/media/
 Xcode/
 default.profraw
 *.profraw
