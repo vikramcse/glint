@@ -271,6 +271,74 @@ struct HybridRankerTests {
         #expect(ranker.rank(semantic: weak, keyword: [], names: [], attributes: [:], statistics: statistics).isEmpty)
     }
 
+    @Test func confidentMatchesNeedMoreForKindsWhoseScoresMeanLess() {
+        var ranker = HybridRanker()
+        ranker.minimumSimilarity = 0.6
+        ranker.minimumZScore = 3
+        ranker.confidentSimilarity = 0.68
+        // Mean 0.586 + 3 × 0.042 = 0.712: nothing clears calibration.
+        let statistics = ScoreStatistics(mean: 0.586, deviation: 0.042, count: 500)
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.705),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.701),
+            ScoredChunk(chunkID: ChunkID(3), fileID: FileID(3), score: 0.690),
+        ]
+        let kinds: [FileID: MediaKind] = [FileID(1): .audio, FileID(2): .image, FileID(3): .video]
+        // The recording scores best but is below audio's 0.72.
+        #expect(
+            ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: statistics, kinds: kinds)
+                .map(\.fileID) == [FileID(2), FileID(3)])
+
+        // Only recordings: nothing is confident.
+        let audio = kinds.mapValues { _ in MediaKind.audio }
+        #expect(
+            ranker.rank(semantic: semantic, keyword: [], names: [], attributes: [:], statistics: statistics, kinds: audio)
+                .isEmpty)
+
+        // A recording at 0.72 is.
+        var loud = semantic
+        loud[0].score = 0.725
+        #expect(
+            ranker.rank(semantic: loud, keyword: [], names: [], attributes: [:], statistics: statistics, kinds: kinds)
+                .map(\.fileID).contains(FileID(1)))
+    }
+
+    @Test func partialKeywordMatchesNeedRelatedMeaning() {
+        var ranker = HybridRanker()
+        ranker.minimumSimilarity = 0.6
+        ranker.minimumZScore = 3
+        ranker.looseSemanticSupport = 2
+        // Mean 0.55, deviation 0.03: z 2 is 0.61, the semantic floor 0.64.
+        let statistics = ScoreStatistics(mean: 0.55, deviation: 0.03, count: 500)
+        // File 1 shares a rare term and is related (0.62: below the floor, above z 2); file 2
+        // shares a common word and nothing else (0.57).
+        let semantic = [
+            ScoredChunk(chunkID: ChunkID(1), fileID: FileID(1), score: 0.62),
+            ScoredChunk(chunkID: ChunkID(2), fileID: FileID(2), score: 0.57),
+        ]
+        let loose = [
+            KeywordHit(fileID: FileID(1), chunkID: ChunkID(1), bm25: -3, attributes: attributes()),
+            KeywordHit(fileID: FileID(2), chunkID: ChunkID(2), bm25: -4, attributes: attributes()),
+            KeywordHit(fileID: FileID(3), chunkID: ChunkID(3), bm25: -5, attributes: attributes()),
+        ]
+        func ranked() -> Set<FileID> {
+            Set(
+                ranker.rank(
+                    semantic: semantic, keyword: [], names: [], looseKeyword: loose, attributes: [:], statistics: statistics
+                ).map(\.fileID))
+        }
+        #expect(ranked() == [FileID(1)])
+
+        // Too few vectors to calibrate: every partial match is kept, as before.
+        let small = ScoreStatistics(mean: 0.55, deviation: 0.03, count: 20)
+        #expect(
+            Set(
+                ranker.rank(semantic: semantic, keyword: [], names: [], looseKeyword: loose, attributes: [:], statistics: small)
+                    .map(\.fileID)) == [FileID(1), FileID(2), FileID(3)])
+        ranker.looseSemanticSupport = nil
+        #expect(ranked() == [FileID(1), FileID(2), FileID(3)])
+    }
+
     @Test func partialKeywordMatchesOnlyAddFiles() {
         let ranker = HybridRanker()
         let semantic = [

@@ -13,6 +13,15 @@ public struct ExtractionOptions: Sendable, Hashable {
         case accurate
     }
 
+    /// What Apple's sound classifier contributes to audio files.
+    public enum SoundLabels: String, Sendable, Hashable, Codable {
+        case off
+        /// Names of the sounds heard go into the keyword index only.
+        case keywords
+        /// Also embedded with each window's audio, so they move its vector toward the words.
+        case embedded
+    }
+
     /// Run Vision OCR on images and on PDF pages without a text layer.
     public var ocrEnabled: Bool
     public var ocrLevel: OCRLevel
@@ -21,6 +30,7 @@ public struct ExtractionOptions: Sendable, Hashable {
     public var ocrMaxPixel: Int
     /// Transcribe audio on device (needs Speech Recognition authorization; never prompts).
     public var transcriptionEnabled: Bool
+    public var soundLabels: SoundLabels
 
     /// Text chunk size and overlap, in approximate tokens.
     public var textChunkTokens: Int
@@ -54,6 +64,7 @@ public struct ExtractionOptions: Sendable, Hashable {
         ocrLevel: OCRLevel = .automatic,
         ocrMaxPixel: Int = 2_048,
         transcriptionEnabled: Bool = false,
+        soundLabels: SoundLabels = .off,
         textChunkTokens: Int = 512,
         textOverlapTokens: Int = 64,
         maxTextBytes: Int64 = 20 * 1_024 * 1_024,
@@ -73,6 +84,7 @@ public struct ExtractionOptions: Sendable, Hashable {
         self.ocrLevel = ocrLevel
         self.ocrMaxPixel = ocrMaxPixel
         self.transcriptionEnabled = transcriptionEnabled
+        self.soundLabels = soundLabels
         self.textChunkTokens = textChunkTokens
         self.textOverlapTokens = textOverlapTokens
         self.maxTextBytes = maxTextBytes

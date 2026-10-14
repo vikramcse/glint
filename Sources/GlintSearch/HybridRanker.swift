@@ -52,6 +52,14 @@ public struct HybridRanker: Sendable {
     /// only add files nothing else found, and rank low: boosting files already found reorders
     /// them by weak evidence (SciFact MRR 0.80 -> 0.73).
     public var looseKeywordWeight: Double = 0.25
+    /// Partial keyword and name matches are kept only for files whose meaning is at least this
+    /// many standard deviations above the query's mean score over the library (`nil`: all kept).
+    /// A shared rare term ("PCNA" in a paper on PCNA) comes with related meaning; a shared common
+    /// word ("error" in a DNA repair paper, for "javascript promise error") does not. Needs the
+    /// statistics passed to `rank`, and a library of `calibrationMinimumRows` vectors. At 2: media
+    /// eval precision 0.12 -> 0.20 and empty answers for absent things 17% -> 42%, SciFact
+    /// Recall@10 0.921 -> 0.925, no benchmark losing a relevant file.
+    public var looseSemanticSupport: Float? = 2
     /// Semantic hits below this cosine similarity are dropped as noise.
     public var minimumSimilarity: Float = 0.25
     /// Semantic hits more than this below the best hit are dropped too (`nil`: off).
@@ -70,6 +78,10 @@ public struct HybridRanker: Sendable {
     /// absolute score still means a real match.
     public var confidentSimilarity: Float?
     public var confidentMargin: Float = 0.05
+    /// `confidentSimilarity` for kinds whose absolute scores mean less. Audio: on the media eval
+    /// the best wrong recording outscores the right one (median cosine 0.714 against 0.679), so
+    /// at 0.68 "fireworks exploding in the night sky" returned 13 recordings, none of fireworks.
+    public var confidentSimilarityByKind: [MediaKind: Float] = [.audio: 0.72]
     /// Below this many vectors the library's score statistics are too noisy to calibrate with.
     public var calibrationMinimumRows = 200
     /// Maximum relative boost for a file modified today, decaying with `recencyHalfLife`.
@@ -86,15 +98,24 @@ public struct HybridRanker: Sendable {
         looseNames: [KeywordHit] = [],
         attributes: [FileID: FileAttributes],
         statistics: ScoreStatistics? = nil,
+        kinds: [FileID: MediaKind] = [:],
         now: Date = Date()
     ) -> [RankedFile] {
         let floor = semanticFloor(semantic, statistics: statistics)
-        var files = chunkMatches(semantic: semantic.filter { $0.score >= floor }, keyword: keyword, floor: floor)
+        let confident = confidentFloors(semantic, kinds: kinds)
+        let kept = semantic.filter { hit in
+            hit.score >= floor || confident[kinds[hit.fileID]].map { hit.score >= $0 } == true
+        }
+        var files = chunkMatches(semantic: kept, keyword: keyword, floor: min(floor, confident.values.min() ?? floor))
         for (hit, score) in zip(names, contributions(names.map { ($0.fileID, -$0.bm25) }, weight: nameWeight)) {
             files[hit.fileID, default: .empty(hit.fileID)].score += score
             files[hit.fileID]?.sources.insert(.name)
         }
-        files.merge(looseFiles(keyword: looseKeyword, names: looseNames, excluding: files)) { current, _ in current }
+        let supported = semanticallySupported(semantic, statistics: statistics)
+        func isSupported(_ hit: KeywordHit) -> Bool { supported?.contains(hit.fileID) ?? true }
+        files.merge(
+            looseFiles(keyword: looseKeyword.filter(isSupported), names: looseNames.filter(isSupported), excluding: files)
+        ) { current, _ in current }
 
         let ranked = files.values.map { file -> RankedFile in
             var file = file
@@ -178,6 +199,16 @@ public struct HybridRanker: Sendable {
         return loose
     }
 
+    /// Files whose best semantic score clears `looseSemanticSupport`, or `nil` when every file
+    /// passes (off, or too few vectors to calibrate).
+    private func semanticallySupported(_ semantic: [ScoredChunk], statistics: ScoreStatistics?) -> Set<FileID>? {
+        guard let looseSemanticSupport, let statistics, statistics.deviation > 0,
+            statistics.count >= calibrationMinimumRows
+        else { return nil }
+        let threshold = statistics.mean + looseSemanticSupport * statistics.deviation
+        return Set(semantic.filter { $0.score >= threshold }.map(\.fileID))
+    }
+
     /// What each hit of one list (best first, higher `raw` is better) adds to its chunk or file.
     /// `lowerBound` is the raw score that would count for nothing.
     private func contributions(_ hits: [(file: FileID, raw: Double)], weight: Double, lowerBound: Double = 0) -> [Double] {
@@ -199,8 +230,7 @@ public struct HybridRanker: Sendable {
     }
 
     /// The lowest semantic score kept: calibrated against the library's score statistics when
-    /// there are enough vectors, otherwise a margin below the best match; lowered for matches
-    /// that are confident on their own.
+    /// there are enough vectors, otherwise a margin below the best match.
     private func semanticFloor(_ semantic: [ScoredChunk], statistics: ScoreStatistics?) -> Float {
         var floor = minimumSimilarity
         if let minimumZScore, let statistics, statistics.deviation > 0, statistics.count >= calibrationMinimumRows {
@@ -212,10 +242,22 @@ public struct HybridRanker: Sendable {
         } else if let similarityMargin, let best = semantic.map(\.score).max() {
             floor = max(floor, best - similarityMargin)
         }
-        if let confidentSimilarity, let best = semantic.map(\.score).max(), best >= confidentSimilarity {
-            floor = min(floor, max(confidentSimilarity, best - confidentMargin))
-        }
         return floor
+    }
+
+    /// Per kind (`nil`: unknown), the lower score kept below the calibrated floor when that
+    /// kind's best match is confident on its own: down to the kind's confident score, and within
+    /// `confidentMargin` of the best match of any kind.
+    private func confidentFloors(_ semantic: [ScoredChunk], kinds: [FileID: MediaKind]) -> [MediaKind?: Float] {
+        guard let confidentSimilarity, let overall = semantic.map(\.score).max() else { return [:] }
+        var best: [MediaKind?: Float] = [:]
+        for hit in semantic { best[kinds[hit.fileID]] = max(best[kinds[hit.fileID]] ?? hit.score, hit.score) }
+        var floors: [MediaKind?: Float] = [:]
+        for (kind, score) in best {
+            let threshold = kind.flatMap { confidentSimilarityByKind[$0] } ?? confidentSimilarity
+            if score >= threshold { floors[kind] = max(threshold, overall - confidentMargin) }
+        }
+        return floors
     }
 }
 

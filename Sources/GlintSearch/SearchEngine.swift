@@ -170,9 +170,11 @@ public actor SearchEngine {
             ranker.keywordWeight *= weights.keyword
             ranker.nameWeight *= weights.keyword
         }
+        let kinds = await vectorIndex.kinds(of: semantic.map(\.fileID))
         let ranked = ranker.rank(
             semantic: semantic, keyword: chunks, names: names, looseKeyword: looseChunks, looseNames: looseNames,
-            attributes: attributes(chunks + names + looseChunks + looseNames), statistics: statistics, now: now())
+            attributes: attributes(chunks + names + looseChunks + looseNames), statistics: statistics, kinds: kinds,
+            now: now())
         let items = try await hydrate(ranked, terms: FTSQuery(query.text).terms)
         return SearchResults(query: query, phase: .merged, items: items, elapsedMilliseconds: stopwatch.milliseconds)
     }

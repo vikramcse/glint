@@ -102,6 +102,13 @@ public actor FlatVectorIndex: VectorIndex {
         )
     }
 
+    /// The kind of each of these files that has vectors here.
+    public func kinds(of files: some Sequence<FileID>) -> [FileID: MediaKind] {
+        var kinds: [FileID: MediaKind] = [:]
+        for file in files { kinds[file] = attributes[file]?.kind }
+        return kinds
+    }
+
     /// The vectors stored for one file (used by "find similar").
     public func vectors(of fileID: FileID) -> [[Float]] {
         (rowsOfFile[fileID] ?? []).sorted().map(matrix.row)

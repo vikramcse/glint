@@ -37,6 +37,7 @@ actor AudioCursor {
     private var waveform: [Float] = []
     private var duration: Double = 0
     private var transcript: [TranscriptSegment] = []
+    private var sounds: [SoundLabel] = []
     /// Decoded samples starting at `bufferStart` (in samples from the file start).
     private var buffer: [Float] = []
     private var bufferStart = 0
@@ -76,12 +77,15 @@ actor AudioCursor {
 
         let clip = AudioClip(samples: samples, sampleRate: rate, start: window.start)
         let spoken = transcript.text(from: window.start, to: end)
+        let heard = sounds.text(from: window.start, to: end)
+        let embedded = [spoken, options.soundLabels == .embedded ? heard : nil].compactMap { $0 }
+        let text = [spoken, heard].compactMap { $0 }.joined(separator: "\n")
         let isFirst = nextWindow == 1
         return Chunk(
             ordinal: nextWindow - 1,
             locator: .time(start: window.start, end: end),
-            text: spoken,
-            input: spoken.map { .interleaved([.audio(clip), .text($0)]) } ?? .audio(clip),
+            text: text.isEmpty ? nil : text,
+            input: embedded.isEmpty ? .audio(clip) : .interleaved([.audio(clip), .text(embedded.joined(separator: "\n"))]),
             preview: isFirst ? ChunkPreview(waveform: waveform, duration: duration) : .none
         )
     }
@@ -115,6 +119,18 @@ actor AudioCursor {
         waveform = try await AudioAnalysis.waveform(
             of: asset, duration: duration, bins: options.waveformBins, maxDuration: capped
         )
+        try await listen()
+    }
+
+    /// What was heard and said: sound labels and the transcript, each when enabled.
+    private func listen() async throws {
+        if options.soundLabels != .off {
+            do {
+                sounds = try SoundLabeler.labels(of: url)
+            } catch {
+                Log.extractor.error("Sound classification failed: \(String(describing: error), privacy: .public)")
+            }
+        }
         if let transcriber {
             do {
                 transcript = try await transcriber.transcribe(url)
