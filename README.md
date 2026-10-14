@@ -31,6 +31,7 @@ open build/Glint.app              # onboarding offers the EmbeddingGemma 2 downl
 | Performance budgets (100k chunks) | `GLINT_PERF=1 swift test -c release --filter GlintPerformanceTests` |
 | Retrieval evals | `glint-eval sample /tmp/eval && glint-eval run /tmp/eval --model gemma --model-dir <checkpoint> --baseline Evals/baseline-embeddinggemma2.json` |
 | Mixed library eval (photos and papers in one index; answers live in one modality) | `scripts/mixed_bench.py && glint-eval run Evals/mixed --model gemma --model-dir <checkpoint> --baseline Evals/baseline-mixed-embeddinggemma2.json` |
+| Media library eval (photos, papers, videos and audio in one index; downloads MSR-VTT and Clotho clips) | `scripts/media_bench.py && glint-eval run Evals/media --model gemma --model-dir <checkpoint> --baseline Evals/baseline-media-embeddinggemma2.json` |
 | Themed photo library eval (one trip's trains, searched for details) | `scripts/coco_theme_bench.py && glint-eval run Evals/coco-train --model gemma --model-dir <checkpoint> --baseline Evals/baseline-coco-train-embeddinggemma2.json` |
 | Module boundaries | `scripts/check_imports.sh` |
 | Format / lint | `xcrun swift-format lint --strict -r Sources Tests` · `swiftlint --strict` |
