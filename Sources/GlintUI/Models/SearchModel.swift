@@ -68,6 +68,9 @@ public final class SearchModel {
     /// A file dropped from outside the results that "find similar" compares with.
     public private(set) var similarToFile: URL?
     public private(set) var errorMessage: String?
+    /// Whether the view showing this model is on screen. A panel that is ordered out keeps its
+    /// view, so `onAppear`/`onDisappear` don't fire again; the view follows this instead.
+    public private(set) var isPresented = true
 
     @ObservationIgnored private let engine: SearchEngine
     @ObservationIgnored private let sourcePaths: @MainActor () -> [String]
@@ -102,16 +105,28 @@ public final class SearchModel {
         return SearchQuery(text: combined.text, filter: filter, namesOnly: parsed.namesOnly || matchScope == .fileNames)
     }
 
+    /// Called by the window that hosts the view when it is shown or hidden.
+    public func setPresented(_ presented: Bool) {
+        if isPresented != presented { isPresented = presented }
+    }
+
     /// Re-runs the current query (for example after the index changed).
     public func refresh() { queryChanged() }
 
     public func clear() {
         text = ""
         tokens = []
+        // The text may already be empty (find similar clears it), so no query change cancels
+        // in-flight work; retire this generation so late results can't land.
+        generation += 1
+        keywordTask?.cancel()
+        mergeTask?.cancel()
         similarTo = nil
         similarToFile = nil
+        errorMessage = nil
         results = []
         phase = nil
+        isMerging = false
     }
 
     private func queryChanged() {

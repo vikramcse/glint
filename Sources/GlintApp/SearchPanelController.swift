@@ -76,6 +76,14 @@ final class SearchPanelController {
 
     var isVisible: Bool { panel.isVisible }
 
+    /// Quick Look closed: losing key status dismisses the panel again. If the user moved on to
+    /// another app meanwhile, the panel goes too; otherwise it takes the keyboard back.
+    func quickLookEnded() {
+        keepOpenOnResign = false
+        guard panel.isVisible else { return }
+        if NSApp.isActive { panel.makeKey() } else { hide() }
+    }
+
     func toggle() {
         if isVisible { hide() } else { show() }
     }
@@ -83,6 +91,7 @@ final class SearchPanelController {
     func show() {
         let state = Signposts.search.beginInterval(Signposts.Name.panelShow)
         position()
+        model.setPresented(true)
         panel.makeKeyAndOrderFront(nil)
         DispatchQueue.main.async {
             Signposts.search.endInterval(Signposts.Name.panelShow, state)
@@ -93,6 +102,7 @@ final class SearchPanelController {
         keepOpenOnResign = false
         guard panel.isVisible else { return }
         panel.orderOut(nil)
+        model.setPresented(false)
         onHide?()
     }
 

@@ -55,9 +55,10 @@ public struct OnDeviceSpeechTranscriber: Transcriber {
         let taskBox = TaskBox()
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[TranscriptSegment], any Error>) in
-                taskBox.task = recognizer.recognitionTask(with: request) { result, error in
+                let task = recognizer.recognitionTask(with: request) { result, error in
                     if let error {
-                        if gate.claim() { continuation.resume(throwing: error) }
+                        // A cancelled task reports Speech's own error; callers expect cancellation.
+                        if gate.claim() { continuation.resume(throwing: taskBox.isCancelled ? CancellationError() : error) }
                         return
                     }
                     guard let result, result.isFinal else { return }
@@ -66,9 +67,11 @@ public struct OnDeviceSpeechTranscriber: Transcriber {
                     }
                     if gate.claim() { continuation.resume(returning: segments) }
                 }
+                // Cancellation may have arrived before the task existed; `set` cancels it then.
+                if !taskBox.set(task), gate.claim() { continuation.resume(throwing: CancellationError()) }
             }
         } onCancel: {
-            taskBox.task?.cancel()
+            taskBox.cancel()
         }
     }
 }
@@ -87,21 +90,29 @@ final class ResumeOnce: @unchecked Sendable {
     }
 }
 
-/// Holds the recognition task so cancellation can reach it.
+/// Holds the recognition task so cancellation can reach it, whichever comes first.
 private final class TaskBox: @unchecked Sendable {
     private let lock = NSLock()
-    private var storage: SFSpeechRecognitionTask?
+    private var task: SFSpeechRecognitionTask?
+    private var cancelled = false
 
-    var task: SFSpeechRecognitionTask? {
-        get {
-            lock.lock()
-            defer { lock.unlock() }
-            return storage
+    var isCancelled: Bool { lock.withLock { cancelled } }
+
+    /// Stores the task; returns `false` (and cancels it) when cancellation already happened.
+    func set(_ newTask: SFSpeechRecognitionTask) -> Bool {
+        let alreadyCancelled = lock.withLock {
+            task = newTask
+            return cancelled
         }
-        set {
-            lock.lock()
-            storage = newValue
-            lock.unlock()
+        if alreadyCancelled { newTask.cancel() }
+        return !alreadyCancelled
+    }
+
+    func cancel() {
+        let current = lock.withLock {
+            cancelled = true
+            return task
         }
+        current?.cancel()
     }
 }

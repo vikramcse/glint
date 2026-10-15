@@ -14,7 +14,7 @@ final class AppResultActions: ResultActions {
     private var mainWindow: NSWindow?
     private var onboardingWindow: NSWindow?
     private var playerWindows: [NSWindow] = []
-    private var windowObservers: [any NSObjectProtocol] = []
+    private var windowObservers: [ObjectIdentifier: any NSObjectProtocol] = [:]
     private var pdfWindows: [NSWindow] = []
     private let photos: (any PhotoLibraryProviding)?
 
@@ -22,6 +22,7 @@ final class AppResultActions: ResultActions {
         self.services = services
         self.savedSearches = savedSearches
         self.photos = photos
+        quickLook.onClose = { [weak self] in self?.panel?.quickLookEnded() }
     }
 
     // MARK: ResultActions
@@ -56,7 +57,10 @@ final class AppResultActions: ResultActions {
         panel?.keepOpenOnResign = true
         Task {
             let urls = await localURLs(for: results)
-            guard !urls.isEmpty else { return }
+            guard !urls.isEmpty else {
+                panel?.quickLookEnded()
+                return
+            }
             let selectedIndex = selected.flatMap { selected in results.firstIndex { $0.id == selected.id } } ?? 0
             NSApp.activate()
             quickLook.show(urls, selectedIndex: min(selectedIndex, urls.count - 1))
@@ -209,7 +213,7 @@ final class AppResultActions: ResultActions {
             let closed = note.object as? NSWindow
             MainActor.assumeIsolated { self?.windowClosed(closed) }
         }
-        windowObservers.append(observer)
+        windowObservers[ObjectIdentifier(window)] = observer
         return window
     }
 
@@ -222,6 +226,10 @@ final class AppResultActions: ResultActions {
     }
 
     private func windowClosed(_ window: NSWindow?) {
+        // The main window is reused after closing; every other window is made afresh.
+        if let window, window !== mainWindow, let observer = windowObservers.removeValue(forKey: ObjectIdentifier(window)) {
+            NotificationCenter.default.removeObserver(observer)
+        }
         playerWindows.removeAll { $0 === window }
         pdfWindows.removeAll { $0 === window }
         returnToMenuBarIfIdle(closing: window)

@@ -51,11 +51,17 @@ public struct TextExtractor: ContentExtractor {
     /// Reads the whole document as plain text. Blocking; call through `Offload`.
     static func extractText(from file: FileRef, options: ExtractionOptions) throws -> String {
         try ExtractionError.checkReadable(file.url)
-        let size = max(file.size, ExtractionError.fileSize(file.url))
+        let size = max(file.size, DocumentSize.onDisk(file.url))
         if size > options.maxTextBytes { throw ExtractionError.tooLarge(limit: options.maxTextBytes) }
 
         let text: String
         if let documentType = richTextType(for: file.contentType) {
+            if zippedTypes.contains(documentType) {
+                // A small archive can inflate to gigabytes; check before anything inflates it.
+                guard let expanded = DocumentSize.zipUncompressedSize(file.url) else { throw ExtractionError.corrupt }
+                let limit = options.maxTextBytes.multipliedReportingOverflow(by: expansionAllowance).partialValue
+                if expanded > limit { throw ExtractionError.tooLarge(limit: limit) }
+            }
             text = try readRichText(file.url, type: documentType)
         } else {
             let data: Data
@@ -71,6 +77,12 @@ public struct TextExtractor: ContentExtractor {
         guard text.contains(where: { !$0.isWhitespace }) else { throw ExtractionError.empty }
         return text
     }
+
+    /// Formats stored as zip archives.
+    static let zippedTypes: Set<NSAttributedString.DocumentType> = [.officeOpenXML, .openDocument]
+    /// How many times `maxTextBytes` a zipped document may expand to. Its XML is several times
+    /// the size of its text, and embedded pictures barely compress.
+    static let expansionAllowance: Int64 = 4
 
     private static func richTextType(for type: UTType) -> NSAttributedString.DocumentType? {
         richTextTypes.first { type.conforms(to: $0.key) }?.value

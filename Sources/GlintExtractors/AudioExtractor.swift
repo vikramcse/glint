@@ -119,14 +119,22 @@ actor AudioCursor {
         waveform = try await AudioAnalysis.waveform(
             of: asset, duration: duration, bins: options.waveformBins, maxDuration: capped
         )
-        try await listen()
+        try await listen(upTo: capped)
     }
 
     /// What was heard and said: sound labels and the transcript, each when enabled.
-    private func listen() async throws {
+    private func listen(upTo maxDuration: Double) async throws {
         if options.soundLabels != .off {
+            let url = url
+            let flag = CancellationFlag()
             do {
-                sounds = try SoundLabeler.labels(of: url)
+                sounds = try await withTaskCancellationHandler {
+                    try await Offload.run { try SoundLabeler.labels(of: url, maxDuration: maxDuration, isCancelled: { flag.isCancelled }) }
+                } onCancel: {
+                    flag.cancel()
+                }
+            } catch is CancellationError {
+                throw ExtractionError.cancelled
             } catch {
                 Log.extractor.error("Sound classification failed: \(String(describing: error), privacy: .public)")
             }
