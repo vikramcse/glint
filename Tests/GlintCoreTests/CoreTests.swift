@@ -150,3 +150,14 @@ struct ErrorCategoryTests {
         #expect(URLError(.notConnectedToInternet).glintCategory == .network)
     }
 }
+
+@Suite("AppPaths")
+struct AppPathsTests {
+    @Test func keepsTheIndexOutOfBackups() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try AppPaths(root: root).createDirectories()
+        let values = try root.resourceValues(forKeys: [.isExcludedFromBackupKey])
+        #expect(values.isExcludedFromBackup == true)
+    }
+}

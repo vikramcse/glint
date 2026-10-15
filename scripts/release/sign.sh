@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Signs Glint.app with a Developer ID, inside out: Sparkle's helpers, the framework, then
-# the app, all with the hardened runtime and a secure timestamp.
+# Signs Glint.app with a Developer ID, inside out: Sparkle's helpers, the framework, any
+# dylibs, glint-mcp, then the app, all with the hardened runtime and a secure timestamp.
 #
 #   SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" scripts/release/sign.sh build/Glint.app
 source "$(dirname "$0")/common.sh"
@@ -23,6 +23,14 @@ if [[ -d "$SPARKLE" ]]; then
     [[ -e "$item" ]] && sign "$item"
   done
   sign "$SPARKLE"
+fi
+
+for dylib in "$APP"/Contents/Frameworks/*.dylib; do
+  [[ -e "$dylib" ]] && sign "$dylib"
+done
+# The MCP tool ships next to the app binary; an xcodebuild build leaves it ad hoc signed.
+if [[ -e "$APP/Contents/MacOS/glint-mcp" ]]; then
+  sign "$APP/Contents/MacOS/glint-mcp"
 fi
 
 sign --entitlements "$ENTITLEMENTS" "$APP"
