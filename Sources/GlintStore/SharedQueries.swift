@@ -98,7 +98,7 @@ extension SQLiteConnection {
             let placeholders = Array(repeating: "?", count: batch.count).joined(separator: ",")
             let rows = try query(
                 "SELECT \(Self.fileColumns) FROM files WHERE id IN (\(placeholders))",
-                batch.map { .int($0.rawValue) },
+                batch.map { .int($0.rawValue) }, cache: false,
                 map: Self.fileRecord
             )
             for record in rows.compactMap({ $0 }) { result[record.id] = record }

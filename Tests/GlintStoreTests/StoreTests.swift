@@ -146,6 +146,89 @@ struct IndexWriterTests {
         #expect(try await reader.counts().indexed[.document] == 2)
     }
 
+    @Test(arguments: ["/s/Trip 🇯🇵", "/s/Cafe\u{0301}", "/s/👋🏽 hi"])
+    func removingFolderWithMultiScalarNameRemovesItsFiles(folder: String) async throws {
+        let writer = try IndexWriter(url: try makeDatabaseURL())
+        let source = try await writer.addSource(path: "/s", bookmark: nil)
+        _ = try await writer.reconcile(sourceID: source, scanned: [scanned(folder + "/a.txt"), scanned("/s/b.txt")])
+
+        let scoped = try await writer.reconcile(sourceID: source, scanned: [], scope: folder)
+        #expect(scoped.removed.count == 1)
+
+        _ = try await writer.applyChanges(upserts: [(source, scanned(folder + "/a.txt"))], removedPaths: [])
+        let watched = try await writer.applyChanges(upserts: [], removedPaths: [folder])
+        #expect(watched.removed.count == 1)
+        #expect(try await writer.counts().totalPending == 1)
+    }
+
+    @Test func removedAndRecommittedFilesReportUnusedThumbnails() async throws {
+        let writer = try IndexWriter(url: try makeDatabaseURL())
+        let source = try await writer.addSource(path: "/s", bookmark: nil)
+        _ = try await writer.reconcile(sourceID: source, scanned: [scanned("/s/a.txt"), scanned("/s/copy.txt"), scanned("/s/b.txt")])
+        let files = try await writer.claimPending(limit: 3, kinds: [.document])
+        func chunk(_ thumbnail: String) -> [ChunkWrite] {
+            [ChunkWrite(ordinal: 0, locator: .whole, text: "t", thumbnail: thumbnail, vector: [1, 0, 0, 0])]
+        }
+        let a = try #require(files.first { $0.name == "a.txt" })
+        let copy = try #require(files.first { $0.name == "copy.txt" })
+        let b = try #require(files.first { $0.name == "b.txt" })
+        _ = try await writer.commit(fileID: a.id, contentHash: "h1", space: space, chunks: chunk("h1/c0.jpg"))
+        _ = try await writer.commit(fileID: copy.id, contentHash: "h1", space: space, chunks: chunk("h1/c0.jpg"))
+        _ = try await writer.commit(fileID: b.id, contentHash: "h2", space: space, chunks: chunk("h2/c0.jpg"))
+        #expect(await writer.takeOrphanedThumbnails().isEmpty)
+
+        // b's content changed: its old thumbnail is unused. Same content again changes nothing.
+        _ = try await writer.commit(fileID: b.id, contentHash: "h3", space: space, chunks: chunk("h3/c0.jpg"))
+        _ = try await writer.commit(fileID: b.id, contentHash: "h3", space: space, chunks: chunk("h3/c0.jpg"))
+        #expect(await writer.takeOrphanedThumbnails() == ["h2/c0.jpg"])
+        #expect(await writer.takeOrphanedThumbnails().isEmpty)
+
+        // The copy still uses a's thumbnail; removing both frees it.
+        let first = try await writer.applyChanges(upserts: [], removedPaths: ["/s/a.txt"])
+        #expect(first.orphanedThumbnails.isEmpty)
+        let second = try await writer.reconcile(sourceID: source, scanned: [scanned("/s/b.txt")])
+        #expect(second.orphanedThumbnails == ["h1/c0.jpg"])
+        let removed = try await writer.removeFiles(atOrBelow: "/s/b.txt")
+        #expect(removed.removed == [b.id])
+        #expect(removed.orphanedThumbnails == ["h3/c0.jpg"])
+    }
+
+    @Test func copyFromDuplicateFallsBackWhenThereIsNothingToCopy() async throws {
+        let writer = try IndexWriter(url: try makeDatabaseURL())
+        let source = try await writer.addSource(path: "/s", bookmark: nil)
+        _ = try await writer.reconcile(
+            sourceID: source, scanned: [scanned("/s/a.txt"), scanned("/s/copy.txt"), scanned("/s/empty.txt")])
+        let files = try await writer.claimPending(limit: 3, kinds: [.document])
+        let a = try #require(files.first { $0.name == "a.txt" })
+        let copy = try #require(files.first { $0.name == "copy.txt" })
+        let empty = try #require(files.first { $0.name == "empty.txt" })
+
+        #expect(try await writer.copyIndexFromDuplicate(to: copy.id, contentHash: "h1", space: space) == nil)
+        _ = try await writer.commit(fileID: empty.id, contentHash: "h0", space: space, chunks: [])
+        #expect(try await writer.copyIndexFromDuplicate(to: copy.id, contentHash: "h0", space: space) == nil)
+
+        _ = try await writer.commit(
+            fileID: a.id, contentHash: "h1", space: space,
+            chunks: [ChunkWrite(ordinal: 0, locator: .whole, text: "t", thumbnail: nil, vector: [1, 0, 0, 0])])
+        let copied = try await writer.copyIndexFromDuplicate(to: copy.id, contentHash: "h1", space: space)
+        #expect(copied?.map(\.values) == [[1, 0, 0, 0]])
+        #expect(try await writer.file(copy.id)?.status == .indexed)
+    }
+
+    @Test func claimingWithVaryingExclusionsWorks() async throws {
+        let writer = try IndexWriter(url: try makeDatabaseURL())
+        let source = try await writer.addSource(path: "/s", bookmark: nil)
+        _ = try await writer.reconcile(sourceID: source, scanned: (0..<6).map { scanned("/s/\($0).txt") })
+        var claimed: Set<FileID> = []
+        for _ in 0..<3 {
+            let next = try await writer.claimPending(limit: 2, kinds: [.document], excluding: claimed)
+            #expect(next.count == 2)
+            #expect(claimed.isDisjoint(with: next.map(\.id)))
+            claimed.formUnion(next.map(\.id))
+        }
+        #expect(claimed.count == 6)
+    }
+
     @Test func commitForVanishedFileIsNoOp() async throws {
         let writer = try IndexWriter(url: try makeDatabaseURL())
         let result = try await writer.commit(

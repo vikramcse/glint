@@ -17,12 +17,16 @@ public struct FileScanner: Sendable {
         .contentTypeKey, .isHiddenKey,
     ]
 
-    /// Lists every indexable file at or below `root`. Unreadable subfolders are skipped.
+    /// Lists every indexable file at or below `root`. Unreadable subfolders are skipped, but a
+    /// root that cannot be listed throws: an empty result means the folder really is empty.
     public func scan(_ root: URL) throws -> [ScannedFile] {
         let values = try root.resourceValues(forKeys: Set(Self.keys))
         if values.isRegularFile == true || values.isPackage == true {
             return scannedFile(root, values: values).map { [$0] } ?? []
         }
+        // The enumerator reports an unlistable root (say, a privacy denial) as no items.
+        _ = try FileManager.default.contentsOfDirectory(atPath: root.path)
+        if Self.isUnmountedVolume(root) { throw IndexerError.sourceUnreadable }
         var options: FileManager.DirectoryEnumerationOptions = [.skipsPackageDescendants]
         if !exclusions.includeHiddenFiles { options.insert(.skipsHiddenFiles) }
         guard
@@ -57,6 +61,17 @@ public struct FileScanner: Sendable {
 
     public static func canonicalPath(_ path: String) -> String {
         canonicalPath(URL(fileURLWithPath: path))
+    }
+
+    /// A path under `/Volumes/<name>` whose drive is not mounted: the folder left behind lies on
+    /// the startup disk and is empty, which must not read as "every file was deleted".
+    static func isUnmountedVolume(_ url: URL) -> Bool {
+        let resolved = url.resolvingSymlinksInPath().standardizedFileURL
+        let components = resolved.pathComponents
+        guard components.count >= 3, components[0] == "/", components[1] == "Volumes" else { return false }
+        let mountPoint = "/Volumes/" + components[2]
+        guard let volume = (try? resolved.resourceValues(forKeys: [.volumeURLKey]))?.volume else { return false }
+        return volume.standardizedFileURL.path != mountPoint
     }
 
     /// Metadata for one file, or `nil` when it is excluded or not indexable.

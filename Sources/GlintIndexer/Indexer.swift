@@ -11,7 +11,7 @@ public actor Indexer: IndexingService {
     let writer: IndexWriter
     var pipeline: FilePipeline
     var vectorIndex: any VectorIndex
-    private let thumbnails: ThumbnailStore
+    let thumbnails: ThumbnailStore
     let power: any PowerMonitoring
     var options: IndexerOptions
     let watcher = FileSystemWatcher()

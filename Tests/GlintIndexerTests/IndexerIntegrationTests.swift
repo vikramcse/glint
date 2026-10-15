@@ -318,6 +318,66 @@ struct IndexerIntegrationTests {
         #expect(status.pending == 1)
         #expect(await harness.engine.vectorIndex.count == 0)
     }
+
+    @Test func watcherBatchWithNewFolderAndItsFileAddsTheFile() async throws {
+        let harness = try Harness()
+        try await harness.indexer.addSource(harness.library)
+        try harness.write("trip/notes.txt", "ferry timetable")
+        let folder = FileScanner.canonicalPath(harness.library.appendingPathComponent("trip"))
+        // FSEvents reports the copied folder and the file inside it in one batch.
+        await harness.indexer.handle(FileSystemChange(paths: [folder, folder + "/notes.txt"], rescanRoots: []))
+        await harness.indexer.drain()
+        #expect(try await harness.names(for: "ferry timetable").first == "notes.txt")
+    }
+
+    @Test func unlistableFolderKeepsItsFiles() async throws {
+        let harness = try Harness()
+        try harness.write("private/a.txt", "tax return")
+        let source = try await harness.indexer.addSource(harness.library)
+        await harness.indexer.drain()
+        let folder = harness.library.appendingPathComponent("private")
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: folder.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: folder.path) }
+
+        let rescanned = await harness.indexer.rescan(
+            sourceID: source.id, root: source.path, scope: FileScanner.canonicalPath(folder))
+        #expect(!rescanned)
+        #expect(await harness.indexer.currentStatus().totalIndexed == 1)
+
+        // A folder that is really gone still has its files removed.
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: folder.path)
+        try FileManager.default.removeItem(at: folder)
+        #expect(await harness.indexer.rescan(sourceID: source.id, root: source.path, scope: FileScanner.canonicalPath(folder)))
+        #expect(await harness.indexer.currentStatus().totalIndexed == 0)
+    }
+
+    @Test func uniqueByPathKeepsTheLastEntry() {
+        let source = SourceID(1)
+        let first = ScannedFile(path: "/s/a.txt", kind: .document, contentType: .plainText, size: 1, modified: .distantPast)
+        var second = first
+        second.size = 2
+        let other = ScannedFile(path: "/s/b.txt", kind: .document, contentType: .plainText, size: 1, modified: .distantPast)
+        let unique = Indexer.uniqueByPath([(source, first), (source, other), (source, second)])
+        #expect(unique.map(\.1) == [other, second])
+    }
+}
+
+@Suite("FileScanner")
+struct FileScannerTests {
+    @Test func unlistableRootThrows() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("scan-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try Data("x".utf8).write(to: folder.appendingPathComponent("a.txt"))
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: folder.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: folder.path) }
+        #expect(throws: (any Error).self) { try FileScanner(exclusions: .default).scan(folder) }
+    }
+
+    @Test func onlyMissingDrivesLookUnmounted() {
+        #expect(!FileScanner.isUnmountedVolume(FileManager.default.temporaryDirectory))
+        #expect(!FileScanner.isUnmountedVolume(URL(fileURLWithPath: "/Volumes")))
+        #expect(!FileScanner.isUnmountedVolume(URL(fileURLWithPath: "/Volumes/Macintosh HD")))
+    }
 }
 
 @Suite("ContentHasher")
