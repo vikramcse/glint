@@ -43,18 +43,26 @@ struct EG2Processor: @unchecked Sendable {
             append(text: prompt(for: parts, purpose: purpose), to: &item)
         }
         for part in parts { try append(part, to: &item) }
-        if item.ids.count > maxTokens {
-            // Never cut through media; trim trailing text only.
-            let mediaTokens = Set(
-                [config.imageTokenId, config.videoTokenId, config.audioTokenId, config.eoiTokenId, config.eoaTokenIndex].map(Int32.init))
-            if let lastMedia = item.ids.lastIndex(where: mediaTokens.contains), lastMedia >= maxTokens {
-                throw EG2Error.inputTooLong(tokens: item.ids.count)
+        let mediaTokens = Set(
+            [config.imageTokenId, config.videoTokenId, config.audioTokenId, config.eoiTokenId, config.eoaTokenIndex].map(Int32.init))
+        item.ids = try Self.closed(item.ids, maxTokens: maxTokens, mediaTokens: mediaTokens)
+        return item
+    }
+
+    /// `ids` closed with <eos> in at most `maxTokens` tokens: trailing text is trimmed to fit,
+    /// but never media, whose spans must stay whole.
+    static func closed(_ ids: [Int32], maxTokens: Int, mediaTokens: Set<Int32>) throws -> [Int32] {
+        var ids = ids
+        if ids.count > maxTokens - 1 {
+            // Room for <eos> leaves `maxTokens - 1` tokens; media past that can't be kept.
+            if let lastMedia = ids.lastIndex(where: mediaTokens.contains), lastMedia >= maxTokens - 1 {
+                throw EG2Error.inputTooLong(tokens: ids.count)
             }
-            item.ids = Array(item.ids.prefix(maxTokens - 1))
+            ids = Array(ids.prefix(maxTokens - 1))
         }
         // The reference tokenizer closes every sequence with <eos>, and it takes part in pooling.
-        item.ids.append(Int32(Self.eosToken))
-        return item
+        ids.append(Int32(eosToken))
+        return ids
     }
 
     /// The task prompt: the model guide's `title: {title | "none"} | text: ` for documents.

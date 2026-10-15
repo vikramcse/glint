@@ -112,7 +112,7 @@ public actor IndexReader {
             let placeholders = Array(repeating: "?", count: batch.count).joined(separator: ",")
             let rows = try db.query(
                 "SELECT id, file_id, ordinal, locator, text, thumb FROM chunks WHERE id IN (\(placeholders))",
-                batch.map { .int($0.rawValue) },
+                batch.map { .int($0.rawValue) }, cache: false,
                 map: SQLiteConnection.chunkRecord
             )
             for record in rows.compactMap({ $0 }) { result[record.id] = record }
@@ -131,7 +131,7 @@ public actor IndexReader {
                 SELECT id, file_id, ordinal, locator, text, thumb FROM chunks
                 WHERE file_id IN (\(placeholders)) AND ordinal = 0
                 """,
-                batch.map { .int($0.rawValue) },
+                batch.map { .int($0.rawValue) }, cache: false,
                 map: SQLiteConnection.chunkRecord
             )
             for record in rows.compactMap({ $0 }) { result[record.fileID] = record }
@@ -194,7 +194,7 @@ public actor IndexReader {
             LIMIT ?
             """,
             words.map { .text(Self.escapeLike($0)) } + [.text(whole), .text(Self.escapeLike(whole)), SQLValue(limit)],
-            map: Self.hit(chunkColumn: nil, fileColumn: 1)
+            cache: false, map: Self.hit(chunkColumn: nil, fileColumn: 1)
         ).compactMap { $0 }
     }
 

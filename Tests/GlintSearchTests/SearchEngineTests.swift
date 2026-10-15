@@ -26,7 +26,7 @@ private struct Harness {
     let writer: IndexWriter
     let ids: [String: FileID]
 
-    static func make(limitsLooseKeywords: Bool = false) async throws -> Harness {
+    static func make(limitsLooseKeywords: Bool = false, resultLimit: Int = 60) async throws -> Harness {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("glint-search-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let url = directory.appendingPathComponent("index.sqlite")
@@ -67,10 +67,32 @@ private struct Harness {
                 space: space, table: ["dog on the sand": 0, "when was the deadline": 2],
                 // Closer to the standup than to the pitch, which has the word "revenue".
                 mixed: ["revenue lunch": [0, 0.6, 0.8, 0, 0, 0, 0, 0]], limitsLooseKeywords: limitsLooseKeywords),
-            thumbnails: ThumbnailStore(directory: directory.appendingPathComponent("Thumbnails"))
+            thumbnails: ThumbnailStore(directory: directory.appendingPathComponent("Thumbnails")),
+            resultLimit: resultLimit
         )
         #expect(try await engine.loadVectors() == 4)
         return Harness(engine: engine, writer: writer, ids: ids)
+    }
+
+    /// Indexes text-only files in a new source, as the indexer would, without loading vectors.
+    func add(_ files: [(name: String, kind: MediaKind, text: String)], in folder: String) async throws -> [FileID] {
+        let source = try await writer.addSource(path: folder, bookmark: nil)
+        _ = try await writer.reconcile(
+            sourceID: source,
+            scanned: files.map {
+                ScannedFile(
+                    path: "\(folder)/\($0.name)", kind: $0.kind, contentType: .data, size: 1,
+                    modified: Date(timeIntervalSince1970: 2_000))
+            })
+        var ids: [FileID] = []
+        for record in try await writer.claimPending(limit: 100, kinds: Set(MediaKind.allCases)) {
+            guard let file = files.first(where: { $0.name == record.name }) else { continue }
+            _ = try await writer.commit(
+                fileID: record.id, contentHash: record.name, space: VectorSpace(modelID: "fake/1", dimension: 8),
+                chunks: [ChunkWrite(ordinal: 0, locator: .whole, text: file.text, thumbnail: nil, vector: nil)])
+            ids.append(record.id)
+        }
+        return ids
     }
 }
 
@@ -117,6 +139,27 @@ struct SearchEngineTests {
         let query = SearchQuery(text: "when was the deadline", filter: SearchFilter(kinds: [.image]))
         let results = try await harness.engine.mergedResults(for: query)
         #expect(results.items.allSatisfy { $0.file.kind == .image })
+    }
+
+    @Test func keywordCacheSeesNewlyIndexedFiles() async throws {
+        let harness = try await Harness.make()
+        let query = SearchQuery(text: "invoice")
+        #expect(try await harness.engine.keywordResults(for: query).items.isEmpty)
+        let ids = try await harness.add([("invoice.md", .document, "Invoice for March")], in: "/new")
+        // The indexer updates the vector index whenever it commits a file, even one without vectors.
+        try await harness.engine.vectorIndex.remove(fileID: try #require(ids.first))
+        #expect(try await harness.engine.keywordResults(for: query).items.map(\.file.name) == ["invoice.md"])
+    }
+
+    @Test func filteredKeywordSearchLooksPastUnfilteredTopHits() async throws {
+        // With a page of one, an unfiltered fetch sees only the top three hits: all documents.
+        let harness = try await Harness.make(resultLimit: 1)
+        let filler = Array(repeating: "unrelated words that push the score down", count: 20).joined(separator: " ")
+        _ = try await harness.add(
+            (1...5).map { ("invoice \($0).md", MediaKind.document, "invoice") } + [("scan.pdf", .pdf, "invoice \(filler)")],
+            in: "/bills")
+        let query = SearchQuery(text: "invoice", filter: SearchFilter(kinds: [.pdf]))
+        #expect(try await harness.engine.keywordResults(for: query).items.map(\.file.name) == ["scan.pdf"])
     }
 
     @Test func similarExcludesTheExample() async throws {

@@ -37,7 +37,7 @@ def main() -> None:
         traced,
         inputs=[ct.ImageType(name="face", shape=(1, 3, 112, 112), color_layout=ct.colorlayout.RGB, scale=1.0)],
         outputs=[ct.TensorType(name="identity")],
-        minimum_deployment_target=ct.target.macOS15,
+        minimum_deployment_target=ct.target.macOS14,
         compute_precision=ct.precision.FLOAT16,
     )
     mlmodel.short_description = "SFace face recognizer (OpenCV Zoo, Apache-2.0): aligned 112x112 RGB face to a 128-d identity vector."

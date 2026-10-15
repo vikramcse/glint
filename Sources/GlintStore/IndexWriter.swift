@@ -6,6 +6,8 @@ import GlintCore
 public actor IndexWriter {
     let db: SQLiteConnection
     let now: @Sendable () -> Date
+    /// Thumbnails that re-commits stopped using, until `takeOrphanedThumbnails` hands them out.
+    var orphanedThumbnails: [String] = []
 
     /// Files are retried this many times before they are marked failed (guards against a file
     /// that crashes an extractor every time).
@@ -50,12 +52,7 @@ public actor IndexWriter {
             ) { $0.text(0) }.compactMap { $0 }
             try db.run("DELETE FROM sources WHERE id = ?", [.int(id.rawValue)])
             try deleteEmptyPeople()
-            // Thumbnails are keyed by content hash, so copies in other sources may share them.
-            let orphaned = try thumbnails.filter { thumb in
-                try db.scalarInt(
-                    "SELECT 1 FROM chunks WHERE thumb = ?1 UNION ALL SELECT 1 FROM faces WHERE thumb = ?1 LIMIT 1", [.text(thumb)]) == nil
-            }
-            return RemovedSource(files: ids, orphanedThumbnails: orphaned)
+            return RemovedSource(files: ids, orphanedThumbnails: try unreferenced(thumbnails))
         }
     }
 
@@ -86,6 +83,8 @@ public actor IndexWriter {
         public var changed = 0
         public var moved: [MovedFile] = []
         public var removed: [FileID] = []
+        /// Thumbnails and face crops only the removed files used; delete them from disk.
+        public var orphanedThumbnails: [String] = []
 
         public var isEmpty: Bool { added == 0 && changed == 0 && moved.isEmpty && removed.isEmpty }
     }
@@ -121,13 +120,21 @@ public actor IndexWriter {
         }
     }
 
-    /// Deletes files at `path` or anywhere below it. Returns the removed ids.
-    public func removeFiles(atOrBelow path: String) throws -> [FileID] {
-        try db.transaction {
-            let ids = try storedFiles(atOrBelow: path).map(\.id)
-            for id in ids { try db.run("DELETE FROM files WHERE id = ?", [.int(id.rawValue)]) }
-            return ids
-        }
+    /// Deletes files at `path` or anywhere below it. Returns the removed ids and the thumbnails
+    /// no other file still uses.
+    public func removeFiles(atOrBelow path: String) throws -> ReconcileResult {
+        try db.transaction { try delete(storedFiles(atOrBelow: path).map(\.id)) }
+    }
+
+    /// Deletes files (chunks, faces and vectors cascade). Must run inside a transaction.
+    private func delete(_ ids: [FileID]) throws -> ReconcileResult {
+        var thumbnails: [String] = []
+        for id in ids { thumbnails += try self.thumbnails(of: id) }
+        for id in ids { try db.run("DELETE FROM files WHERE id = ?", [.int(id.rawValue)]) }
+        var result = ReconcileResult()
+        result.removed = ids
+        result.orphanedThumbnails = try unreferenced(thumbnails)
+        return result
     }
 
     struct StoredFile {
@@ -158,7 +165,8 @@ public actor IndexWriter {
         let prefix = path.hasSuffix("/") ? path : path + "/"
         return try db.query(
             "SELECT id, source_id, path, size, modified FROM files WHERE path = ? OR substr(path, 1, ?) = ?",
-            [.text(path), .int(Int64(prefix.count)), .text(prefix)],
+            // substr counts code points; `count` counts graphemes ("🇯🇵" is one grapheme, two scalars).
+            [.text(path), .int(Int64(prefix.unicodeScalars.count)), .text(prefix)],
             map: StoredFile.init
         ).compactMap { $0 }
     }
@@ -169,10 +177,9 @@ public actor IndexWriter {
         let additions = try update(upserts, stale: &stale, result: &result)
         try add(additions, stale: &stale, result: &result)
         if removeStale {
-            for file in stale.values {
-                try db.run("DELETE FROM files WHERE id = ?", [.int(file.id.rawValue)])
-                result.removed.append(file.id)
-            }
+            let removed = try delete(stale.values.map(\.id))
+            result.removed = removed.removed
+            result.orphanedThumbnails = removed.orphanedThumbnails
         }
         return result
     }
@@ -274,7 +281,7 @@ public actor IndexWriter {
                 """,
                 [SQLValue(Self.maxAttempts)] + kinds.sorted().map { .text($0.rawValue) }
                     + excluding.map { .int($0.rawValue) } + [SQLValue(limit)],
-                map: SQLiteConnection.fileRecord
+                cache: excluding.isEmpty, map: SQLiteConnection.fileRecord
             ).compactMap { $0 }
             for record in records {
                 try db.run("UPDATE files SET attempts = attempts + 1 WHERE id = ?", [.int(record.id.rawValue)])

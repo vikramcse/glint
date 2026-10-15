@@ -39,7 +39,8 @@ public struct ExtractionOptions: Sendable, Hashable {
     /// Text chunk size and overlap, in approximate tokens.
     public var textChunkTokens: Int
     public var textOverlapTokens: Int
-    /// Text documents larger than this throw `ExtractionError.tooLarge`.
+    /// Text documents larger than this throw `ExtractionError.tooLarge`. A package counts all its
+    /// files; Word and OpenDocument files may also expand to at most four times this.
     public var maxTextBytes: Int64
 
     /// PDFs are indexed up to this many pages.

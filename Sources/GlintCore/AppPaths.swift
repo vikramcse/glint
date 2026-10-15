@@ -28,5 +28,11 @@ public struct AppPaths: Sendable, Hashable {
         for directory in [root, thumbnails, models, diagnostics] {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         }
+        // Everything here is derived from the user's files and holds their extracted text,
+        // thumbnails and faces: keep it out of Time Machine so it stays on this Mac.
+        var root = root
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try root.setResourceValues(values)
     }
 }

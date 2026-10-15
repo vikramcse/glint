@@ -50,6 +50,9 @@ public struct SearchPanelView: View {
             services.status.start()
         }
         .onDisappear { playback.stop() }
+        .onChange(of: model.isPresented) { _, presented in
+            if presented { fieldFocused = true } else { playback.stop() }
+        }
         .onChange(of: model.text) { navigatingResults = false }
     }
 

@@ -82,14 +82,14 @@ actor EmbeddingBatcher {
 
     private func run(_ batch: [Request]) async {
         do {
-            let embeddings = try await provider.embed(batch.flatMap(\.inputs), purpose: .document)
+            let inputs = batch.flatMap(\.inputs)
+            let embeddings = try await provider.embed(inputs, purpose: .document)
+            // With a missing embedding there is no telling which request it belonged to; the
+            // retry below gives each request its own answer instead of shifting vectors.
+            guard embeddings.count == inputs.count else { throw EmbeddingError.encodingFailed }
             var offset = 0
             for request in batch {
                 let end = offset + request.inputs.count
-                guard end <= embeddings.count else {
-                    request.continuation.resume(throwing: EmbeddingError.encodingFailed)
-                    continue
-                }
                 request.continuation.resume(returning: Array(embeddings[offset..<end]))
                 offset = end
             }
@@ -101,7 +101,9 @@ actor EmbeddingBatcher {
             // One bad input must not fail the other files in the batch: retry each alone.
             for request in batch {
                 do {
-                    request.continuation.resume(returning: try await provider.embed(request.inputs, purpose: .document))
+                    let embeddings = try await provider.embed(request.inputs, purpose: .document)
+                    guard embeddings.count == request.inputs.count else { throw EmbeddingError.encodingFailed }
+                    request.continuation.resume(returning: embeddings)
                 } catch {
                     request.continuation.resume(throwing: error)
                 }

@@ -106,7 +106,9 @@ extension Indexer {
         }
         let timer = timeout.map { duration in
             Task { [weak self] in
-                try? await Task.sleep(for: duration)
+                // Cancelled once something else woke the loop; waking again would leave a stale
+                // `wakePending` and an extra pass.
+                guard (try? await Task.sleep(for: duration)) != nil else { return }
                 await self?.wake()
             }
         }

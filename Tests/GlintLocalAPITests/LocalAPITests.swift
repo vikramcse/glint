@@ -1,5 +1,6 @@
 import Foundation
 import GlintCore
+import Network
 import Testing
 
 @testable import GlintLocalAPI
@@ -225,5 +226,93 @@ struct LocalAPIServerTests {
             return try await group.reduce(into: [Int]()) { $0.append($1) }
         }
         #expect(statuses == Array(repeating: 200, count: 12))
+        try await waitUntil { server.activeConnections == 0 }
+    }
+
+    @Test func dropsClientsThatNeverSendARequest() async throws {
+        let harness = try await APIHarness.make()
+        // A long handling deadline, so only the receive deadline can close the idle client quickly.
+        let server = LocalAPIServer(router: harness.router, requestTimeout: 30, receiveTimeout: 0.3)
+        let port = try await server.start()
+        defer { server.stop() }
+        let client = NWConnection(host: .ipv4(.loopback), port: try #require(NWEndpoint.Port(rawValue: port)), using: .tcp)
+        client.start(queue: DispatchQueue(label: "test-client"))
+        defer { client.cancel() }
+        let started = Date()
+        let closed: Bool = await withCheckedContinuation { continuation in
+            client.receive(minimumIncompleteLength: 1, maximumLength: 1) { _, _, isComplete, error in
+                continuation.resume(returning: isComplete || error != nil)
+            }
+        }
+        #expect(closed)
+        #expect(Date().timeIntervalSince(started) < 5)
+        try await waitUntil { server.activeConnections == 0 }
+        #expect(try await call(port, "GET", "/v1/status").0 == 200)
+        try await waitUntil { server.activeConnections == 0 }
+    }
+
+    /// Polls `condition` for up to five seconds.
+    private func waitUntil(_ condition: () -> Bool) async throws {
+        for _ in 0..<250 {
+            if condition() { return }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        Issue.record("condition not met within 5 seconds")
+    }
+}
+
+@Suite("Local API similar-file access")
+struct LocalAPISimilarAccessTests {
+    @Test func readsOnlyIndexedFilesOrFilesInsideSources() async throws {
+        let harness = try await APIHarness.make()
+        func similar(_ path: String) async -> HTTPResponse {
+            let body = String(decoding: try! JSONEncoder().encode(["path": path]), as: UTF8.self)
+            return await harness.send(APIHarness.request("POST", "/v1/similar", body: body))
+        }
+        let missing = await similar("/no/such/file.jpg")
+        #expect(missing.status == 404)
+        #expect(missing.errorCode == "file_not_found")
+
+        // A real file outside every source answers exactly like a missing one.
+        let outside = harness.directory.url.appendingPathComponent("secret.jpg")
+        try Data("secret".utf8).write(to: outside)
+        let refused = await similar(outside.path)
+        #expect(refused.status == 404)
+        #expect(refused.body == missing.body)
+
+        // So do a path that climbs out of a source and a symlink inside one that points out of it.
+        #expect(await similar(harness.library.path + "/../secret.jpg").body == missing.body)
+        let link = harness.library.appendingPathComponent("link.jpg")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: outside)
+        #expect(await similar(link.path).body == missing.body)
+        // And a folder inside a source.
+        let folder = try harness.directory.subdirectory("Library/Album")
+        #expect(await similar(folder.path).body == missing.body)
+
+        // An unindexed file inside a source gets as far as the encoder, which this harness lacks.
+        let pending = harness.library.appendingPathComponent("pending.jpg")
+        try Data("new".utf8).write(to: pending)
+        #expect(await similar(pending.path).errorCode == "model_unavailable")
+
+        // Indexed files are compared from stored vectors.
+        let indexed = await similar(harness.library.appendingPathComponent("beach.jpg").path)
+        #expect(indexed.status == 200)
+    }
+
+    @Test func exampleSlotsTurnAwayWorkBeyondTheLimit() async throws {
+        let slots = ExampleSlots(limit: 1)
+        let (stream, continuation) = AsyncStream<Void>.makeStream()
+        let first = Task {
+            try await slots.run {
+                for await _ in stream {}
+                return 1
+            }
+        }
+        while await slots.running == 0 { await Task.yield() }
+        #expect(try await slots.run { 2 } == nil)
+        continuation.finish()
+        #expect(try await first.value == 1)
+        #expect(await slots.running == 0)
+        #expect(try await slots.run { 3 } == 3)
     }
 }

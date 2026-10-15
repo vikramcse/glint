@@ -111,16 +111,20 @@ final class SQLiteConnection {
 
     /// Runs a statement that returns no rows.
     func run(_ sql: String, _ arguments: [SQLValue] = []) throws {
-        let statement = try prepared(sql, arguments)
+        let statement = try prepared(sql, arguments, cache: true)
         defer { sqlite3_reset(statement) }
         let code = sqlite3_step(statement)
         guard code == SQLITE_DONE || code == SQLITE_ROW else { throw error(code) }
     }
 
     /// Runs a query and maps each row.
-    func query<T>(_ sql: String, _ arguments: [SQLValue] = [], map: (Row) throws -> T) throws -> [T] {
-        let statement = try prepared(sql, arguments)
-        defer { sqlite3_reset(statement) }
+    /// - Parameter cache: false for SQL whose text varies with the arguments (`IN (?,?,…)` lists
+    ///   of any length), so each shape does not stay prepared for the life of the connection.
+    func query<T>(_ sql: String, _ arguments: [SQLValue] = [], cache: Bool = true, map: (Row) throws -> T) throws -> [T] {
+        let statement = try prepared(sql, arguments, cache: cache)
+        defer {
+            if cache { sqlite3_reset(statement) } else { sqlite3_finalize(statement) }
+        }
         var results: [T] = []
         while true {
             let code = sqlite3_step(statement)
@@ -148,34 +152,41 @@ final class SQLiteConnection {
         }
     }
 
-    private func prepared(_ sql: String, _ arguments: [SQLValue]) throws -> OpaquePointer {
+    private func prepared(_ sql: String, _ arguments: [SQLValue], cache: Bool) throws -> OpaquePointer {
         let statement: OpaquePointer
-        if let cached = statements[sql] {
+        if cache, let cached = statements[sql] {
             statement = cached
             sqlite3_clear_bindings(statement)
         } else {
             var pointer: OpaquePointer?
-            let code = sqlite3_prepare_v3(handle, sql, -1, UInt32(SQLITE_PREPARE_PERSISTENT), &pointer, nil)
+            let flags = cache ? UInt32(SQLITE_PREPARE_PERSISTENT) : 0
+            let code = sqlite3_prepare_v3(handle, sql, -1, flags, &pointer, nil)
             guard code == SQLITE_OK, let pointer else { throw error(code) }
-            statements[sql] = pointer
+            if cache { statements[sql] = pointer }
             statement = pointer
         }
         for (offset, argument) in arguments.enumerated() {
-            let index = Int32(offset + 1)
-            let code: Int32
-            switch argument {
-            case .null: code = sqlite3_bind_null(statement, index)
-            case .int(let value): code = sqlite3_bind_int64(statement, index, value)
-            case .double(let value): code = sqlite3_bind_double(statement, index, value)
-            case .text(let value): code = sqlite3_bind_text(statement, index, value, -1, transientDestructor)
-            case .blob(let value):
-                code = value.withUnsafeBytes { buffer in
-                    sqlite3_bind_blob(statement, index, buffer.baseAddress, Int32(buffer.count), transientDestructor)
-                }
+            let code = Self.bind(argument, to: statement, at: Int32(offset + 1))
+            guard code == SQLITE_OK else {
+                let failure = error(code)
+                if !cache { sqlite3_finalize(statement) }
+                throw failure
             }
-            guard code == SQLITE_OK else { throw error(code) }
         }
         return statement
+    }
+
+    private static func bind(_ argument: SQLValue, to statement: OpaquePointer, at index: Int32) -> Int32 {
+        switch argument {
+        case .null: sqlite3_bind_null(statement, index)
+        case .int(let value): sqlite3_bind_int64(statement, index, value)
+        case .double(let value): sqlite3_bind_double(statement, index, value)
+        case .text(let value): sqlite3_bind_text(statement, index, value, -1, transientDestructor)
+        case .blob(let value):
+            value.withUnsafeBytes { buffer in
+                sqlite3_bind_blob(statement, index, buffer.baseAddress, Int32(buffer.count), transientDestructor)
+            }
+        }
     }
 
     private func error(_ code: Int32) -> StoreError {

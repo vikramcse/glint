@@ -26,6 +26,8 @@ struct InspectorView: View {
                 .padding()
             }
             .task(id: result.id) { await loadSimilar(result) }
+            // The view stays the same across selections, so stop the previous file's moment.
+            .onChange(of: result.id) { playback.stop() }
             .onDisappear { playback.stop() }
         } else {
             ContentUnavailableView(String(localized: "No Selection"), systemImage: "sidebar.trailing")

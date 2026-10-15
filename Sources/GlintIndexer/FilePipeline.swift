@@ -37,7 +37,8 @@ struct FilePipeline: Sendable {
         do {
             guard let resolved = try await resolve(record) else {
                 let removed = try await writer.removeFiles(atOrBelow: record.path)
-                for id in removed { try await vectorIndex.remove(fileID: id) }
+                thumbnails.delete(relativePaths: removed.orphanedThumbnails)
+                for id in removed.removed { try await vectorIndex.remove(fileID: id) }
                 return .vanished
             }
             defer { if let copy = resolved.temporaryCopy { try? FileManager.default.removeItem(at: copy) } }
@@ -55,9 +56,9 @@ struct FilePipeline: Sendable {
         await time(.hash, record, seconds: clock.seconds)
         try Task.checkCancellation()
 
-        if let duplicate = try await writer.indexedDuplicate(contentHash: hash, space: space, excluding: record.id) {
-            let vectors = try await writer.copyIndex(
-                from: duplicate, to: record.id, contentHash: hash, space: space, version: record.version)
+        if let vectors = try await writer.copyIndexFromDuplicate(
+            to: record.id, contentHash: hash, space: space, version: record.version)
+        {
             try await publish(vectors, for: record)
             return .deduplicated
         }
@@ -246,13 +247,19 @@ struct FilePipeline: Sendable {
     }
 
     private func publish(_ vectors: [CommittedVector], for record: FileRecord) async throws {
+        thumbnails.delete(relativePaths: await writer.takeOrphanedThumbnails())
         try await vectorIndex.remove(fileID: record.id)
         guard !vectors.isEmpty else { return }
-        let attributes = record.attributes
+        // The file may have moved since it was claimed; the stored row has its current path.
+        let attributes = try await writer.file(record.id)?.attributes ?? record.attributes
         try await vectorIndex.upsert(
             vectors.map {
                 StoredVector(chunkID: $0.chunkID, fileID: record.id, values: $0.values, attributes: attributes)
             })
+        // A move applied between the read and the upsert updated vectors that were not there yet.
+        if let current = try await writer.file(record.id)?.attributes, current != attributes {
+            await vectorIndex.updateAttributes(current, for: record.id)
+        }
     }
 }
 

@@ -27,9 +27,23 @@ extension Indexer {
         guard FileManager.default.isReadableFile(atPath: root) else { return false }
         let scanner = FileScanner(exclusions: rules)
         let target = URL(fileURLWithPath: scope ?? root)
-        let scanned = await Task.detached(priority: .utility) { (try? scanner.scan(target)) ?? [] }.value
-        guard let result = try? await writer.reconcile(sourceID: sourceID, scanned: scanned, scope: scope) else { return true }
-        await apply(result)
+        let scanned: [ScannedFile]
+        do {
+            scanned = try await Task.detached(priority: .utility) { try scanner.scan(target) }.value
+        } catch {
+            guard scope != nil, !FileManager.default.fileExists(atPath: target.path) else {
+                // A folder that cannot be listed (privacy denial, a drive's empty mount point) keeps its rows.
+                let reason = String(describing: error)
+                Log.indexer.notice("Skipping rescan of unreadable folder \(target.path, privacy: .private): \(reason, privacy: .public)")
+                return false
+            }
+            scanned = []  // The folder inside the source was deleted or moved away.
+        }
+        do {
+            await apply(try await writer.reconcile(sourceID: sourceID, scanned: scanned, scope: scope))
+        } catch {
+            Log.indexer.error("Reconciling a scan failed: \(String(describing: error), privacy: .public)")
+        }
         return true
     }
 
@@ -65,13 +79,27 @@ extension Indexer {
                 upserts.append((owner.id, file))
             }
         }
-        guard !upserts.isEmpty || !removed.isEmpty,
-            let result = try? await writer.applyChanges(upserts: upserts, removedPaths: removed)
-        else { return }
-        await apply(result)
+        guard !upserts.isEmpty || !removed.isEmpty else { return }
+        do {
+            let result = try await writer.applyChanges(upserts: Self.uniqueByPath(upserts), removedPaths: removed)
+            await apply(result)
+        } catch {
+            // The batch rolled back; the next full rescan picks these changes up.
+            Log.indexer.error(
+                "Applying \(change.paths.count, privacy: .public) file changes failed: \(String(describing: error), privacy: .public)")
+        }
+    }
+
+    /// One entry per path, the last one winning. A new folder and a file inside it can arrive
+    /// in the same batch, and scanning the folder lists the file again; a second insert of the
+    /// same path would fail the whole batch.
+    static func uniqueByPath(_ upserts: [(SourceID, ScannedFile)]) -> [(SourceID, ScannedFile)] {
+        var seen = Set<String>()
+        return upserts.reversed().filter { seen.insert($0.1.path).inserted }.reversed()
     }
 
     func apply(_ result: IndexWriter.ReconcileResult) async {
+        thumbnails.delete(relativePaths: result.orphanedThumbnails)
         for id in result.removed { try? await vectorIndex.remove(fileID: id) }
         for moved in result.moved { await vectorIndex.updateAttributes(moved.attributes, for: moved.id) }
         if result.added + result.changed > 0 { wake() }
