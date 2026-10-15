@@ -4,7 +4,7 @@ name: Glint
 options:
   bundleIdPrefix: app.glint
   deploymentTarget:
-    macOS: "15.0"
+    macOS: "14.0"
   createIntermediateGroups: true
 settings:
   base:
@@ -12,7 +12,7 @@ settings:
     # Apple silicon only: Float16 vectors and MLX need arm64.
     ARCHS: arm64
     ONLY_ACTIVE_ARCH: YES
-    MACOSX_DEPLOYMENT_TARGET: "15.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
     ENABLE_HARDENED_RUNTIME: YES
     DEAD_CODE_STRIPPING: YES
     SWIFT_EMIT_LOC_STRINGS: YES

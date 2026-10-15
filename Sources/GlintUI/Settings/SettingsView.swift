@@ -11,11 +11,11 @@ public struct SettingsView: View {
 
     public var body: some View {
         TabView {
-            Tab("General", systemImage: "gearshape") { GeneralSettings(services: services) }
-            Tab("Sources", systemImage: "folder") { SourcesSettings(services: services) }
-            Tab("Search", systemImage: "magnifyingglass") { SearchSettings(settings: services.settings) }
-            Tab("Models", systemImage: "cpu") { ModelsSettings(services: services) }
-            Tab("Privacy", systemImage: "hand.raised") { PrivacySettings(services: services) }
+            GeneralSettings(services: services).tabItem { Label("General", systemImage: "gearshape") }
+            SourcesSettings(services: services).tabItem { Label("Sources", systemImage: "folder") }
+            SearchSettings(settings: services.settings).tabItem { Label("Search", systemImage: "magnifyingglass") }
+            ModelsSettings(services: services).tabItem { Label("Models", systemImage: "cpu") }
+            PrivacySettings(services: services).tabItem { Label("Privacy", systemImage: "hand.raised") }
         }
         .scenePadding()
         .frame(width: 560, height: 440)
