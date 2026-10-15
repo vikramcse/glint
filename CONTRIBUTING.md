@@ -4,7 +4,7 @@ Thanks for helping. Bug reports, retrieval misses ("I searched X and expected Y"
 
 ## Set up
 
-Requires macOS 15+ on Apple silicon and Xcode 26.
+Requires macOS 14+ on Apple silicon and Xcode 26.
 
 ```sh
 brew install xcodegen swiftlint

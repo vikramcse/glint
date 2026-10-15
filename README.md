@@ -7,7 +7,7 @@
 Press <kbd>⌥</kbd> <kbd>Space</kbd>, describe what you're looking for, and Glint finds it: photos and screenshots, moments inside videos, things said in recordings, PDF pages and documents. Nothing leaves your Mac.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-macOS%2015%2B-lightgrey.svg)](#requirements)
+[![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey.svg)](#requirements)
 [![Apple silicon](https://img.shields.io/badge/Apple%20silicon-required-black.svg)](#requirements)
 [![Swift 6](https://img.shields.io/badge/Swift-6-F05138.svg?logo=swift&logoColor=white)](Package.swift)
 [![Model: EmbeddingGemma 2](https://img.shields.io/badge/model-EmbeddingGemma%202-4285F4.svg)](#the-model-embeddinggemma-2)
@@ -30,6 +30,7 @@ Press <kbd>⌥</kbd> <kbd>Space</kbd>, describe what you're looking for, and Gli
 - [Overview](#overview)
 - [Features](#features)
 - [How it works](#how-it-works)
+- [Requirements](#requirements)
 - [Quick start](#quick-start)
 - [Architecture](#architecture)
 - [The model: EmbeddingGemma 2](#the-model-embeddinggemma-2)
@@ -146,14 +147,43 @@ Photos and videos also go through face recognition while they are indexed, so th
 
 Re-indexing a file keeps its faces' people and names. Libraries indexed before People existed show a **Find People** button that re-indexes their photos and videos.
 
+## Requirements
+
+### macOS
+
+| macOS | Supported | Notes |
+| --- | :---: | --- |
+| macOS 26 Tahoe | ✅ | The search panel uses Liquid Glass |
+| macOS 15 Sequoia | ✅ | The search panel uses the system material instead of Liquid Glass |
+| macOS 14 Sonoma | ✅ | Minimum version; same as Sequoia |
+| macOS 13 Ventura and earlier | ❌ | MLX, which runs the model, needs macOS 14, and the app's SwiftUI state (`@Observable`) and inspector panel arrive in 14 |
+
+### Hardware
+
+| Mac | Supported | Notes |
+| --- | :---: | --- |
+| Apple silicon (M1, M2, M3, M4, M5 and their Pro, Max and Ultra variants) | ✅ | MacBook Air, MacBook Pro, iMac, Mac mini, Mac Studio, Mac Pro |
+| Intel Macs | ❌ | The app is built for arm64 only and doesn't run under Rosetta. See [Why does it require Apple silicon?](#faq) |
+
+| Resource | Requirement |
+| --- | --- |
+| Memory | 8 GB or more. Search latency budgets are set for an M1 with 8 GB; idle use is about 550 MB, and the vision and audio models load only while indexing |
+| Disk | About 1.5 GB for the EmbeddingGemma 2 model, plus the index and thumbnails, which grow with your library |
+| Network | Only for the one-time model download; search and indexing run offline |
+
+### Permissions and optional features
+
+- **Folders you choose to index:** Glint reads only those.
+- **Speech Recognition:** needed only to transcribe audio and video. Transcription runs on-device, so it works for languages that macOS can recognize offline; other languages aren't transcribed.
+- **Battery:** indexing pauses below 20% battery, in Low Power Mode and when the Mac runs hot. Video can be set to index only when plugged in.
+
 ## Quick start
 
-### Requirements
+### Build tools
 
-- macOS 15 or later on Apple silicon
+- A Mac that meets the [requirements](#requirements)
 - Xcode 26 (with the Metal Toolchain component)
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)
-- About 1.5 GB of disk for the model, plus the index
 
 ### Build and run
 

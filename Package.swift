@@ -14,7 +14,7 @@ let strictSettings: [SwiftSetting] = [
 let package = Package(
     name: "Glint",
     defaultLocalization: "en",
-    platforms: [.macOS(.v15)],
+    platforms: [.macOS(.v14)],
     products: [
         // The signed app bundle is built from Glint.xcodeproj (project.yml); this product keeps
         // the app code compiling under `swift build`.
