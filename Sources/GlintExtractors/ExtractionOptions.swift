@@ -31,6 +31,10 @@ public struct ExtractionOptions: Sendable, Hashable {
     /// Transcribe audio on device (needs Speech Recognition authorization; never prompts).
     public var transcriptionEnabled: Bool
     public var soundLabels: SoundLabels
+    /// Find faces in photos and video keyframes and identify them, for the People view.
+    public var facesEnabled: Bool
+    /// A video keeps at most this many distinct faces.
+    public var maxVideoFaces: Int
 
     /// Text chunk size and overlap, in approximate tokens.
     public var textChunkTokens: Int
@@ -65,6 +69,8 @@ public struct ExtractionOptions: Sendable, Hashable {
         ocrMaxPixel: Int = 2_048,
         transcriptionEnabled: Bool = false,
         soundLabels: SoundLabels = .off,
+        facesEnabled: Bool = true,
+        maxVideoFaces: Int = 24,
         textChunkTokens: Int = 512,
         textOverlapTokens: Int = 64,
         maxTextBytes: Int64 = 20 * 1_024 * 1_024,
@@ -85,6 +91,8 @@ public struct ExtractionOptions: Sendable, Hashable {
         self.ocrMaxPixel = ocrMaxPixel
         self.transcriptionEnabled = transcriptionEnabled
         self.soundLabels = soundLabels
+        self.facesEnabled = facesEnabled
+        self.maxVideoFaces = maxVideoFaces
         self.textChunkTokens = textChunkTokens
         self.textOverlapTokens = textOverlapTokens
         self.maxTextBytes = maxTextBytes

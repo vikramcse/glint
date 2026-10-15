@@ -12,6 +12,8 @@
 //                  --index-cache keeps the index in D and reuses it next time (same corpus and model)
 //                  --diagnose writes where every relevant file ranks in the raw semantic and keyword
 //                  lists before any cutoff, to tell a model miss from a filter miss
+//   glint-eval faces <lfw-dir> [--people N] [--per N] [--strangers N]
+//                    face detection, identity separation and People grouping on LFW
 //   glint-eval query <text>... --model-dir D [--index index.sqlite] [--dimensions N] [--idle-unload S]
 //                    run queries against a real index (read-only) and print every
 //                    semantic score next to what the app would show
@@ -79,6 +81,18 @@ func printReport(_ report: EvalReport, failures: [String]) {
 
 let arguments = Array(CommandLine.arguments.dropFirst())
 switch arguments.first {
+case "faces":
+    guard arguments.count >= 2 else { fail("usage: glint-eval faces <lfw-dir>") }
+    var faceEval = FaceEval(root: URL(fileURLWithPath: arguments[1], isDirectory: true))
+    if let value = option("--people", in: arguments).flatMap(Int.init) { faceEval.people = value }
+    if let value = option("--per", in: arguments).flatMap(Int.init) { faceEval.perPerson = value }
+    if let value = option("--strangers", in: arguments).flatMap(Int.init) { faceEval.strangers = value }
+    do {
+        try faceEval.run()
+    } catch {
+        fail(String(describing: error))
+    }
+
 case "sample":
     guard arguments.count >= 2 else { fail("usage: glint-eval sample <dir>") }
     do {

@@ -149,7 +149,8 @@ struct FilePipeline: Sendable {
                 result.writes.append(
                     ChunkWrite(
                         ordinal: chunk.ordinal, locator: chunk.locator, text: chunk.text,
-                        thumbnail: saveThumbnail(chunk, contentHash: contentHash), vector: nil))
+                        thumbnail: saveThumbnail(chunk, contentHash: contentHash), vector: nil,
+                        faces: faceWrites(chunk, contentHash: contentHash)))
                 if let overflow { try await settle(overflow) }
                 if result.writes.count >= options.maxChunksPerFile { break }
             }
@@ -220,6 +221,16 @@ struct FilePipeline: Sendable {
         guard chunk.preview.thumbnailKey != nil else { return nil }
         let path = thumbnails.relativePath(contentHash: contentHash, key: key)
         return FileManager.default.fileExists(atPath: thumbnails.url(forRelativePath: path).path) ? path : nil
+    }
+
+    /// The chunk's faces with their crops saved next to the thumbnails.
+    private func faceWrites(_ chunk: Chunk, contentHash: String) -> [FaceWrite] {
+        chunk.faces.enumerated().map { index, face in
+            FaceWrite(
+                box: face.box, quality: face.quality, print: face.print,
+                thumbnail: face.crop.flatMap { try? thumbnails.save($0, contentHash: contentHash, key: "f\(chunk.ordinal)-\(index)") }
+            )
+        }
     }
 
     private func composedInput(for chunk: Chunk, record: FileRecord) -> EmbeddingInput? {

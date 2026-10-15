@@ -24,6 +24,8 @@ public final class AppSettings {
     public var mainWindowLayout: ResultsLayout {
         didSet { defaults.set(mainWindowLayout.rawValue, forKey: Key.layout.rawValue) }
     }
+    /// Order of the main window's library views.
+    public var librarySort: ResultSort { didSet { save(librarySort, for: .librarySort) } }
     public let installDate: Date
 
     public init(defaults: UserDefaults = .standard) {
@@ -41,6 +43,7 @@ public final class AppSettings {
         hasCompletedOnboarding = defaults.bool(forKey: Key.onboarded.rawValue)
         hasSearched = defaults.bool(forKey: Key.searched.rawValue)
         mainWindowLayout = ResultsLayout(rawValue: defaults.string(forKey: Key.layout.rawValue) ?? "") ?? .grid
+        librarySort = Self.load(ResultSort.self, from: defaults, key: .librarySort) ?? .newestFirst
         if let stored = defaults.object(forKey: Key.installDate.rawValue) as? Date {
             installDate = stored
         } else {
@@ -62,6 +65,7 @@ public final class AppSettings {
         case onboarded = "glint.hasCompletedOnboarding"
         case searched = "glint.hasSearched"
         case layout = "glint.mainWindowLayout"
+        case librarySort = "glint.librarySort"
         case installDate = "glint.installDate"
     }
 

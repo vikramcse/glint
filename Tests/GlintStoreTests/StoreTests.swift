@@ -311,6 +311,19 @@ struct MigrationTests {
         try Schema.migrate(connection)
     }
 
+    /// A database a reverted development build took to v2 without the faces tables gets them.
+    @Test func addsFacesTablesMissingFromAnotherV2() throws {
+        let connection = try SQLiteConnection(url: try makeDatabaseURL())
+        try connection.execute(Schema.migrations[0])
+        try connection.execute("ALTER TABLE chunks ADD COLUMN tags TEXT")
+        try connection.execute("PRAGMA user_version = 2")
+        try Schema.migrate(connection)
+        #expect(try connection.scalarInt("SELECT count(*) FROM faces") == 0)
+        #expect(try connection.scalarInt("SELECT count(*) FROM people") == 0)
+        // Running again leaves it alone.
+        try Schema.migrate(connection)
+    }
+
     /// Every shipped schema version must upgrade to the current one. Archived fixtures go in
     /// `Tests/GlintStoreTests/Fixtures/schema-vN.sqlite` as versions ship.
     @Test func upgradesFromEveryShippedVersion() throws {

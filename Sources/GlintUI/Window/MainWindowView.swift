@@ -11,6 +11,9 @@ public struct MainWindowView: View {
     @State private var showInspector = true
     @State private var savingSearch = false
     @State private var savedSearchName = ""
+    @State private var people: PeopleModel?
+    @State private var naming: PersonSummary?
+    @State private var personName = ""
 
     public init(services: GlintServices, savedSearches: any SavedSearchProviding) {
         self.services = services
@@ -19,15 +22,16 @@ public struct MainWindowView: View {
                 engine: services.engine,
                 sourcePaths: { services.status.sources.map(\.path) }
             ))
-        _library = State(initialValue: LibraryModel(engine: services.engine, saved: savedSearches))
+        _library = State(initialValue: LibraryModel(engine: services.engine, saved: savedSearches, sort: services.settings.librarySort))
+        _people = State(initialValue: services.people.map(PeopleModel.init(provider:)))
     }
 
     public var body: some View {
         NavigationSplitView {
-            SidebarView(selection: $sidebar, library: library, services: services)
+            SidebarView(selection: sidebarSelection, library: library, people: people, services: services)
                 .navigationSplitViewColumnWidth(min: 180, ideal: 210, max: 280)
         } detail: {
-            ResultsArea(model: model, library: library, services: services, layout: layoutBinding)
+            detail
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     if IndexingStatusBar.isVisible(services.status.status) {
                         IndexingStatusBar(services: services)
@@ -44,6 +48,10 @@ public struct MainWindowView: View {
                 ) { token in
                     TokenLabel(token: token)
                 }
+                .searchScopes($model.matchScope) {
+                    Text("Everything").tag(MatchScope.everything)
+                    Text("File Names").tag(MatchScope.fileNames)
+                }
                 .toolbar { toolbar }
                 .inspector(isPresented: $showInspector) {
                     InspectorView(result: selectedResult, model: model, services: services)
@@ -54,9 +62,21 @@ public struct MainWindowView: View {
         .onChange(of: services.status.status.totalIndexed) { _, _ in
             if model.text.isEmpty { applySidebar(sidebar) }
         }
+        .onChange(of: services.status.status.phase) { _, _ in
+            // Faces are grouped into people when the queue empties.
+            Task { await people?.load() }
+        }
         .task {
             services.status.start()
             await library.reloadSavedSearches()
+            await people?.load()
+        }
+        .alert(Text("Name This Person"), isPresented: namingBinding, presenting: naming) { person in
+            TextField(text: $personName, prompt: Text("Name")) { Text("Name") }
+            Button("Save") { rename(person) }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("Give two people the same name to combine them.")
         }
         .alert(Text("Save Search"), isPresented: $savingSearch) {
             TextField(text: $savedSearchName, prompt: Text("Name")) { Text("Name") }
@@ -65,6 +85,69 @@ public struct MainWindowView: View {
                 Task { try? await library.saveSearch(name: savedSearchName, query: query) }
             }
             Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    /// The People grid when browsing people; results otherwise.
+    @ViewBuilder private var detail: some View {
+        if sidebar == .people, let people, model.currentQuery.isEmpty, !model.isFindingSimilar {
+            PeopleView(
+                people: people, onOpen: { sidebar = .person($0) }, onRename: startNaming,
+                onError: { services.actions?.presentError($0) })
+        } else {
+            ResultsArea(model: model, library: library, services: services, layout: layoutBinding)
+        }
+    }
+
+    /// A person's page keeps People selected in the sidebar.
+    private var sidebarSelection: Binding<SidebarItem?> {
+        Binding {
+            if case .person = sidebar { return .people }
+            return sidebar
+        } set: {
+            sidebar = $0
+        }
+    }
+
+    private var namingBinding: Binding<Bool> {
+        Binding {
+            naming != nil
+        } set: {
+            if !$0 { naming = nil }
+        }
+    }
+
+    private func startNaming(_ person: PersonSummary) {
+        personName = person.name ?? ""
+        naming = person
+    }
+
+    private func rename(_ person: PersonSummary) {
+        guard let people else { return }
+        let name = personName
+        Task {
+            do {
+                let shown = try await people.rename(person.id, to: name)
+                if case .person = sidebar { sidebar = .person(shown) }
+            } catch {
+                services.actions?.presentError(String(localized: "Couldn’t rename this person: \(error.localizedDescription)"))
+            }
+        }
+    }
+
+    /// Search results while searching, the library otherwise; only the library's order is remembered.
+    private var isSearching: Bool { !model.currentQuery.isEmpty || model.isFindingSimilar }
+
+    private var sortBinding: Binding<ResultSort> {
+        Binding {
+            isSearching ? model.sort : library.sort
+        } set: {
+            if isSearching {
+                model.sort = $0
+            } else {
+                library.sort = $0
+                services.settings.librarySort = $0
+            }
         }
     }
 
@@ -87,6 +170,8 @@ public struct MainWindowView: View {
         case .kind(let kind): kind.sectionTitle
         case .source(let id): services.status.sources.first { $0.id == id }?.displayName ?? String(localized: "Folder")
         case .saved(let id): library.savedSearches.first { $0.id == id }?.name ?? String(localized: "Saved Search")
+        case .people: String(localized: "People")
+        case .person(let id): people?.person(id)?.name ?? String(localized: "Unnamed Person")
         case .all, nil: String(localized: "All Items")
         }
     }
@@ -110,6 +195,14 @@ public struct MainWindowView: View {
             let path = services.status.sources.first { $0.id == id }?.path
             model.folderScope = path
             library.load(kinds: [], folder: path)
+        case .people:
+            model.scope = [.image, .video]
+            model.folderScope = nil
+            Task { await people?.load() }
+        case .person(let id):
+            model.scope = [.image, .video]
+            model.folderScope = nil
+            library.load(person: id)
         case .saved(let id):
             model.scope = []
             model.folderScope = nil
@@ -122,6 +215,24 @@ public struct MainWindowView: View {
     }
 
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
+        if case .person(let id) = sidebar {
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    sidebar = .people
+                } label: {
+                    Label("People", systemImage: "chevron.backward")
+                }
+                .help(Text("Back to People"))
+            }
+            ToolbarItem {
+                Button {
+                    startNaming(people?.person(id) ?? PersonSummary(id: id, name: nil, fileCount: 0, faceThumbnailURL: nil))
+                } label: {
+                    Label("Name", systemImage: "character.cursor.ibeam")
+                }
+                .help(Text("Name this person"))
+            }
+        }
         if model.isFindingSimilar {
             ToolbarItem {
                 Button {
@@ -131,6 +242,10 @@ public struct MainWindowView: View {
                 }
                 .help(Text("Go back to the library"))
             }
+        }
+        ToolbarItem {
+            SortMenu(sort: sortBinding, offersRelevance: isSearching)
+                .disabled(sidebar == .people && !isSearching)
         }
         ToolbarItem {
             Picker(selection: layoutBinding) {

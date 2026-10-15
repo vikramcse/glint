@@ -36,6 +36,8 @@ public actor Indexer: IndexingService {
     var queueExhausted = false
     /// Pools running right now (the queue loop and `drain()` may overlap).
     var activePools = 0
+    var lastClustering: ContinuousClock.Instant?
+    var isClustering = false
 
     private static let exclusionsKey = "exclusions"
 
@@ -148,6 +150,7 @@ public actor Indexer: IndexingService {
         }
         await runPool()
         _ = try? await writer.failExhausted()
+        await clusterFaces(force: true)
         await publishStatus(force: true)
     }
 

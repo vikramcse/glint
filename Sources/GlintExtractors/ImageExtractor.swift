@@ -3,8 +3,8 @@ import Foundation
 import GlintCore
 import UniformTypeIdentifiers
 
-/// Extracts one chunk per image: a downscaled image to embed, a thumbnail, and OCR text for the
-/// keyword index.
+/// Extracts one chunk per image: a downscaled image to embed, a thumbnail, OCR text for the
+/// keyword index, and the faces in it.
 public struct ImageExtractor: ContentExtractor {
     public static let contentTypes: Set<UTType> = [.image]
 
@@ -41,7 +41,8 @@ public struct ImageExtractor: ContentExtractor {
             locator: .whole,
             text: decoded.text,
             input: input,
-            preview: ChunkPreview(thumbnail: thumbnail, thumbnailKey: "i")
+            preview: ChunkPreview(thumbnail: thumbnail, thumbnailKey: "i"),
+            faces: options.facesEnabled ? FaceAnalyzer().faces(in: decoded.image) : []
         )
     }
 

@@ -1,6 +1,8 @@
 import Foundation
 import GlintCore
 import GlintExtractors
+import GlintIndexer
+import GlintSearch
 import GlintStore
 import GlintUI
 import UniformTypeIdentifiers
@@ -46,5 +48,29 @@ struct AppSavedSearches: SavedSearchProviding {
 
     func delete(id: Int64) async throws {
         try await writer.deleteSavedSearch(id: id)
+    }
+}
+
+/// People found in photos and videos, on top of the index store.
+struct AppPeople: PeopleProviding {
+    let engine: SearchEngine
+    let writer: IndexWriter
+    let reader: IndexReader
+    let indexer: Indexer
+
+    func people() async -> [PersonSummary] {
+        (try? await engine.people()) ?? []
+    }
+
+    func rename(_ person: PersonID, to name: String?) async throws -> PersonID {
+        try await writer.renamePerson(person, to: name)
+    }
+
+    func needsRescan() async -> Bool {
+        (try? await reader.setting(IndexWriter.facesBackfillKey)) != nil
+    }
+
+    func rescan() async throws {
+        try await indexer.rescanForFaces()
     }
 }

@@ -27,36 +27,51 @@ public protocol SavedSearchProviding: Sendable {
 public enum SidebarItem: Hashable, Sendable {
     case all
     case kind(MediaKind)
+    case people
+    case person(PersonID)
     case source(SourceID)
     case saved(Int64)
 }
 
-/// Browsing state for the main window when no query is typed: newest files first.
+/// Browsing state for the main window when no query is typed: newest files first unless sorted otherwise.
 @MainActor
 @Observable
 public final class LibraryModel {
     public private(set) var items: [SearchResult] = []
     public private(set) var isLoading = false
     public private(set) var savedSearches: [SavedSearchItem] = []
+    /// Order of the library views; relevance means newest first here. Changing it reloads.
+    public var sort: ResultSort { didSet { if sort != oldValue { reload() } } }
     @ObservationIgnored private let engine: SearchEngine
     @ObservationIgnored private let saved: any SavedSearchProviding
     @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private var lastLoad: (@MainActor () -> Void)?
 
-    public init(engine: SearchEngine, saved: any SavedSearchProviding) {
+    public init(engine: SearchEngine, saved: any SavedSearchProviding, sort: ResultSort = .newestFirst) {
         self.engine = engine
         self.saved = saved
+        self.sort = sort
     }
 
     public func load(kinds: Set<MediaKind>, folder: String? = nil, limit: Int = 400) {
+        lastLoad = { [weak self] in self?.load(kinds: kinds, folder: folder, limit: limit) }
+        run { [sort] engine in try await engine.recent(kinds: kinds, folder: folder, sort: sort, limit: limit) }
+    }
+
+    /// The photos and videos a person appears in.
+    public func load(person: PersonID) {
+        lastLoad = { [weak self] in self?.load(person: person) }
+        run { [sort] engine in try await engine.files(of: person).sorted(by: sort) }
+    }
+
+    private func reload() { lastLoad?() }
+
+    private func run(_ fetch: @escaping @Sendable (SearchEngine) async throws -> [SearchResult]) {
         task?.cancel()
         isLoading = true
         let engine = engine
         task = Task { [weak self] in
-            var items = (try? await engine.recent(kinds: kinds, limit: folder == nil ? limit : limit * 4)) ?? []
-            if let folder {
-                let prefix = folder.hasSuffix("/") ? folder : folder + "/"
-                items = Array(items.filter { $0.file.path.hasPrefix(prefix) }.prefix(limit))
-            }
+            let items = (try? await fetch(engine)) ?? []
             guard let self, !Task.isCancelled else { return }
             self.items = items
             self.isLoading = false

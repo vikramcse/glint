@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import GlintCore
 import UniformTypeIdentifiers
@@ -71,13 +72,37 @@ public struct ChunkWrite: Sendable {
     public var text: String?
     public var thumbnail: String?
     public var vector: [Float]?
+    public var faces: [FaceWrite]
 
-    public init(ordinal: Int, locator: ChunkLocator, text: String?, thumbnail: String?, vector: [Float]?) {
+    public init(
+        ordinal: Int, locator: ChunkLocator, text: String?, thumbnail: String?, vector: [Float]?, faces: [FaceWrite] = []
+    ) {
         self.ordinal = ordinal
         self.locator = locator
         self.text = text
         self.thumbnail = thumbnail
         self.vector = vector
+        self.faces = faces
+    }
+}
+
+/// A face to commit with its chunk.
+public struct FaceWrite: Sendable {
+    /// Normalized, top-left origin.
+    public var box: CGRect
+    public var quality: Float
+    public var print: [Float]
+    /// Face crop path relative to the thumbnail store.
+    public var thumbnail: String?
+    /// The person it belongs to when known (a copied file); otherwise the clusterer decides.
+    public var person: PersonID?
+
+    public init(box: CGRect, quality: Float, print: [Float], thumbnail: String?, person: PersonID? = nil) {
+        self.box = box
+        self.quality = quality
+        self.print = print
+        self.thumbnail = thumbnail
+        self.person = person
     }
 }
 

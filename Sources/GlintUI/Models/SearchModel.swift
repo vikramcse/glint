@@ -25,6 +25,14 @@ public struct ResultSection: Identifiable, Hashable, Sendable {
     }
 }
 
+/// What the search field's text is matched against.
+public enum MatchScope: String, Hashable, Sendable, CaseIterable {
+    /// Names, contents and meaning.
+    case everything
+    /// File names only, anywhere in the name.
+    case fileNames
+}
+
 /// What the results area shows when there are no results to list.
 public enum SearchEmptyState: Hashable, Sendable {
     case noSources
@@ -46,8 +54,12 @@ public final class SearchModel {
     public var scope: Set<MediaKind> = [] { didSet { if scope != oldValue { queryChanged() } } }
     /// Folder selected outside the field (a source in the main window's sidebar).
     public var folderScope: String? { didSet { if folderScope != oldValue { queryChanged() } } }
+    /// Match file names only, or everything (picked outside the field; `name:` in the text also works).
+    public var matchScope: MatchScope = .everything { didSet { if matchScope != oldValue { queryChanged() } } }
     public var selection: FileID?
     public var groupByKind = true
+    /// Display order; anything but relevance lists results in one section.
+    public var sort: ResultSort = .relevance
 
     public private(set) var results: [SearchResult] = []
     public private(set) var phase: SearchPhase?
@@ -87,7 +99,7 @@ public final class SearchModel {
         var filter = combined.filter(sources: sourcePaths())
         filter.kinds.formUnion(scope)
         if let folderScope { filter.folders.append(folderScope) }
-        return SearchQuery(text: combined.text, filter: filter)
+        return SearchQuery(text: combined.text, filter: filter, namesOnly: parsed.namesOnly || matchScope == .fileNames)
     }
 
     /// Re-runs the current query (for example after the index changed).
@@ -204,8 +216,12 @@ public final class SearchModel {
 
     // MARK: Presentation
 
-    /// Results grouped for display: up to three top hits, then one section per kind.
+    /// Results grouped for display: up to three top hits, then one section per kind. Sorted
+    /// any other way than by relevance, they are one list.
     public var sections: [ResultSection] {
+        guard sort.field == .relevance else {
+            return results.isEmpty ? [] : [ResultSection(kind: .all, results: results.sorted(by: sort))]
+        }
         guard groupByKind, results.count > 4 else {
             return results.isEmpty ? [] : [ResultSection(kind: .all, results: results)]
         }

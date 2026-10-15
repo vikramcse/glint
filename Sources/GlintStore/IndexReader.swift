@@ -139,18 +139,118 @@ public actor IndexReader {
         return result
     }
 
-    /// Recently modified files for library browsing, newest first.
-    public func recentFiles(kinds: Set<MediaKind>, limit: Int, offset: Int = 0) throws -> [FileRecord] {
+    /// Files for library browsing, in `sort` order (newest first by default), optionally only
+    /// those under `folder`.
+    public func recentFiles(
+        kinds: Set<MediaKind>, folder: String? = nil, sort: ResultSort = .newestFirst, limit: Int, offset: Int = 0
+    ) throws -> [FileRecord] {
         let kindList = kinds.isEmpty ? MediaKind.allCases : kinds.sorted()
         let placeholders = Array(repeating: "?", count: kindList.count).joined(separator: ",")
+        var arguments: [SQLValue] = kindList.map { .text($0.rawValue) }
+        var folderClause = ""
+        if let folder {
+            let prefix = folder.hasSuffix("/") ? folder : folder + "/"
+            folderClause = "AND substr(path, 1, ?) = ?"
+            arguments += [SQLValue(prefix.unicodeScalars.count), .text(prefix)]
+        }
         return try db.query(
             """
             SELECT \(SQLiteConnection.fileColumns) FROM files
-            WHERE kind IN (\(placeholders)) ORDER BY modified DESC LIMIT ? OFFSET ?
+            WHERE kind IN (\(placeholders)) \(folderClause) ORDER BY \(Self.orderClause(sort)) LIMIT ? OFFSET ?
             """,
-            kindList.map { .text($0.rawValue) } + [SQLValue(limit), SQLValue(offset)],
+            arguments + [SQLValue(limit), SQLValue(offset)],
             map: SQLiteConnection.fileRecord
         ).compactMap { $0 }
+    }
+
+    /// `ORDER BY` terms for a library sort. Ties fall back to newest first, then id, so paging is stable.
+    static func orderClause(_ sort: ResultSort) -> String {
+        let direction = sort.ascending ? "ASC" : "DESC"
+        let primary: String? =
+            switch sort.field {
+            case .relevance: nil
+            case .modified: "modified \(direction)"
+            case .name: "name COLLATE NOCASE \(direction)"
+            case .size: "size \(direction)"
+            case .kind: "kind \(direction)"
+            case .duration: "duration IS NULL, duration \(direction)"
+            }
+        let tieBreak = sort.field == .modified ? "id \(direction)" : "modified DESC, id DESC"
+        return [primary ?? "modified DESC", tieBreak].joined(separator: ", ")
+    }
+
+    /// Files whose names contain every one of `words` anywhere (case-insensitive), so "4821"
+    /// finds IMG_4821.jpg. Exact names first, then names starting with the query, then shorter
+    /// and newer names.
+    public func filesNamed(containing words: [String], limit: Int) throws -> [KeywordHit] {
+        let words = words.filter { !$0.isEmpty }
+        guard !words.isEmpty else { return [] }
+        let whole = words.joined(separator: " ")
+        let conditions = Array(repeating: "name LIKE '%' || ? || '%' ESCAPE '\\'", count: words.count).joined(separator: " AND ")
+        return try db.query(
+            """
+            SELECT NULL, id, 0, kind, modified, path FROM files WHERE \(conditions)
+            ORDER BY lower(name) = lower(?) DESC, name LIKE ? || '%' ESCAPE '\\' DESC, length(name), modified DESC, id DESC
+            LIMIT ?
+            """,
+            words.map { .text(Self.escapeLike($0)) } + [.text(whole), .text(Self.escapeLike(whole)), SQLValue(limit)],
+            map: Self.hit(chunkColumn: nil, fileColumn: 1)
+        ).compactMap { $0 }
+    }
+
+    private static func escapeLike(_ text: String) -> String {
+        text.replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "%", with: "\\%")
+            .replacingOccurrences(of: "_", with: "\\_")
+    }
+
+    // MARK: People
+
+    /// A person as stored: the name, how many files they appear in and their clearest face.
+    public struct PersonRow: Sendable, Hashable {
+        public var id: PersonID
+        public var name: String?
+        public var fileCount: Int
+        public var faceThumbnail: String?
+    }
+
+    /// People seen in at least `minimumFiles` files, plus everyone named; named first, then by
+    /// how many files they appear in. A face seen once is usually a stranger in the background.
+    /// Copies of one photo in several folders count once.
+    public func people(minimumFiles: Int) throws -> [PersonRow] {
+        try db.query(
+            """
+            SELECT p.id, p.name, COUNT(DISTINCT coalesce(fi.content_hash, fi.id)) AS files,
+                (SELECT thumb FROM faces WHERE person_id = p.id AND thumb IS NOT NULL ORDER BY quality DESC LIMIT 1)
+            FROM people p JOIN faces f ON f.person_id = p.id JOIN files fi ON fi.id = f.file_id
+            GROUP BY p.id HAVING files >= ? OR p.name IS NOT NULL
+            ORDER BY p.name IS NULL, files DESC, p.id
+            """,
+            [SQLValue(minimumFiles)]
+        ) { row in
+            PersonRow(id: PersonID(row.int(0)), name: row.text(1), fileCount: Int(row.int(2)), faceThumbnail: row.text(3))
+        }
+    }
+
+    /// The files a person appears in, newest first, each with the chunk showing their clearest
+    /// face (the moment in a video, the page or photo otherwise). Of several copies of one
+    /// photo, only the most recently modified is listed.
+    public func files(of person: PersonID) throws -> [(file: FileRecord, chunk: ChunkRecord?)] {
+        let best = try db.query(
+            """
+            SELECT f.file_id, c.id, max(f.quality) FROM faces f
+            LEFT JOIN chunks c ON c.file_id = f.file_id AND c.ordinal = f.ordinal
+            WHERE f.person_id = ? GROUP BY f.file_id
+            """,
+            [.int(person.rawValue)]
+        ) { row in (FileID(row.int(0)), row.isNull(1) ? nil : ChunkID(row.int(1))) }
+        let records = try db.files(best.map(\.0))
+        let chunks = try chunks(best.compactMap(\.1))
+        let sorted = best.compactMap { fileID, chunkID in
+            records[fileID].map { ($0, chunkID.flatMap { chunks[$0] }) }
+        }.sorted { ($0.0.modified, $0.0.id) > ($1.0.modified, $1.0.id) }
+        var seen: Set<String> = []
+        return sorted.filter { file, _ in file.contentHash.map { seen.insert($0).inserted } ?? true }
     }
 
     public func file(atPath path: String) throws -> FileRecord? {

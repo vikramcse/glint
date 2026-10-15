@@ -132,6 +132,32 @@ struct SearchEngineTests {
         #expect(pdfs.map(\.file.name) == ["Acme pitch.pdf"])
     }
 
+    @Test func libraryFollowsTheSortAndFolder() async throws {
+        let harness = try await Harness.make()
+        let byName = try await harness.engine.recent(kinds: [], sort: ResultSort(field: .name), limit: 10)
+        #expect(byName.map(\.file.name) == ["Acme pitch.pdf", "beach.jpg", "notes.md", "standup.m4a"])
+        let byKind = try await harness.engine.recent(kinds: [], sort: ResultSort(field: .kind, ascending: false), limit: 10)
+        #expect(byKind.map(\.file.kind) == [.pdf, .image, .document, .audio])
+        #expect(try await harness.engine.recent(kinds: [], folder: "/lib", limit: 10).count == 4)
+        #expect(try await harness.engine.recent(kinds: [], folder: "/li", limit: 10).isEmpty)
+    }
+
+    @Test func fileNameSearchMatchesAnywhereInTheName() async throws {
+        let harness = try await Harness.make()
+        // "4a" is inside "m4a"; full-text search only matches the start of a word.
+        let inside = try await harness.engine.mergedResults(for: SearchQuery(text: "4a", namesOnly: true))
+        #expect(inside.items.map(\.file.name) == ["standup.m4a"])
+        #expect(inside.items.first?.sources == .name)
+        // Names starting with the query come first, then shorter names.
+        let a = try await harness.engine.keywordResults(for: SearchQuery(text: "a", namesOnly: true))
+        #expect(a.items.map(\.file.name) == ["Acme pitch.pdf", "beach.jpg", "standup.m4a"])
+        // Contents don't count, and LIKE wildcards are literal.
+        #expect(try await harness.engine.mergedResults(for: SearchQuery(text: "flight", namesOnly: true)).items.isEmpty)
+        #expect(try await harness.engine.mergedResults(for: SearchQuery(text: "%", namesOnly: true)).items.isEmpty)
+        let filtered = SearchQuery(text: "a", filter: SearchFilter(kinds: [.image]), namesOnly: true)
+        #expect(try await harness.engine.mergedResults(for: filtered).items.map(\.file.name) == ["beach.jpg"])
+    }
+
     @Test func emptyQueryReturnsNothing() async throws {
         let harness = try await Harness.make()
         #expect(try await harness.engine.mergedResults(for: SearchQuery(text: "  ")).items.isEmpty)

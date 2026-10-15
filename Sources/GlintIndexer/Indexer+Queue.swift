@@ -23,6 +23,7 @@ extension Indexer {
             await runPool()
             if userPaused || power.pauseReason() != nil { continue }
             _ = try? await writer.failExhausted()
+            await clusterFaces(force: true)
             setPhase(.idle)
             await publishStatus(force: true)
             await waitForWake(timeout: .seconds(300))
@@ -65,6 +66,7 @@ extension Indexer {
     private func finished(_ id: FileID) async {
         inFlight.remove(id)
         await publishStatus()
+        await clusterFaces(force: false)
     }
 
     /// The next file for a worker, or `nil` when the worker should stop (queue empty, paused,

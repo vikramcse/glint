@@ -43,7 +43,13 @@ let package = Package(
         // MARK: Libraries
 
         .target(name: "GlintCore", swiftSettings: strictSettings),
-        .target(name: "GlintExtractors", dependencies: ["GlintCore"], swiftSettings: strictSettings),
+        .target(
+            name: "GlintExtractors",
+            dependencies: ["GlintCore"],
+            // SFace face recognizer, compiled by scripts/model/convert_sface.py.
+            resources: [.copy("Resources/SFace.mlmodelc")],
+            swiftSettings: strictSettings
+        ),
         .target(
             name: "GlintEmbedding",
             dependencies: [

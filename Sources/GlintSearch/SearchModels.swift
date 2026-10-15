@@ -6,10 +6,13 @@ import GlintStore
 public struct SearchQuery: Sendable, Hashable {
     public var text: String
     public var filter: SearchFilter
+    /// Match the text against file names only (anywhere in the name), skipping contents and meaning.
+    public var namesOnly: Bool
 
-    public init(text: String, filter: SearchFilter = .none) {
+    public init(text: String, filter: SearchFilter = .none, namesOnly: Bool = false) {
         self.text = text
         self.filter = filter
+        self.namesOnly = namesOnly
     }
 
     public var isEmpty: Bool { text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }

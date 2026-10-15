@@ -493,6 +493,14 @@ struct QueryParserTests {
         #expect(filter.modifiedAfter != nil)
     }
 
+    @Test func nameWordsMatchFileNamesOnly() {
+        let parsed = QueryParser.parse("name:IMG_48 kind:photo")
+        #expect(parsed.text == "IMG_48")
+        #expect(parsed.namesOnly)
+        #expect(parsed.tokens == [.kind(.image)])
+        #expect(!QueryParser.parse("name: tag").namesOnly)
+    }
+
     @Test func unknownTokensStayInText() {
         let parsed = QueryParser.parse("time 10:30 kind:spaceship")
         #expect(parsed.text == "time 10:30 kind:spaceship")
@@ -510,5 +518,30 @@ struct ResultStabilizerTests {
     @Test func noPinOrMissingPinPassesThrough() {
         #expect(ResultStabilizer.stabilize(previous: ["a"], next: ["b", "a"], pinned: nil) == ["b", "a"])
         #expect(ResultStabilizer.stabilize(previous: ["a"], next: ["b"], pinned: "a") == ["b"])
+    }
+}
+
+@Suite("ResultSorting")
+struct ResultSortingTests {
+    private func result(_ name: String, size: Int64, duration: Double?, modified: TimeInterval) -> SearchResult {
+        SearchResult(
+            file: FileSummary(
+                id: FileID(Int64(name.count)), name: name, path: "/\(name)", kind: .video,
+                modified: Date(timeIntervalSince1970: modified), size: size, duration: duration),
+            match: MatchDetail(chunkID: nil, locator: .whole, snippet: nil, thumbnailURL: nil), score: 0, sources: [])
+    }
+
+    @Test func sortsByFieldAndKeepsMissingLengthsLast() {
+        let results = [
+            result("clip 10.mov", size: 5, duration: nil, modified: 3),
+            result("clip 9.mov", size: 50, duration: 30, modified: 1),
+            result("a.mov", size: 20, duration: 90, modified: 2),
+        ]
+        #expect(results.sorted(by: .relevance).map(\.file.name) == results.map(\.file.name))
+        #expect(results.sorted(by: ResultSort(field: .name)).map(\.file.name) == ["a.mov", "clip 9.mov", "clip 10.mov"])
+        #expect(results.sorted(by: ResultSort(field: .size)).map(\.file.size) == [50, 20, 5])
+        #expect(results.sorted(by: .newestFirst).map(\.file.name) == ["clip 10.mov", "a.mov", "clip 9.mov"])
+        #expect(results.sorted(by: ResultSort(field: .duration)).map(\.file.duration) == [90, 30, nil])
+        #expect(results.sorted(by: ResultSort(field: .duration, ascending: true)).map(\.file.duration) == [30, 90, nil])
     }
 }

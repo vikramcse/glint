@@ -69,6 +69,7 @@ final class AppEnvironment {
             registry: { ExtractorRegistry.standard(options: options) }
         )
         services.models = models
+        services.people = AppPeople(engine: engine, writer: writer, reader: reader, indexer: indexer)
         localAPI = LocalAPIController(paths: paths, engine: engine, indexing: indexer, settings: settings)
         services.localAPI = localAPI.control
     }

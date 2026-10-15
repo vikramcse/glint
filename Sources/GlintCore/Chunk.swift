@@ -53,18 +53,22 @@ public struct Chunk: Sendable {
     /// What to embed. `nil` makes this a keyword-only chunk.
     public var input: EmbeddingInput?
     public var preview: ChunkPreview
+    /// Faces seen in the chunk (a photo, or a video clip's keyframe), for the People view.
+    public var faces: [DetectedFace]
 
     public init(
         ordinal: Int,
         locator: ChunkLocator,
         text: String? = nil,
         input: EmbeddingInput? = nil,
-        preview: ChunkPreview = .none
+        preview: ChunkPreview = .none,
+        faces: [DetectedFace] = []
     ) {
         self.ordinal = ordinal
         self.locator = locator
         self.text = text
         self.input = input
         self.preview = preview
+        self.faces = faces
     }
 }

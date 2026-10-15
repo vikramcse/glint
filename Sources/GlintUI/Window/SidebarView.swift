@@ -4,6 +4,7 @@ import SwiftUI
 struct SidebarView: View {
     @Binding var selection: SidebarItem?
     let library: LibraryModel
+    let people: PeopleModel?
     let services: GlintServices
     @State private var pendingRemoval: SourceInfo?
 
@@ -17,6 +18,11 @@ struct SidebarView: View {
                     Label(kind.sectionTitle, systemImage: kind.symbolName)
                         .badge(services.status.status.indexed[kind] ?? 0)
                         .tag(SidebarItem.kind(kind))
+                }
+                if let people {
+                    Label("People", systemImage: "person.2")
+                        .badge(people.people.count)
+                        .tag(SidebarItem.people)
                 }
             }
             Section("Sources") {

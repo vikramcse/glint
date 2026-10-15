@@ -5,7 +5,8 @@ import GlintCore
 import UniformTypeIdentifiers
 
 /// Extracts video as fixed clips sampled at 1 frame per second, each with its slice of the
-/// audio track and a keyframe thumbnail. Files without a video track are handled as audio.
+/// audio track, a keyframe thumbnail and the new faces in that keyframe. Files without a video
+/// track are handled as audio.
 public struct VideoExtractor: ContentExtractor {
     public static let contentTypes: Set<UTType> = [.movie]
 
@@ -41,6 +42,8 @@ actor VideoCursor {
     private var transcript: [TranscriptSegment] = []
     private var audioBuffer: [Float] = []
     private var audioBufferStart = 0
+    /// Identity vectors of the faces this video already reported; a face seen again is skipped.
+    private var seenFaces: [[Float]] = []
 
     init(url: URL, options: ExtractionOptions, transcriber: (any Transcriber)?) {
         self.url = url
@@ -62,7 +65,9 @@ actor VideoCursor {
             return nextClip < clips.count ? try await next() : nil
         }
 
-        let keyframe = ImageProcessing.scaled(frames[frames.count / 2], maxPixel: options.thumbnailMaxPixel)
+        let middle = frames[frames.count / 2]
+        let keyframe = ImageProcessing.scaled(middle, maxPixel: options.thumbnailMaxPixel)
+        let faces = try await newFaces(in: middle)
         let isFirst = nextClip == 1
         var preview = ChunkPreview(thumbnail: keyframe, thumbnailKey: "t\(Int(clip.start))")
         if isFirst {
@@ -76,8 +81,24 @@ actor VideoCursor {
             locator: .time(start: clip.start, end: clip.end),
             text: spoken,
             input: spoken.map { .interleaved([.video(videoClip), .text($0)]) } ?? .video(videoClip),
-            preview: preview
+            preview: preview,
+            faces: faces
         )
+    }
+
+    /// Faces in `frame` not already seen in this video (a person on screen for a minute is one
+    /// face, not twelve), up to `maxVideoFaces` per video.
+    private func newFaces(in frame: CGImage) async throws -> [DetectedFace] {
+        guard options.facesEnabled, seenFaces.count < options.maxVideoFaces else { return [] }
+        let found = try await Offload.run { FaceAnalyzer().faces(in: frame) }
+        var fresh: [DetectedFace] = []
+        for face in found where seenFaces.count < options.maxVideoFaces {
+            let seen = seenFaces.contains { seen in zip(seen, face.print).reduce(Float(0)) { $0 + $1.0 * $1.1 } >= 0.6 }
+            guard !seen else { continue }
+            seenFaces.append(face.print)
+            fresh.append(face)
+        }
+        return fresh
     }
 
     private func open() async throws {

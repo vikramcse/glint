@@ -41,6 +41,8 @@ public final class GlintServices {
     public var localAPI: LocalAPIControl?
     /// The search model's download and presets; `nil` in tests and previews.
     public var models: (any ModelControlling)?
+    /// People found in photos and videos; `nil` hides the People view. Set by the app.
+    public var people: (any PeopleProviding)?
 
     public init(
         engine: SearchEngine,

@@ -54,6 +54,7 @@ extension IndexWriter {
                 committed.append(CommittedVector(chunkID: chunkID, values: vector))
             }
         }
+        try writeFaces(of: fileID, chunks: file.chunks)
         try db.run(
             """
             UPDATE files SET status = 1, content_hash = ?, error = NULL, indexed_at = ?, space = ?,
@@ -77,7 +78,7 @@ extension IndexWriter {
         ).map { FileID($0) }
     }
 
-    /// Copies chunks, vectors and display data from `source` to `target` and marks it indexed.
+    /// Copies chunks, vectors, faces and display data from `source` to `target` and marks it indexed.
     public func copyIndex(
         from source: FileID, to target: FileID, contentHash: String, space: VectorSpace, version: FileVersion? = nil
     ) throws -> [CommittedVector] {
@@ -97,10 +98,17 @@ extension IndexWriter {
                 vector: row.blob(4).map(VectorCodec.decode)
             )
         }.compactMap { $0 }
+        let faces = try faceWrites(of: source)
+        let chunksWithFaces = chunks.map { chunk in
+            var chunk = chunk
+            chunk.faces = faces[chunk.ordinal] ?? []
+            return chunk
+        }
         let media =
             try db.query("SELECT duration, waveform FROM files WHERE id = ?", [.int(source.rawValue)]) { row in
                 FileMedia(duration: row.isNull(0) ? nil : row.double(0), waveform: row.blob(1).map(VectorCodec.decodeWaveform))
             }.first ?? FileMedia()
-        return try commit(fileID: target, contentHash: contentHash, space: space, chunks: chunks, media: media, version: version)
+        return try commit(
+            fileID: target, contentHash: contentHash, space: space, chunks: chunksWithFaces, media: media, version: version)
     }
 }

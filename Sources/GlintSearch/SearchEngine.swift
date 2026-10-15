@@ -124,6 +124,7 @@ public actor SearchEngine {
         let state = Signposts.search.beginInterval(Signposts.Name.keywordSearch)
         defer { Signposts.search.endInterval(Signposts.Name.keywordSearch, state) }
         guard !query.isEmpty else { return .empty(query, phase: .keyword) }
+        if query.namesOnly { return try await nameResults(for: query, phase: .keyword, stopwatch: stopwatch) }
 
         let hits = try await keywordHits(for: query, prefix: true)
         let chunks = hits.chunks + hits.looseChunks
@@ -140,6 +141,7 @@ public actor SearchEngine {
         let state = Signposts.search.beginInterval(Signposts.Name.mergedResults)
         defer { Signposts.search.endInterval(Signposts.Name.mergedResults, state) }
         guard !query.isEmpty else { return .empty(query) }
+        if query.namesOnly { return try await nameResults(for: query, phase: .merged, stopwatch: stopwatch) }
 
         // Once a model is loaded the last word is matched whole: by now the user has stopped
         // typing, and semantic search covers related words better than a prefix would.
@@ -177,6 +179,21 @@ public actor SearchEngine {
             now: now())
         let items = try await hydrate(ranked, terms: FTSQuery(query.text).terms)
         return SearchResults(query: query, phase: .merged, items: items, elapsedMilliseconds: stopwatch.milliseconds)
+    }
+
+    /// File-name search: every query word must appear somewhere in the name. Files not yet
+    /// indexed match too.
+    private func nameResults(for query: SearchQuery, phase: SearchPhase, stopwatch: Stopwatch) async throws -> SearchResults {
+        let words = query.text.split(whereSeparator: \.isWhitespace).map(String.init)
+        // Fetch extra so the kind, folder and date filters still leave a full page.
+        let hits = try await reader.filesNamed(containing: words, limit: query.filter.isEmpty ? resultLimit : resultLimit * 20)
+            .filter { query.filter.matches(fileID: $0.fileID, attributes: $0.attributes) }
+            .prefix(resultLimit)
+        let ranked = hits.enumerated().map { index, hit in
+            RankedFile(fileID: hit.fileID, bestChunk: nil, score: 1 / Double(index + 1), sources: .name, similarity: nil)
+        }
+        let items = try await hydrate(ranked, terms: words)
+        return SearchResults(query: query, phase: phase, items: items, elapsedMilliseconds: stopwatch.milliseconds)
     }
 
     // MARK: Find similar
@@ -220,9 +237,11 @@ public actor SearchEngine {
 
     // MARK: Library
 
-    /// Recently modified files for the main window's library views.
-    public func recent(kinds: Set<MediaKind>, limit: Int, offset: Int = 0) async throws -> [SearchResult] {
-        let records = try await reader.recentFiles(kinds: kinds, limit: limit, offset: offset)
+    /// Files for the main window's library views, newest first unless `sort` says otherwise.
+    public func recent(
+        kinds: Set<MediaKind>, folder: String? = nil, sort: ResultSort = .newestFirst, limit: Int, offset: Int = 0
+    ) async throws -> [SearchResult] {
+        let records = try await reader.recentFiles(kinds: kinds, folder: folder, sort: sort, limit: limit, offset: offset)
         let firstChunks = try await reader.firstChunks(of: records.map(\.id))
         return records.map { record in
             let chunk = firstChunks[record.id]
@@ -231,6 +250,32 @@ public actor SearchEngine {
                 match: MatchDetail(
                     chunkID: chunk?.id, locator: chunk?.locator ?? .whole,
                     snippet: chunk?.text.map { Snippet.make(from: $0, terms: []) },
+                    thumbnailURL: chunk?.thumbnail.map(thumbnails.url(forRelativePath:))
+                ),
+                score: 0, sources: []
+            )
+        }
+    }
+
+    // MARK: People
+
+    /// People for the People view: everyone seen in at least `minimumFiles` files, and everyone named.
+    public func people(minimumFiles: Int = 2) async throws -> [PersonSummary] {
+        try await reader.people(minimumFiles: minimumFiles).map { row in
+            PersonSummary(
+                id: row.id, name: row.name, fileCount: row.fileCount,
+                faceThumbnailURL: row.faceThumbnail.map(thumbnails.url(forRelativePath:)))
+        }
+    }
+
+    /// The photos and videos a person appears in, newest first, each at the moment their face
+    /// is clearest.
+    public func files(of person: PersonID) async throws -> [SearchResult] {
+        try await reader.files(of: person).map { record, chunk in
+            SearchResult(
+                file: FileSummary(record),
+                match: MatchDetail(
+                    chunkID: chunk?.id, locator: chunk?.locator ?? .whole, snippet: nil,
                     thumbnailURL: chunk?.thumbnail.map(thumbnails.url(forRelativePath:))
                 ),
                 score: 0, sources: []

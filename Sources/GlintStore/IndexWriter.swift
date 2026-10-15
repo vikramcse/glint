@@ -42,13 +42,18 @@ public actor IndexWriter {
         try db.transaction {
             let ids = try db.query("SELECT id FROM files WHERE source_id = ?", [.int(id.rawValue)]) { FileID($0.int(0)) }
             let thumbnails = try db.query(
-                "SELECT DISTINCT c.thumb FROM chunks c JOIN files f ON f.id = c.file_id WHERE f.source_id = ? AND c.thumb IS NOT NULL",
-                [.int(id.rawValue)]
+                """
+                SELECT c.thumb FROM chunks c JOIN files f ON f.id = c.file_id WHERE f.source_id = ? AND c.thumb IS NOT NULL
+                UNION SELECT fa.thumb FROM faces fa JOIN files f ON f.id = fa.file_id WHERE f.source_id = ? AND fa.thumb IS NOT NULL
+                """,
+                [.int(id.rawValue), .int(id.rawValue)]
             ) { $0.text(0) }.compactMap { $0 }
             try db.run("DELETE FROM sources WHERE id = ?", [.int(id.rawValue)])
+            try deleteEmptyPeople()
             // Thumbnails are keyed by content hash, so copies in other sources may share them.
             let orphaned = try thumbnails.filter { thumb in
-                try db.scalarInt("SELECT 1 FROM chunks WHERE thumb = ? LIMIT 1", [.text(thumb)]) == nil
+                try db.scalarInt(
+                    "SELECT 1 FROM chunks WHERE thumb = ?1 UNION ALL SELECT 1 FROM faces WHERE thumb = ?1 LIMIT 1", [.text(thumb)]) == nil
             }
             return RemovedSource(files: ids, orphanedThumbnails: orphaned)
         }

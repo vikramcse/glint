@@ -1,0 +1,74 @@
+[
+  {
+    "metadataOutputVersion" : "3.0",
+    "shortDescription" : "SFace face recognizer (OpenCV Zoo, Apache-2.0): aligned 112x112 RGB face to a 128-d identity vector.",
+    "outputSchema" : [
+      {
+        "hasShapeFlexibility" : "0",
+        "isOptional" : "0",
+        "dataType" : "Float16",
+        "formattedType" : "MultiArray (Float16 1 × 128)",
+        "shortDescription" : "",
+        "shape" : "[1, 128]",
+        "name" : "identity",
+        "type" : "MultiArray"
+      }
+    ],
+    "storagePrecision" : "Mixed (Float16, Float32)",
+    "modelParameters" : [
+
+    ],
+    "specificationVersion" : 9,
+    "license" : "Apache-2.0",
+    "mlProgramOperationTypeHistogram" : {
+      "Ios18.mul" : 1,
+      "Ios18.expandDims" : 1,
+      "Ios18.sub" : 1,
+      "Ios18.linear" : 1,
+      "Ios18.squeeze" : 1,
+      "Ios18.prelu" : 27,
+      "Ios18.cast" : 1,
+      "Ios18.conv" : 27,
+      "Ios18.reshape" : 1,
+      "Ios18.batchNorm" : 2
+    },
+    "computePrecision" : "Mixed (Float16, Float32, Int32)",
+    "stateSchema" : [
+
+    ],
+    "isUpdatable" : "0",
+    "availability" : {
+      "macOS" : "15.0",
+      "tvOS" : "18.0",
+      "visionOS" : "2.0",
+      "watchOS" : "11.0",
+      "iOS" : "18.0",
+      "macCatalyst" : "18.0"
+    },
+    "modelType" : {
+      "name" : "MLModelType_mlProgram"
+    },
+    "inputSchema" : [
+      {
+        "height" : "112",
+        "colorspace" : "RGB",
+        "isOptional" : "0",
+        "width" : "112",
+        "isColor" : "1",
+        "formattedType" : "Image (Color 112 × 112)",
+        "hasSizeFlexibility" : "0",
+        "type" : "Image",
+        "shortDescription" : "",
+        "name" : "face"
+      }
+    ],
+    "userDefinedMetadata" : {
+      "com.github.apple.coremltools.conversion_date" : "2026-10-14",
+      "com.github.apple.coremltools.source" : "torch==2.14.1",
+      "com.github.apple.coremltools.version" : "9.0",
+      "com.github.apple.coremltools.source_dialect" : "TorchScript"
+    },
+    "generatedClassName" : "SFace",
+    "method" : "predict"
+  }
+]

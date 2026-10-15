@@ -35,10 +35,13 @@ public enum DateRangePreset: String, Sendable, Hashable, CaseIterable {
 public struct ParsedQuery: Sendable, Hashable {
     public var text: String
     public var tokens: [SearchToken]
+    /// A `name:` word asked to match file names only.
+    public var namesOnly: Bool
 
-    public init(text: String, tokens: [SearchToken] = []) {
+    public init(text: String, tokens: [SearchToken] = [], namesOnly: Bool = false) {
         self.text = text
         self.tokens = tokens
+        self.namesOnly = namesOnly
     }
 
     /// Builds the filter.
@@ -62,19 +65,34 @@ public struct ParsedQuery: Sendable, Hashable {
     }
 }
 
-/// Parses inline tokens: `kind:` (or `type:`), `in:` (or `folder:`) and `date:`.
+/// Parses inline tokens: `kind:` (or `type:`), `in:` (or `folder:`) and `date:`. A word
+/// prefixed `name:` (or `file:`) stays in the text and makes the whole query match file names only.
 public enum QueryParser {
     public static func parse(_ input: String) -> ParsedQuery {
         var words: [String] = []
         var tokens: [SearchToken] = []
+        var namesOnly = false
         for word in input.split(separator: " ", omittingEmptySubsequences: false) {
             if let token = token(from: String(word)) {
                 tokens.append(token)
+            } else if let name = nameWord(String(word)) {
+                namesOnly = true
+                words.append(name)
             } else {
                 words.append(String(word))
             }
         }
-        return ParsedQuery(text: words.joined(separator: " ").trimmingCharacters(in: .whitespaces), tokens: tokens)
+        return ParsedQuery(
+            text: words.joined(separator: " ").trimmingCharacters(in: .whitespaces), tokens: tokens, namesOnly: namesOnly)
+    }
+
+    /// The rest of a `name:` or `file:` word, if it has one.
+    static func nameWord(_ word: String) -> String? {
+        guard let colon = word.firstIndex(of: ":") else { return nil }
+        let key = word[..<colon].lowercased()
+        let value = String(word[word.index(after: colon)...])
+        guard key == "name" || key == "file" || key == "filename", !value.isEmpty else { return nil }
+        return value
     }
 
     static func token(from word: String) -> SearchToken? {

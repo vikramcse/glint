@@ -1,10 +1,139 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ couldn’t be read" : {
+
+    },
+    "%@ items indexed" : {
+
+    },
+    "%lld items" : {
+
+    },
+    "%lld%% complete" : {
+
+    },
+    "A to Z" : {
+      "comment" : "Sort direction"
+    },
+    "Add Another Folder…" : {
+
+    },
+    "Add Folders…" : {
+
+    },
+    "Add Folder…" : {
+
+    },
+    "Add Glint to Claude Code:" : {
+
+    },
+    "Add Name" : {
+
+    },
+    "Add Name…" : {
+
+    },
+    "Add a folder and Glint will start indexing it right away." : {
+
+    },
+    "Agents on this Mac can search your index through Glint’s local API. It listens only on this Mac, needs a private access token, and never sends anything off the device." : {
+
+    },
+    "All Items" : {
+
+    },
+    "Allow access in System Settings › Privacy & Security. Full Disk Access is optional and lets Glint index any folder you add." : {
+
+    },
+    "Allow apps and agents to search Glint" : {
+
+    },
+    "Apple Photos Library" : {
+
+    },
+    "Apps and agents" : {
+
+    },
+    "Audio" : {
+      "comment" : "Media kind\nResult section"
+    },
     "Automatically check for updates" : {
 
     },
+    "Back" : {
+
+    },
+    "Back to People" : {
+
+    },
+    "Balanced (512)" : {
+
+    },
+    "Best (768)" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Cancelled." : {
+
+    },
+    "Can’t Open This PDF" : {
+
+    },
+    "Can’t read this folder" : {
+
+    },
+    "Change how results are shown" : {
+
+    },
+    "Change the order of results" : {
+
+    },
     "Check for Updates…" : {
+
+    },
+    "Choose" : {
+
+    },
+    "Choose a folder Glint should skip" : {
+
+    },
+    "Choose folders for Glint to search" : {
+
+    },
+    "Choose what to search" : {
+
+    },
+    "Clear Similar" : {
+
+    },
+    "Click, then press the new key combination" : {
+
+    },
+    "Compact (256)" : {
+
+    },
+    "Continue" : {
+
+    },
+    "Copied" : {
+
+    },
+    "Copy" : {
+
+    },
+    "Couldn’t rename this person: %@" : {
+
+    },
+    "Couldn’t start looking for people: %@" : {
+
+    },
+    "Date Modified" : {
+      "comment" : "Sort field"
+    },
+    "Delete" : {
 
     },
     "Delete Index" : {
@@ -16,7 +145,134 @@
     "Delete the index?" : {
 
     },
+    "Describe a photo, a moment in a video, something said in a recording, or a page in a document." : {
+
+    },
+    "Desktop" : {
+
+    },
+    "Document" : {
+      "comment" : "Media kind"
+    },
+    "Documents" : {
+      "comment" : "Result section"
+    },
+    "Download" : {
+
+    },
+    "Download EmbeddingGemma 2 (%@)" : {
+
+    },
+    "Download EmbeddingGemma 2 (%@) for the best search" : {
+
+    },
+    "Downloading search model… %@ of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Downloading search model… %1$@ of %2$@"
+          }
+        }
+      }
+    },
+    "Downloads" : {
+
+    },
+    "Duration" : {
+
+    },
+    "EmbeddingGemma 2 is active" : {
+
+    },
+    "Everything" : {
+
+    },
+    "Example: searching for crowd cheering at night finds a video moment, a voice memo and a photo." : {
+
+    },
+    "Exclude Folder…" : {
+
+    },
+    "Excluded folders" : {
+
+    },
+    "Festival.mov" : {
+
+    },
+    "File Names" : {
+
+    },
+    "Find People" : {
+
+    },
+    "Find Similar" : {
+
+    },
+    "Find anything by describing it" : {
+
+    },
+    "Finds photos, video moments and audio by meaning, in any language. Runs entirely on this Mac." : {
+
+    },
+    "Finds photos, video moments and audio by what's in them. Downloads once, then works offline. Search works by name and text meanwhile." : {
+
+    },
+    "Folder" : {
+
+    },
+    "Folders and drives" : {
+
+    },
     "General" : {
+
+    },
+    "Give two people the same name to combine them." : {
+
+    },
+    "Glint" : {
+
+    },
+    "Glint Can’t Read This Folder" : {
+
+    },
+    "Glint Search" : {
+
+    },
+    "Glint can’t read this kind of file yet." : {
+
+    },
+    "Glint couldn’t reach the server. Check your internet connection and try again." : {
+
+    },
+    "Glint couldn’t read anything to compare in that file." : {
+
+    },
+    "Glint couldn’t start" : {
+
+    },
+    "Glint couldn’t update its index. Check that your disk has free space." : {
+
+    },
+    "Glint doesn’t have permission to read this. You can grant access in System Settings › Privacy & Security." : {
+
+    },
+    "Glint indexes your newest files first, so you can search within minutes." : {
+
+    },
+    "Glint is still indexing %@ items. Results appear as soon as they’re ready." : {
+
+    },
+    "Glint needs access to Photos. Allow it in System Settings › Privacy & Security › Photos." : {
+
+    },
+    "Glint stops watching this folder and deletes everything it indexed from it. Your files are not touched." : {
+
+    },
+    "Go back to the library" : {
+
+    },
+    "Grid" : {
 
     },
     "Group results by kind" : {
@@ -25,40 +281,368 @@
     "Hide menu bar item when idle" : {
 
     },
+    "Higher quality uses more disk and memory. Changing it updates the index in the background." : {
+
+    },
+    "IMG_2041.HEIC" : {
+
+    },
     "Index and thumbnails" : {
+
+    },
+    "Index hidden files" : {
+
+    },
+    "Index photos and videos again to find the faces in them" : {
 
     },
     "Index video only when plugged in" : {
 
     },
+    "Indexed · %@ items" : {
+
+    },
     "Indexing" : {
+
+    },
+    "Indexing %@ of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Indexing %1$@ of %2$@"
+          }
+        }
+      }
+    },
+    "Indexing %@ of %@ items" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Indexing %1$@ of %2$@ items"
+          }
+        }
+      }
+    },
+    "Indexing paused" : {
+
+    },
+    "Inspector" : {
+
+    },
+    "Issue a new access token; connected agents must reconnect." : {
+
+    },
+    "Kind" : {
+      "comment" : "Sort field"
+    },
+    "Largest First" : {
+      "comment" : "Sort direction"
+    },
+    "Length" : {
+      "comment" : "Sort field: length of audio and video"
+    },
+    "Library" : {
+
+    },
+    "List" : {
+
+    },
+    "Longest First" : {
+      "comment" : "Sort direction"
+    },
+    "Looking for files…" : {
+
+    },
+    "Matched by name. Its contents become searchable once Glint indexes it." : {
 
     },
     "Model" : {
 
     },
+    "Model download failed: %@" : {
+
+    },
     "Models" : {
+
+    },
+    "Modified" : {
+
+    },
+    "Moment at %@" : {
+
+    },
+    "Name" : {
+      "comment" : "Sort field"
+    },
+    "Name This Person" : {
+
+    },
+    "Name this person" : {
 
     },
     "Network activity" : {
 
     },
+    "Newest First" : {
+      "comment" : "Sort direction"
+    },
+    "No Folders Yet" : {
+
+    },
+    "No People Yet" : {
+
+    },
+    "No Results" : {
+
+    },
+    "No Results Yet" : {
+
+    },
+    "No Selection" : {
+
+    },
+    "No folders added yet" : {
+
+    },
+    "No searchable files" : {
+
+    },
+    "Not indexed yet" : {
+
+    },
+    "Nothing Here Yet" : {
+
+    },
     "Nothing about your files ever leaves this Mac." : {
+
+    },
+    "Off" : {
+
+    },
+    "Oldest First" : {
+      "comment" : "Sort direction"
+    },
+    "On · 127.0.0.1:%@ · this Mac only" : {
 
     },
     "One-time model download" : {
 
     },
+    "Open" : {
+
+    },
+    "Open Full Disk Access Settings…" : {
+
+    },
+    "Open Glint" : {
+
+    },
+    "Open Privacy Settings" : {
+
+    },
     "Open at login" : {
+
+    },
+    "Open in Default App" : {
+
+    },
+    "Open in Preview" : {
+
+    },
+    "Open the PDF at this page" : {
+
+    },
+    "Optional. Lets Glint index any folder you add, including ones macOS protects, without asking again." : {
+
+    },
+    "Order" : {
+
+    },
+    "PDF" : {
+      "comment" : "Media kind"
+    },
+    "PDF Pages" : {
+      "comment" : "Result section"
+    },
+    "Page %lld" : {
+      "comment" : "PDF page number in a result"
+    },
+    "Page %lld of %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Page %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "Past Month" : {
+
+    },
+    "Past Week" : {
+
+    },
+    "Past Year" : {
+
+    },
+    "Pause" : {
+
+    },
+    "Pause Indexing" : {
+
+    },
+    "Paused in Low Power Mode" : {
+
+    },
+    "Paused to save battery" : {
+
+    },
+    "Paused while your Mac cools down" : {
+
+    },
+    "Paused · %@ of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Paused · %1$@ of %2$@"
+          }
+        }
+      }
+    },
+    "People" : {
+
+    },
+    "People appear here as photos and videos are indexed, once someone is in at least two of them." : {
+
+    },
+    "Photo" : {
+      "comment" : "Media kind"
+    },
+    "Photos" : {
+      "comment" : "Result section"
+    },
+    "Photos Library" : {
+
+    },
+    "Photos and videos indexed before this update haven’t been checked for faces." : {
+
+    },
+    "Photos and videos stored on this Mac" : {
+
+    },
+    "Photos, moments in videos, things said in recordings, pages in PDFs. Glint searches them all at once, entirely on this Mac." : {
+
+    },
+    "Play" : {
+
+    },
+    "Play from match" : {
+
+    },
+    "Press" : {
 
     },
     "Privacy" : {
 
     },
+    "Quality" : {
+
+    },
+    "Quick Look" : {
+
+    },
+    "Quit" : {
+
+    },
+    "Quit Glint" : {
+
+    },
+    "Re-index" : {
+
+    },
+    "Relevance" : {
+      "comment" : "Sort field"
+    },
+    "Remove" : {
+
+    },
+    "Remove EmbeddingGemma 2?" : {
+
+    },
+    "Remove Model…" : {
+
+    },
+    "Remove exclusion" : {
+
+    },
+    "Remove “%@”?" : {
+
+    },
     "Removes everything Glint derived from your files. Your files are not touched; Glint re-indexes your folders afterwards." : {
 
     },
+    "Remove…" : {
+
+    },
+    "Rename…" : {
+
+    },
+    "Replay Moment" : {
+
+    },
+    "Reset Access…" : {
+
+    },
+    "Results" : {
+      "comment" : "Result section"
+    },
+    "Resume" : {
+
+    },
+    "Resume Indexing" : {
+
+    },
+    "Save" : {
+
+    },
+    "Save Search" : {
+
+    },
+    "Save this search in the sidebar" : {
+
+    },
+    "Saved Search" : {
+
+    },
+    "Saved Searches" : {
+
+    },
+    "Screenshots" : {
+
+    },
     "Search" : {
+
+    },
+    "Search Anything" : {
+
+    },
+    "Search Failed" : {
+
+    },
+    "Search anything" : {
+
+    },
+    "Search falls back to the basic built-in model until you download it again." : {
+
+    },
+    "Search from anywhere" : {
+
+    },
+    "Search model" : {
 
     },
     "Search results will be empty until Glint re-indexes your folders." : {
@@ -70,11 +654,96 @@
     "Search these kinds by default" : {
 
     },
+    "Searches photos and videos whose originals are on this Mac. Nothing is downloaded from iCloud." : {
+
+    },
+    "Search…" : {
+
+    },
+    "Settings…" : {
+
+    },
+    "Shortest First" : {
+      "comment" : "Sort direction"
+    },
+    "Show in Finder" : {
+
+    },
+    "Show or hide the inspector" : {
+
+    },
+    "Similar Items" : {
+
+    },
+    "Similar to %@" : {
+
+    },
+    "Size" : {
+      "comment" : "Sort field"
+    },
+    "Smallest First" : {
+      "comment" : "Sort direction"
+    },
+    "Some folders couldn’t be added" : {
+
+    },
+    "Something went wrong. Please try again." : {
+
+    },
+    "Sort" : {
+
+    },
+    "Sort By" : {
+
+    },
     "Sources" : {
+
+    },
+    "Start Searching" : {
+
+    },
+    "Starting search model…" : {
+
+    },
+    "Starting…" : {
+
+    },
+    "Status" : {
+
+    },
+    "Step %lld of %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Step %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "Stop" : {
 
     },
     "Storage" : {
 
+    },
+    "The file appears to be damaged." : {
+
+    },
+    "The file is no longer there. It may have been moved or deleted." : {
+
+    },
+    "The search model is still loading. Keyword results are shown meanwhile." : {
+
+    },
+    "The search model isn’t available right now." : {
+
+    },
+    "Today" : {
+
+    },
+    "Top Hits" : {
+      "comment" : "Result section"
     },
     "Transcribe speech in audio and video" : {
 
@@ -82,13 +751,73 @@
     "Transcripts are made on this Mac and make spoken words searchable by keyword." : {
 
     },
+    "Try Again" : {
+
+    },
+    "Try different words, or check that the folder is one of your sources." : {
+
+    },
+    "Type Shortcut…" : {
+
+    },
     "Type kind:video, in:Downloads or date:week in the search field to filter." : {
+
+    },
+    "Type to search. Use the arrow keys to choose a result." : {
+
+    },
+    "Unnamed Person" : {
 
     },
     "Update checks" : {
 
     },
     "Updates" : {
+
+    },
+    "Updating %@ items for the new model. Keyword search works meanwhile." : {
+
+    },
+    "Verifying search model…" : {
+
+    },
+    "Video" : {
+      "comment" : "Media kind"
+    },
+    "Video Moments" : {
+      "comment" : "Result section"
+    },
+    "View" : {
+
+    },
+    "Voice memo 14.m4a" : {
+
+    },
+    "Welcome to Glint" : {
+
+    },
+    "Where" : {
+
+    },
+    "Z to A" : {
+      "comment" : "Sort direction"
+    },
+    "crowd cheering at night" : {
+
+    },
+    "macOS asks before Glint reads protected folders. Full Disk Access is optional and avoids repeated prompts." : {
+
+    },
+    "moment at %@" : {
+      "comment" : "VoiceOver: time of a matched moment"
+    },
+    "not indexed yet" : {
+      "comment" : "VoiceOver: result matched by name only"
+    },
+    "page %lld" : {
+      "comment" : "VoiceOver: matched PDF page"
+    },
+    "to open Glint in any app." : {
 
     }
   },

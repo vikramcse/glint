@@ -89,14 +89,44 @@ enum Schema {
         );
 
         CREATE TABLE settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+        """,
+        // v2: faces and the people they are grouped into. Photos and videos indexed before this
+        // have no faces; the People view offers to rescan them (`faces_backfill`). Safe to run
+        // again: see `repairFaces`.
         """
+        CREATE TABLE IF NOT EXISTS people(
+            id INTEGER PRIMARY KEY,
+            name TEXT,
+            created_at REAL NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS faces(
+            id INTEGER PRIMARY KEY,
+            file_id INTEGER NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+            ordinal INTEGER NOT NULL,
+            x REAL NOT NULL,
+            y REAL NOT NULL,
+            width REAL NOT NULL,
+            height REAL NOT NULL,
+            quality REAL NOT NULL,
+            thumb TEXT,
+            print BLOB NOT NULL,
+            person_id INTEGER REFERENCES people(id) ON DELETE SET NULL
+        );
+        CREATE INDEX IF NOT EXISTS faces_file ON faces(file_id, ordinal);
+        CREATE INDEX IF NOT EXISTS faces_person ON faces(person_id);
+        INSERT OR IGNORE INTO settings(key, value)
+            SELECT 'faces_backfill', 'needed' WHERE EXISTS (SELECT 1 FROM files WHERE kind IN ('image', 'video'));
+        """,
     ]
 
     static var currentVersion: Int { migrations.count }
 
     static func migrate(_ connection: SQLiteConnection) throws {
         let version = Int(try connection.scalarInt("PRAGMA user_version") ?? 0)
-        guard version < currentVersion else { return }
+        guard version < currentVersion else {
+            try repairFaces(connection, version: version)
+            return
+        }
         for index in version..<currentVersion {
             do {
                 try connection.transaction {
@@ -107,6 +137,23 @@ enum Schema {
             } catch {
                 throw StoreError.migration(version: index + 1, message: String(describing: error))
             }
+        }
+    }
+}
+
+extension Schema {
+    /// A development build of a reverted change (visual tags, 819d9bc) also numbered its
+    /// migration v2, so a database can report v2 without the faces tables; every photo commit
+    /// then fails. Re-applies v2 when its tables are missing.
+    static func repairFaces(_ connection: SQLiteConnection, version: Int) throws {
+        guard version >= 2,
+            try connection.scalarInt("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'faces'") == nil
+        else { return }
+        do {
+            try connection.transaction { try connection.execute(migrations[1]) }
+            Log.store.info("Added the faces tables missing from a schema v2 index")
+        } catch {
+            throw StoreError.migration(version: 2, message: String(describing: error))
         }
     }
 }
