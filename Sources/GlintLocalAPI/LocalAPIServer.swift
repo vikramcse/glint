@@ -21,6 +21,9 @@ public final class LocalAPIServer: @unchecked Sendable {
     public let router: LocalAPIRouter
     public let maxConnections: Int
     public let requestTimeout: TimeInterval
+    /// How long a client has to send its whole request. Much shorter than `requestTimeout`, so
+    /// slow or idle clients can't hold the connection slots.
+    public let receiveTimeout: TimeInterval
 
     private let queue = DispatchQueue(label: "app.glint.local-api")
     // Guarded by `queue`.
@@ -28,10 +31,11 @@ public final class LocalAPIServer: @unchecked Sendable {
     private var connections = 0
     private var boundPort: UInt16 = 0
 
-    public init(router: LocalAPIRouter, maxConnections: Int = 32, requestTimeout: TimeInterval = 10) {
+    public init(router: LocalAPIRouter, maxConnections: Int = 32, requestTimeout: TimeInterval = 10, receiveTimeout: TimeInterval = 3) {
         self.router = router
         self.maxConnections = maxConnections
         self.requestTimeout = requestTimeout
+        self.receiveTimeout = min(receiveTimeout, requestTimeout)
     }
 
     /// Starts listening on 127.0.0.1. Pass 0 for an ephemeral port. Returns the bound port.
@@ -87,6 +91,11 @@ public final class LocalAPIServer: @unchecked Sendable {
         queue.sync { listener == nil ? nil : boundPort }
     }
 
+    /// Connections currently counted against `maxConnections`.
+    var activeConnections: Int {
+        queue.sync { connections }
+    }
+
     // MARK: Connections (on `queue`)
 
     private func accept(_ connection: NWConnection) {
@@ -95,20 +104,31 @@ public final class LocalAPIServer: @unchecked Sendable {
             return
         }
         connections += 1
+        let slot = ConnectionSlot()
         connection.stateUpdateHandler = { [weak self] state in
             switch state {
+            // A failed connection is cancelled afterwards too; `release` counts it once.
             case .cancelled, .failed:
-                self?.connections -= 1
+                self?.release(slot)
             default:
                 break
             }
         }
         connection.start(queue: queue)
+        queue.asyncAfter(deadline: .now() + receiveTimeout) { [weak connection] in
+            if !slot.received { connection?.cancel() }
+        }
         queue.asyncAfter(deadline: .now() + requestTimeout) { [weak connection] in connection?.cancel() }
-        receive(on: connection, buffer: Data())
+        receive(on: connection, buffer: Data(), slot: slot)
     }
 
-    private func receive(on connection: NWConnection, buffer: Data) {
+    private func release(_ slot: ConnectionSlot) {
+        guard !slot.released else { return }
+        slot.released = true
+        connections -= 1
+    }
+
+    private func receive(on connection: NWConnection, buffer: Data, slot: ConnectionSlot) {
         connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { [weak self] data, _, isComplete, error in
             guard let self else { return }
             var buffer = buffer
@@ -118,11 +138,13 @@ public final class LocalAPIServer: @unchecked Sendable {
                 if isComplete || error != nil {
                     connection.cancel()
                 } else {
-                    self.receive(on: connection, buffer: buffer)
+                    self.receive(on: connection, buffer: buffer, slot: slot)
                 }
             case .failure(let status):
+                slot.received = true
                 self.send(LocalAPIRouter.error(status, "bad_request", "The request couldn’t be read."), on: connection)
             case .complete(let request):
+                slot.received = true
                 let router = self.router
                 let port = self.boundPort
                 Task {
@@ -136,6 +158,14 @@ public final class LocalAPIServer: @unchecked Sendable {
     private func send(_ response: HTTPResponse, on connection: NWConnection) {
         connection.send(content: response.serialized(), completion: .contentProcessed { _ in connection.cancel() })
     }
+}
+
+/// Per-connection bookkeeping. Only touched on the server's queue.
+private final class ConnectionSlot: @unchecked Sendable {
+    /// The whole request has arrived, so the receive deadline no longer applies.
+    var received = false
+    /// The connection no longer counts against `maxConnections`.
+    var released = false
 }
 
 /// Ensures a continuation is resumed exactly once from a state handler that fires repeatedly.

@@ -16,6 +16,9 @@ public actor FlatVectorIndex: VectorIndex {
     private var rowOfChunk: [ChunkID: Int] = [:]
     private var rowsOfFile: [FileID: Set<Int>] = [:]
     private var attributes: [FileID: FileAttributes] = [:]
+    /// Bumped on every change. The indexer updates this index each time it commits, removes or
+    /// moves a file, so it also tells the search engine when cached keyword hits may be stale.
+    public private(set) var generation = 0
 
     /// - Parameter useGPU: scan with Metal when available (tests force the CPU path to compare).
     public init(space: VectorSpace, initialCapacity: Int = 4_096, useGPU: Bool = true) {
@@ -31,6 +34,7 @@ public actor FlatVectorIndex: VectorIndex {
     public var residentBytes: Int { matrix.byteCount }
 
     public func upsert(_ vectors: [StoredVector]) async throws {
+        generation += 1
         for vector in vectors {
             guard vector.values.count == space.dimension else { continue }
             attributes[vector.fileID] = vector.attributes
@@ -47,6 +51,7 @@ public actor FlatVectorIndex: VectorIndex {
     }
 
     public func remove(fileID: FileID) async throws {
+        generation += 1
         guard let rows = rowsOfFile[fileID] else { return }
         // Remove from the highest row down so swapped-in rows are never ones we still need to remove.
         for row in rows.sorted(by: >) { removeRow(row) }
@@ -55,6 +60,7 @@ public actor FlatVectorIndex: VectorIndex {
     }
 
     public func removeAll() {
+        generation += 1
         matrix.removeAll()
         chunkIDs.removeAll()
         fileIDs.removeAll()
@@ -65,6 +71,7 @@ public actor FlatVectorIndex: VectorIndex {
 
     /// Updates the cached attributes of a file (for example after a rename).
     public func updateAttributes(_ value: FileAttributes, for fileID: FileID) {
+        generation += 1
         if attributes[fileID] != nil { attributes[fileID] = value }
     }
 

@@ -8,14 +8,17 @@ public struct LocalAPIRouter: Sendable {
     public let engine: SearchEngine
     public let indexing: any IndexingService
     public let token: String
+    /// Caps how many files `/v1/similar` reads and encodes at once; each one decodes a whole file.
+    let exampleSlots: ExampleSlots
     public static let defaultLimit = 20
     public static let maxLimit = 100
     public static let maxQueryLength = 1_000
 
-    public init(engine: SearchEngine, indexing: any IndexingService, token: String) {
+    public init(engine: SearchEngine, indexing: any IndexingService, token: String, maxConcurrentExamples: Int = 2) {
         self.engine = engine
         self.indexing = indexing
         self.token = token
+        exampleSlots = ExampleSlots(limit: maxConcurrentExamples)
     }
 
     /// Handles one request that arrived on `port` (used to reject DNS-rebinding hosts).
@@ -112,17 +115,42 @@ public struct LocalAPIRouter: Sendable {
             return Self.error(400, "invalid_json", "Body must be JSON like {\"path\": \"/Users/me/Pictures/beach.jpg\"}.")
         }
         guard body.path.hasPrefix("/") else { return Self.error(400, "invalid_path", "path must be absolute.") }
-        let url = URL(fileURLWithPath: body.path).standardizedFileURL
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            return Self.error(404, "file_not_found", "No file at that path.")
-        }
         guard let limit = Self.limit(body.limit) else { return Self.limitError }
+        let url = URL(fileURLWithPath: body.path).standardizedFileURL
         do {
-            let results = try await engine.similar(toFileAt: url)
+            // Indexed files are compared by their stored vectors; the file itself is never opened.
+            if let results = try await engine.similar(toIndexedFileAt: url.path) {
+                return Self.json(ResultsDTO(results: results.items.prefix(limit).map(ResultDTO.init)))
+            }
+            // Anything else has to be read, which only files inside Glint's folders may be: Glint can
+            // hold access (Photos, Documents, removable volumes) that the caller doesn't.
+            let resolved = url.resolvingSymlinksInPath()
+            let roots = try await indexing.sources().map { URL(fileURLWithPath: $0.path).resolvingSymlinksInPath().path }
+            guard Self.isInside(resolved.path, roots: roots), Self.isRegularFile(resolved) else { return Self.fileNotFound }
+            guard let results = try await exampleSlots.run({ try await engine.similar(toFileAt: resolved) }) else {
+                return Self.error(429, "busy", "Glint is already comparing other files. Try again shortly.")
+            }
             return Self.json(ResultsDTO(results: results.items.prefix(limit).map(ResultDTO.init)))
         } catch {
             return Self.engineError(error)
         }
+    }
+
+    /// The same answer for a missing file and one outside Glint's folders, so `/v1/similar` can't
+    /// be used to probe what exists elsewhere on disk.
+    static var fileNotFound: HTTPResponse {
+        error(404, "file_not_found", "No indexed file, or file in Glint’s folders, at that path.")
+    }
+
+    /// Whether `path` is one of `roots` or below one. Both sides must already be resolved.
+    static func isInside(_ path: String, roots: [String]) -> Bool {
+        roots.contains { root in
+            path == root || path.hasPrefix(root.hasSuffix("/") ? root : root + "/")
+        }
+    }
+
+    static func isRegularFile(_ url: URL) -> Bool {
+        (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
     }
 
     // MARK: Helpers
@@ -180,5 +208,24 @@ public struct LocalAPIRouter: Sendable {
             difference |= (index < a.count ? a[index] : 0) ^ (index < b.count ? b[index] : 0)
         }
         return difference == 0
+    }
+}
+
+/// A fixed number of slots for expensive work; callers that find none free are turned away
+/// rather than queued, so a flood of requests can't pile up behind the encoder.
+actor ExampleSlots {
+    let limit: Int
+    private(set) var running = 0
+
+    init(limit: Int) {
+        self.limit = max(1, limit)
+    }
+
+    /// Runs `body` in a free slot. Returns nil, without running it, when every slot is busy.
+    func run<T: Sendable>(_ body: @Sendable () async throws -> T) async throws -> T? {
+        guard running < limit else { return nil }
+        running += 1
+        defer { running -= 1 }
+        return try await body()
     }
 }

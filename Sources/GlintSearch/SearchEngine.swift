@@ -157,28 +157,37 @@ public actor SearchEngine {
             looseChunks = Array(hits.looseChunks.prefix(limit))
             looseNames = Array(hits.looseNames.prefix(limit))
         }
-        var semantic: [ScoredChunk] = []
-        var statistics: ScoreStatistics?
-        if let encoder {
-            let embedding = try await encoder.encode(query: query.text)
-            try Task.checkCancellation()
-            (semantic, statistics) = try await vectorIndex.searchWithStatistics(embedding, limit: resultLimit * 4, filter: query.filter)
-        }
-        try Task.checkCancellation()
+        // Snapshot the model state: a model switch during the await below must not score this
+        // query's embedding against another model's vectors or thresholds.
+        let index = vectorIndex
         var ranker = ranker
+        let (semantic, statistics) = try await semanticMatches(for: query, in: index)
+        try Task.checkCancellation()
         if adaptsWeights {
             let weights = QueryStyle(query.text).weights
             ranker.semanticWeight *= weights.semantic
             ranker.keywordWeight *= weights.keyword
             ranker.nameWeight *= weights.keyword
         }
-        let kinds = await vectorIndex.kinds(of: semantic.map(\.fileID))
+        let kinds = await index.kinds(of: semantic.map(\.fileID))
         let ranked = ranker.rank(
             semantic: semantic, keyword: chunks, names: names, looseKeyword: looseChunks, looseNames: looseNames,
             attributes: attributes(chunks + names + looseChunks + looseNames), statistics: statistics, kinds: kinds,
             now: now())
         let items = try await hydrate(ranked, terms: FTSQuery(query.text).terms)
         return SearchResults(query: query, phase: .merged, items: items, elapsedMilliseconds: stopwatch.milliseconds)
+    }
+
+    /// Semantic matches for the query in `index`; none when no encoder is loaded or the
+    /// encoder's space no longer matches the index.
+    private func semanticMatches(
+        for query: SearchQuery, in index: FlatVectorIndex
+    ) async throws -> ([ScoredChunk], ScoreStatistics?) {
+        guard let encoder else { return ([], nil) }
+        let embedding = try await encoder.encode(query: query.text)
+        try Task.checkCancellation()
+        guard embedding.space == index.space else { return ([], nil) }
+        return try await index.searchWithStatistics(embedding, limit: resultLimit * 4, filter: query.filter)
     }
 
     /// File-name search: every query word must appear somewhere in the name. Files not yet
@@ -200,30 +209,39 @@ public actor SearchEngine {
 
     /// Files similar to an indexed file.
     public func similar(to fileID: FileID, filter: SearchFilter = .none) async throws -> SearchResults {
-        let vectors = await vectorIndex.vectors(of: fileID)
+        let index = vectorIndex
+        let vectors = await index.vectors(of: fileID)
         var filter = filter
         filter.excludedFiles.insert(fileID)
-        return try await similar(toVectors: vectors, filter: filter)
+        return try await similar(toVectors: vectors, in: index, filter: filter)
+    }
+
+    /// Files similar to the indexed file at `path`, from its stored vectors; nil when no indexed
+    /// file has that path. Never opens the file.
+    public func similar(toIndexedFileAt path: String, filter: SearchFilter = .none) async throws -> SearchResults? {
+        guard let record = try await reader.file(atPath: path), record.status == .indexed else { return nil }
+        return try await similar(to: record.id, filter: filter)
     }
 
     /// Files similar to any file on disk; uses stored vectors when the file is indexed.
     public func similar(toFileAt url: URL, filter: SearchFilter = .none) async throws -> SearchResults {
-        if let record = try await reader.file(atPath: url.path), record.status == .indexed {
-            return try await similar(to: record.id, filter: filter)
-        }
+        if let results = try await similar(toIndexedFileAt: url.path, filter: filter) { return results }
         guard let exampleEncoder else { throw SearchError.encoderUnavailable }
+        let index = vectorIndex
         let embeddings = try await exampleEncoder.embeddings(forFileAt: url)
-        return try await similar(toVectors: embeddings.map(\.values), filter: filter)
+        // A model switch during the encode leaves embeddings from the old space; don't mix them in.
+        let vectors = embeddings.filter { $0.space == index.space }.map(\.values)
+        return try await similar(toVectors: vectors, in: index, filter: filter)
     }
 
-    private func similar(toVectors vectors: [[Float]], filter: SearchFilter) async throws -> SearchResults {
-        let space = vectorIndex.space
+    private func similar(toVectors vectors: [[Float]], in index: FlatVectorIndex, filter: SearchFilter) async throws -> SearchResults {
+        let space = index.space
         guard let first = vectors.first else { throw SearchError.noExample }
         var mean = [Float](repeating: 0, count: first.count)
         for vector in vectors { for index in mean.indices where index < vector.count { mean[index] += vector[index] } }
         guard mean.count == space.dimension else { throw SearchError.noExample }
         let query = Embedding(normalizing: mean, space: space)
-        let semantic = try await vectorIndex.search(query, limit: resultLimit * 4, filter: filter)
+        let semantic = try await index.search(query, limit: resultLimit * 4, filter: filter)
         var ranker = ranker
         ranker.recencyBoost = 0
         // "Find similar" is for browsing neighbours, not deciding what matches.
@@ -295,28 +313,35 @@ public actor SearchEngine {
     }
 
     private func keywordHits(for query: SearchQuery, prefix: Bool) async throws -> KeywordHits {
-        if let keywordCache, keywordCache.query == query, keywordCache.prefix == prefix { return keywordCache.hits }
+        let generation = await vectorIndex.generation
+        if let keywordCache, keywordCache.query == query, keywordCache.prefix == prefix, keywordCache.generation == generation,
+            now().timeIntervalSince(keywordCache.created) < Self.keywordCacheLifetime
+        {
+            return keywordCache.hits
+        }
         let fts = FTSQuery(query.text, allowsPrefix: prefix)
         guard let all = fts.all else { return KeywordHits() }
-        let fetchLimit = resultLimit * 3
+        // Fetch extra so the kind, folder and date filters still leave a full page.
+        let fetchLimit = query.filter.isEmpty ? resultLimit * 3 : resultLimit * 20
+        let allowed = { (hit: KeywordHit) in query.filter.matches(fileID: hit.fileID, attributes: hit.attributes) }
         var hits = KeywordHits()
-        hits.chunks = try await reader.chunkMatches(all, limit: fetchLimit)
-        hits.names = try await reader.nameMatches(all, limit: fetchLimit)
+        hits.chunks = try await reader.chunkMatches(all, limit: fetchLimit).filter(allowed)
+        hits.names = try await reader.nameMatches(all, limit: fetchLimit).filter(allowed)
         // Natural-language queries rarely match every word; also look for any word.
         if hits.chunks.count + hits.names.count < 5, fts.terms.count > 1, let any = fts.any {
             let seen = Set(hits.chunks.compactMap(\.chunkID))
-            hits.looseChunks = try await reader.chunkMatches(any, limit: fetchLimit).filter { !seen.contains($0.chunkID ?? ChunkID(-1)) }
+            hits.looseChunks = try await reader.chunkMatches(any, limit: fetchLimit)
+                .filter { allowed($0) && !seen.contains($0.chunkID ?? ChunkID(-1)) }
             let seenNames = Set(hits.names.map(\.fileID))
-            hits.looseNames = try await reader.nameMatches(any, limit: fetchLimit).filter { !seenNames.contains($0.fileID) }
+            hits.looseNames = try await reader.nameMatches(any, limit: fetchLimit).filter { allowed($0) && !seenNames.contains($0.fileID) }
         }
-        let allowed = { (hit: KeywordHit) in query.filter.matches(fileID: hit.fileID, attributes: hit.attributes) }
-        hits.chunks = hits.chunks.filter(allowed)
-        hits.names = hits.names.filter(allowed)
-        hits.looseChunks = hits.looseChunks.filter(allowed)
-        hits.looseNames = hits.looseNames.filter(allowed)
-        keywordCache = KeywordCache(query: query, prefix: prefix, hits: hits)
+        keywordCache = KeywordCache(query: query, prefix: prefix, generation: generation, created: now(), hits: hits)
         return hits
     }
+
+    /// How long cached keyword hits stay valid. The vector index's generation catches commits and
+    /// removals; this bounds staleness from anything that changes the index without touching it.
+    static let keywordCacheLifetime: TimeInterval = 30
 
     private func attributes(_ hits: [KeywordHit]) -> [FileID: FileAttributes] {
         Dictionary(hits.map { ($0.fileID, $0.attributes) }, uniquingKeysWith: { first, _ in first })
@@ -347,9 +372,12 @@ public actor SearchEngine {
     }
 }
 
-/// The last query's keyword hits, reused while only the semantic phase changes.
+/// The last query's keyword hits, reused while only the semantic phase changes and the index
+/// hasn't changed.
 private struct KeywordCache {
     let query: SearchQuery
     let prefix: Bool
+    let generation: Int
+    let created: Date
     let hits: SearchEngine.KeywordHits
 }

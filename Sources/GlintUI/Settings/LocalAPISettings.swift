@@ -81,7 +81,8 @@ struct LocalAPISection: View {
             Text(
                 """
                 Agents on this Mac can search your index through Glint’s local API. It listens only on this Mac, \
-                needs a private access token, and never sends anything off the device.
+                needs a private access token, and never sends anything off the device. Any app you run can read \
+                that token, so turn this on only if you trust the apps on this Mac.
                 """
             )
         }
