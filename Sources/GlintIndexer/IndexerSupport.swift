@@ -57,6 +57,8 @@ public struct IndexerOptions: Sendable, Hashable {
     /// How often sources on network shares are rescanned. FSEvents misses changes made on
     /// other machines, and offline sources are checked for their return on the same timer.
     public var networkRescanInterval: Duration
+    /// Remote files larger than this are not downloaded to be indexed; they are marked failed.
+    public var maxRemoteFileSize: Int64
 
     public init(
         concurrentFiles: Int = max(2, ProcessInfo.processInfo.activeProcessorCount),
@@ -72,7 +74,8 @@ public struct IndexerOptions: Sendable, Hashable {
         fuseTextIntoMedia: Bool = true,
         documentTitles: Bool = false,
         watcherLatency: TimeInterval = 1,
-        networkRescanInterval: Duration = .seconds(15 * 60)
+        networkRescanInterval: Duration = .seconds(15 * 60),
+        maxRemoteFileSize: Int64 = 4 * 1_024 * 1_024 * 1_024
     ) {
         self.concurrentFiles = concurrentFiles
         self.embeddingBatchSize = embeddingBatchSize
@@ -88,6 +91,7 @@ public struct IndexerOptions: Sendable, Hashable {
         self.documentTitles = documentTitles
         self.watcherLatency = watcherLatency
         self.networkRescanInterval = networkRescanInterval
+        self.maxRemoteFileSize = maxRemoteFileSize
     }
 
     /// Workers to run given the power state.

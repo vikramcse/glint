@@ -35,6 +35,8 @@ struct FilePipeline: Sendable {
     var photos: (any PhotoLibraryProviding)?
     /// Tells a deleted file from one whose share or drive went away.
     var volumes: any VolumeProbing = SystemVolumeProbe()
+    /// Downloads files of S3 sources.
+    var remotes: (any RemoteStorageResolving)?
 
     var space: VectorSpace { provider.descriptor.space }
 
@@ -98,7 +100,7 @@ struct FilePipeline: Sendable {
     /// The folder source `record` belongs to cannot be reached, so a missing or unreadable file
     /// says nothing about the file itself. Photos assets never count as offline.
     private func isSourceOffline(_ record: FileRecord) async throws -> Bool {
-        guard !PhotosLibraryPath.isAsset(record.path),
+        guard !PhotosLibraryPath.isAsset(record.path), !RemotePath.isRemote(record.path),
             let source = try await writer.sources().first(where: { $0.id == record.sourceID })
         else { return false }
         return !volumes.isReachable(source.path)
@@ -112,7 +114,9 @@ struct FilePipeline: Sendable {
             try? await writer.release(record.id)
             return .cancelled
         }
-        if (try? await isSourceOffline(record)) == true {
+        var offline = (error as? RemoteStorageError)?.takesSourceOffline == true
+        if !offline { offline = (try? await isSourceOffline(record)) == true }
+        if offline {
             try? await writer.release(record.id)
             return .offline
         }

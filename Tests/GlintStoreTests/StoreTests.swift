@@ -407,6 +407,17 @@ struct MigrationTests {
         try Schema.migrate(connection)
     }
 
+    /// A database that reports v3 without the remote_sources table gets it.
+    @Test func addsRemoteSourcesTableMissingFromAnotherV3() throws {
+        let connection = try SQLiteConnection(url: try makeDatabaseURL())
+        try connection.execute(Schema.migrations[0])
+        try connection.execute(Schema.migrations[1])
+        try connection.execute("PRAGMA user_version = 3")
+        try Schema.migrate(connection)
+        #expect(try connection.scalarInt("SELECT count(*) FROM remote_sources") == 0)
+        try Schema.migrate(connection)
+    }
+
     /// Every shipped schema version must upgrade to the current one. Archived fixtures go in
     /// `Tests/GlintStoreTests/Fixtures/schema-vN.sqlite` as versions ship.
     @Test func upgradesFromEveryShippedVersion() throws {
@@ -420,5 +431,41 @@ struct MigrationTests {
             #expect(try connection.scalarInt("PRAGMA user_version") == Int64(Schema.currentVersion))
             #expect(try connection.counts().totalPending == 1)
         }
+    }
+}
+
+@Suite("Remote sources in the store")
+struct RemoteSourceStoreTests {
+    let config = RemoteSourceConfig(
+        service: .s3, endpoint: "https://s3.eu-west-1.amazonaws.com", region: "eu-west-1", bucket: "family", folder: "photos",
+        accessKeyID: "AKID", credentialID: "cred-1")
+
+    @Test func storesConfigWithTheSourceAndDropsItWithTheSource() async throws {
+        let url = try makeDatabaseURL()
+        let writer = try IndexWriter(url: url)
+        let local = try await writer.addSource(path: "/Users/ana/Docs", bookmark: nil)
+        let remote = try await writer.addSource(path: config.rootPath, bookmark: nil, remote: config)
+        #expect(config.rootPath == "s3://s3.eu-west-1.amazonaws.com/family/photos")
+
+        let sources = try await writer.sources()
+        #expect(sources.first { $0.id == local }?.remote == nil)
+        #expect(sources.first { $0.id == remote }?.remote == config)
+        // The reader sees the same.
+        #expect(try await IndexReader(url: url).sources().first { $0.id == remote }?.remote == config)
+
+        _ = try await writer.reconcile(sourceID: remote, scanned: [scanned(config.rootPath + "/2024/beach.png", kind: .image)])
+        _ = try await writer.removeSource(remote)
+        let connection = try SQLiteConnection(url: url)
+        #expect(try connection.scalarInt("SELECT count(*) FROM remote_sources") == 0)
+        #expect(try connection.scalarInt("SELECT count(*) FROM files") == 0)
+    }
+
+    @Test func remoteFileNamesComeFromTheKey() async throws {
+        let writer = try IndexWriter(url: try makeDatabaseURL())
+        let id = try await writer.addSource(path: config.rootPath, bookmark: nil, remote: config)
+        _ = try await writer.reconcile(sourceID: id, scanned: [scanned(config.rootPath + "/2024/Goa trip.txt")])
+        let claimed = try await writer.claimPending(limit: 5, kinds: [.document])
+        #expect(claimed.map(\.name) == ["Goa trip.txt"])
+        #expect(try await writer.claimPending(limit: 5, kinds: [.document], excludingSources: [id]).isEmpty)
     }
 }

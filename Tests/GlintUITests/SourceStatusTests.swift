@@ -32,7 +32,7 @@ struct SourceIndexStateTests {
             itemCount: 40, indexed: 40)
         let state = SourceIndexState(source: share, phase: .idle)
         #expect(state == .disconnected)
-        #expect(state.title == "Share not connected")
+        #expect(state.title == "Not connected")
         #expect(SourceStatusView.footnote(for: share) == "Indexed files stay searchable")
         #expect(share.symbolName == "server.rack")
     }

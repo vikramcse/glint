@@ -72,6 +72,12 @@ public protocol IndexingService: Sendable {
     func sources() async throws -> [SourceInfo]
     @discardableResult
     func addSource(_ url: URL) async throws -> SourceInfo
+    /// Adds an S3 bucket, or a prefix in one. `secret` is its secret access key, saved to the
+    /// Keychain once the bucket connects.
+    @discardableResult
+    func addRemoteSource(_ config: RemoteSourceConfig, secret: String?) async throws -> SourceInfo
+    /// Connects to a remote source without adding it. Returns how many files Glint can index there.
+    func checkRemoteSource(_ config: RemoteSourceConfig, secret: String?) async throws -> Int
     /// Removes a source and everything Glint derived from its files.
     func removeSource(_ id: SourceID) async throws
     /// Extracts and embeds every file in a source again, failed ones included.

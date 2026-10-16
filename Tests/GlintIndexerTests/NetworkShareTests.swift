@@ -99,7 +99,7 @@ struct NetworkShareTests {
         #expect(added.isAccessible)
 
         try harness.disconnect()
-        await harness.indexer.refreshVolumes()
+        await harness.indexer.refreshSources()
         let source = try #require(try await harness.indexer.sources().first)
         #expect(source.isNetworkVolume, "a disconnected share still shows as a share")
         #expect(!source.isAccessible)
@@ -121,7 +121,7 @@ struct NetworkShareTests {
         #expect(await harness.indexer.offlineSources == [source.id])
 
         try harness.reconnect()
-        await harness.indexer.refreshVolumes()
+        await harness.indexer.refreshSources()
         #expect(await harness.indexer.offlineSources.isEmpty)
         await harness.indexer.drain()
         #expect(try await harness.counts(source.id).totalIndexed == 6)
@@ -150,7 +150,7 @@ struct NetworkShareTests {
         // Written "from another Mac": no watcher is running, so only a rescan can see these.
         try harness.write("remote.txt", "quarterly budget", in: harness.share)
         try harness.write("here.txt", "grocery list", in: harness.local)
-        await harness.indexer.refreshVolumes()
+        await harness.indexer.refreshSources()
 
         #expect(try await harness.counts(share.id).totalPending == 1)
         #expect(try await harness.counts(local.id).totalPending == 0, "local folders rely on FSEvents")

@@ -33,6 +33,10 @@ public actor Indexer: IndexingService {
     private var subscribers: [UUID: AsyncStream<IndexStatus>.Continuation] = [:]
     private var lastPublish: ContinuousClock.Instant?
     let photos: (any PhotoLibraryProviding)?
+    /// S3 access; `nil` where remote sources are unavailable (tests, eval).
+    let remotes: (any RemoteStorageResolving)?
+    /// Remote sources being listed right now; a second rescan of one waits for the next poll.
+    var rescanningRemote: Set<SourceID> = []
     var photosTask: Task<Void, Never>?
     /// Claimed files waiting for a worker, in queue order.
     var prefetched: [FileRecord] = []
@@ -58,9 +62,11 @@ public actor Indexer: IndexingService {
         options: IndexerOptions = IndexerOptions(),
         stats: IndexingStats? = nil,
         photos: (any PhotoLibraryProviding)? = nil,
-        volumes: any VolumeProbing = SystemVolumeProbe()
+        volumes: any VolumeProbing = SystemVolumeProbe(),
+        remotes: (any RemoteStorageResolving)? = nil
     ) {
         self.photos = photos
+        self.remotes = remotes
         self.volumes = volumes
         self.writer = writer
         self.vectorIndex = vectorIndex
@@ -78,6 +84,7 @@ public actor Indexer: IndexingService {
         )
         pipeline.photos = photos
         pipeline.volumes = volumes
+        pipeline.remotes = remotes
     }
 
     // MARK: Lifecycle
@@ -97,7 +104,7 @@ public actor Indexer: IndexingService {
             for await change in changes { await self?.handle(change) }
         }
         loopTask = Task { [weak self] in await self?.runLoop() }
-        networkPollTask = Task { [weak self] in await self?.pollNetworkSources() }
+        networkPollTask = Task { [weak self] in await self?.pollSources() }
         startObservingPhotos()
     }
 
@@ -126,6 +133,7 @@ public actor Indexer: IndexingService {
         )
         pipeline.photos = photos
         pipeline.volumes = volumes
+        pipeline.remotes = remotes
         wake()
     }
 
@@ -146,6 +154,7 @@ public actor Indexer: IndexingService {
         )
         pipeline.photos = photos
         pipeline.volumes = volumes
+        pipeline.remotes = remotes
         let requeued = (try? await writer.requeueFiles(notIn: provider.descriptor.space)) ?? 0
         Log.indexer.info("Switched model; re-embedding \(requeued, privacy: .public) files")
         wake()
@@ -191,14 +200,15 @@ public actor Indexer: IndexingService {
         let counts = try await writer.sourceCounts()
         return try await writer.sources().map { record in
             let source = counts[record.id] ?? IndexCounts()
-            if !PhotosLibraryPath.isLibrary(record.path), volumes.isNetworkVolume(record.path) {
+            if Self.isFolder(record), volumes.isNetworkVolume(record.path) {
                 networkSources.insert(record.id)
             }
             return SourceInfo(
-                id: record.id, path: record.path, isExternalVolume: Self.isExternal(URL(fileURLWithPath: record.path)),
-                isNetworkVolume: networkSources.contains(record.id), isAccessible: isAccessible(record.path),
+                id: record.id, path: record.path,
+                isExternalVolume: Self.isFolder(record) && Self.isExternal(URL(fileURLWithPath: record.path)),
+                isNetworkVolume: networkSources.contains(record.id), isAccessible: isAccessible(record),
                 itemCount: source.totalIndexed + source.totalPending + source.failed,
-                indexed: source.totalIndexed, pending: source.totalPending, failed: source.failed
+                indexed: source.totalIndexed, pending: source.totalPending, failed: source.failed, remote: record.remote
             )
         }
     }
@@ -227,7 +237,10 @@ public actor Indexer: IndexingService {
     }
 
     public func removeSource(_ id: SourceID) async throws {
+        let remote = try await writer.sources().first { $0.id == id }?.remote
         let removed = try await writer.removeSource(id)
+        if let remote { remotes?.deleteSecret(credentialID: remote.credentialID) }
+        offlineSources.remove(id)
         for fileID in removed.files { try await vectorIndex.remove(fileID: fileID) }
         thumbnails.delete(relativePaths: removed.orphanedThumbnails)
         await restartWatcher()

@@ -21,6 +21,10 @@ private actor FakeIndexing: IndexingService {
         added.append(url)
         return SourceInfo(id: SourceID(Int64(added.count)), path: url.path, isExternalVolume: false, isAccessible: true, itemCount: 0)
     }
+    func addRemoteSource(_ config: RemoteSourceConfig, secret: String?) async throws -> SourceInfo {
+        throw CocoaError(.featureUnsupported)
+    }
+    func checkRemoteSource(_ config: RemoteSourceConfig, secret: String?) async throws -> Int { 0 }
     func removeSource(_ id: SourceID) async throws {}
     func reindexSource(_ id: SourceID) async throws {}
     func setExclusions(_ rules: ExclusionRules) async throws {}

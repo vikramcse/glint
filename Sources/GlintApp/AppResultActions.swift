@@ -1,4 +1,5 @@
 import AppKit
+import CryptoKit
 import GlintCore
 import GlintSearch
 import GlintUI
@@ -17,11 +18,16 @@ final class AppResultActions: ResultActions {
     private var windowObservers: [ObjectIdentifier: any NSObjectProtocol] = [:]
     private var pdfWindows: [NSWindow] = []
     private let photos: (any PhotoLibraryProviding)?
+    private let remoteFiles: (any RemoteFileFetching)?
 
-    init(services: GlintServices, savedSearches: any SavedSearchProviding, photos: (any PhotoLibraryProviding)? = nil) {
+    init(
+        services: GlintServices, savedSearches: any SavedSearchProviding, photos: (any PhotoLibraryProviding)? = nil,
+        remoteFiles: (any RemoteFileFetching)? = nil
+    ) {
         self.services = services
         self.savedSearches = savedSearches
         self.photos = photos
+        self.remoteFiles = remoteFiles
         quickLook.onClose = { [weak self] in self?.panel?.quickLookEnded() }
     }
 
@@ -31,7 +37,15 @@ final class AppResultActions: ResultActions {
         let state = Signposts.search.beginInterval(Signposts.Name.openResult)
         defer { Signposts.search.endInterval(Signposts.Name.openResult, state) }
         panel?.hide()
-        if PhotosLibraryPath.isAsset(result.file.path) {
+        if RemotePath.isRemote(result.file.path) {
+            // Download a copy, then open it like a local file (player, PDF viewer or default app).
+            Task {
+                guard let local = await remoteCopy(of: result.file.path) else { return }
+                var copy = result
+                copy.file.path = local.path
+                open(copy)
+            }
+        } else if PhotosLibraryPath.isAsset(result.file.path) {
             // Photos has no public way to open one asset, so preview the local original.
             quickLook([result], selected: result)
         } else if let range = result.match.locator.timeRange, result.file.kind == .video || result.file.kind == .audio {
@@ -45,7 +59,8 @@ final class AppResultActions: ResultActions {
 
     func revealInFinder(_ results: [SearchResult]) {
         panel?.hide()
-        let files = results.filter { !PhotosLibraryPath.isAsset($0.file.path) }.map(\.file.url)
+        let files = results.filter { !PhotosLibraryPath.isAsset($0.file.path) && !RemotePath.isRemote($0.file.path) }
+            .map(\.file.url)
         if !files.isEmpty { NSWorkspace.shared.activateFileViewerSelecting(files) }
         if files.count < results.count, let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Photos") {
             NSWorkspace.shared.openApplication(at: app, configuration: NSWorkspace.OpenConfiguration())
@@ -80,6 +95,10 @@ final class AppResultActions: ResultActions {
     private func localURLs(for results: [SearchResult]) async -> [URL] {
         var urls: [URL] = []
         for result in results {
+            if RemotePath.isRemote(result.file.path) {
+                if let local = await remoteCopy(of: result.file.path) { urls.append(local) }
+                continue
+            }
             guard let identifier = PhotosLibraryPath.assetIdentifier(fromPath: result.file.path) else {
                 urls.append(result.file.url)
                 continue
@@ -101,6 +120,29 @@ final class AppResultActions: ResultActions {
         }
         return urls
     }
+
+    /// A local copy of a remote result, downloaded once per session into Caches. Cleared at launch.
+    private func remoteCopy(of path: String) async -> URL? {
+        guard let remoteFiles else { return nil }
+        let digest = SHA256.hash(data: Data(path.utf8)).prefix(12).map { String(format: "%02x", $0) }.joined()
+        let folder = Self.remoteDownloads.appendingPathComponent(digest, isDirectory: true)
+        if let existing = try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil).first {
+            return existing
+        }
+        do {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            return try await remoteFiles.downloadRemoteFile(path: path, to: folder)
+        } catch {
+            try? FileManager.default.removeItem(at: folder)
+            Log.app.notice("Could not download a remote file: \(String(describing: error), privacy: .public)")
+            presentError(ErrorPresenter.message(for: error), title: String(localized: "Couldn’t open the file"))
+            return nil
+        }
+    }
+
+    /// Where opened remote files are downloaded.
+    static let remoteDownloads = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("Glint/RemoteDownloads", isDirectory: true)
 
     func dismissPanel() {
         panel?.hide()
@@ -146,8 +188,12 @@ final class AppResultActions: ResultActions {
     }
 
     func presentError(_ message: String) {
+        presentError(message, title: String(localized: "Some folders couldn’t be added"))
+    }
+
+    private func presentError(_ message: String, title: String) {
         let alert = NSAlert()
-        alert.messageText = String(localized: "Some folders couldn’t be added")
+        alert.messageText = title
         alert.informativeText = message
         alert.alertStyle = .warning
         NSApp.activate()

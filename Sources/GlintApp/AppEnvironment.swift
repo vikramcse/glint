@@ -4,6 +4,7 @@ import GlintCore
 import GlintEmbedding
 import GlintExtractors
 import GlintIndexer
+import GlintRemote
 import GlintSearch
 import GlintStore
 import GlintUI
@@ -26,6 +27,8 @@ final class AppEnvironment {
     let services: GlintServices
     let savedSearches: AppSavedSearches
     let photos = PhotoKitLibrary()
+    /// S3 buckets. Secret keys live in the Keychain (UI tests use memory).
+    let remotes: RemoteStorageFactory
     let models: ModelController
     let isUITest: Bool
     let localAPI: LocalAPIController
@@ -48,11 +51,12 @@ final class AppEnvironment {
             reader: reader, vectorIndex: vectorIndex, encoder: GatedQueryEncoder(provider: provider, gate: priorityGate),
             exampleEncoder: FileExampleEncoder(registry: registry, provider: provider), thumbnails: thumbnails
         )
+        remotes = RemoteStorageFactory(secrets: launch.isUITest ? InMemorySecretStore() : KeychainSecretStore())
         indexer = Indexer(
             writer: writer, extractors: registry.extractors, provider: provider, vectorIndex: vectorIndex,
             gate: priorityGate, thumbnails: thumbnails,
             options: IndexerOptions(videoOnlyOnPower: settings.videoOnlyOnPower),
-            photos: photos
+            photos: photos, remotes: remotes
         )
 
         metricKit = MetricKitReporter(directory: paths.diagnostics)
@@ -79,6 +83,8 @@ final class AppEnvironment {
     /// Loads vectors into the resident index, then starts the indexer.
     func start() async {
         let stopwatch = Stopwatch()
+        // Remote files opened last session; they are downloaded again when opened.
+        try? FileManager.default.removeItem(at: AppResultActions.remoteDownloads)
         // Activate EmbeddingGemma 2 first (when downloaded) so indexing starts in its space.
         // UI tests use the built-in model so they don't depend on a 1.5 GB download.
         if !isUITest { await models.activateIfInstalled() }
@@ -97,7 +103,7 @@ final class AppEnvironment {
         ]
         volumeObservers = names.map { name in
             center.addObserver(forName: name, object: nil, queue: nil) { [indexer] _ in
-                Task { await indexer.refreshVolumes() }
+                Task { await indexer.refreshSources() }
             }
         }
     }

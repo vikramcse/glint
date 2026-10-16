@@ -21,17 +21,6 @@ public actor IndexWriter {
 
     // MARK: Sources
 
-    public func addSource(path: String, bookmark: Data?) throws -> SourceID {
-        if let existing = try db.scalarInt("SELECT id FROM sources WHERE path = ?", [.text(path)]) {
-            return SourceID(existing)
-        }
-        try db.run(
-            "INSERT INTO sources(path, bookmark, added_at) VALUES (?, ?, ?)",
-            [.text(path), bookmark.map(SQLValue.blob) ?? .null, SQLValue(now())]
-        )
-        return SourceID(db.lastInsertRowID)
-    }
-
     /// Removes a source and every file under it. Returns the removed file ids.
     /// What removing a source deleted: its files (chunks, text and vectors cascade) and the
     /// thumbnails no other file still uses.
@@ -386,5 +375,26 @@ public actor IndexWriter {
         try db.run("INSERT INTO chunks_fts(chunks_fts) VALUES ('optimize')")
         try db.run("INSERT INTO names_fts(names_fts) VALUES ('optimize')")
         try db.execute("PRAGMA optimize")
+    }
+}
+
+extension IndexWriter {
+    /// Adds a folder, the Photos library, or a remote source with its settings (never its secret).
+    public func addSource(path: String, bookmark: Data?, remote: RemoteSourceConfig? = nil) throws -> SourceID {
+        if let existing = try db.scalarInt("SELECT id FROM sources WHERE path = ?", [.text(path)]) {
+            return SourceID(existing)
+        }
+        let config = try remote.map { String(bytes: try JSONEncoder().encode($0), encoding: .utf8) ?? "{}" }
+        return try db.transaction {
+            try db.run(
+                "INSERT INTO sources(path, bookmark, added_at) VALUES (?, ?, ?)",
+                [.text(path), bookmark.map(SQLValue.blob) ?? .null, SQLValue(now())]
+            )
+            let id = SourceID(db.lastInsertRowID)
+            if let config {
+                try db.run("INSERT INTO remote_sources(source_id, config) VALUES (?, ?)", [.int(id.rawValue), .text(config)])
+            }
+            return id
+        }
     }
 }

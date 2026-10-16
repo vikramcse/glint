@@ -61,8 +61,15 @@ extension SQLiteConnection {
     }
 
     func sources() throws -> [SourceRecord] {
-        try query("SELECT id, path, bookmark, added_at FROM sources ORDER BY added_at") { row in
-            SourceRecord(id: SourceID(row.int(0)), path: row.text(1) ?? "", bookmark: row.blob(2), addedAt: row.date(3))
+        try query(
+            """
+            SELECT s.id, s.path, s.bookmark, s.added_at, r.config FROM sources s
+            LEFT JOIN remote_sources r ON r.source_id = s.id ORDER BY s.added_at
+            """
+        ) { row in
+            SourceRecord(
+                id: SourceID(row.int(0)), path: row.text(1) ?? "", bookmark: row.blob(2), addedAt: row.date(3),
+                remote: row.text(4).flatMap { try? JSONDecoder().decode(RemoteSourceConfig.self, from: Data($0.utf8)) })
         }
     }
 

@@ -14,8 +14,8 @@ Glint should search folders that live on other machines: network shares first, a
 - **Shares stay folder sources.** `VolumeProbing` (real: `SystemVolumeProbe`, which uses `volumeIsLocal`) tells the indexer whether a source is on a network volume and whether it is reachable now. It is injected, so tests simulate a share disconnecting.
 - **Offline sources.** The indexer keeps `offlineSources`. A source joins it when its root cannot be read. Files from offline sources are not claimed (`claimPending(excludingSources:)`).
 - **A missing file on an offline source is not a deleted file.** The pipeline returns `.offline` and releases the file (the attempt is not counted) instead of deleting it or marking it failed. The watcher drops events for sources that are not reachable.
-- **Polling.** `refreshVolumes()` rescans every network source, and any source that went offline or came back. It runs every `networkRescanInterval` (15 minutes), and the app also calls it on `NSWorkspace` mount, unmount and wake notifications. Rescans compare size and modification date, so unchanged files are not read.
-- **UI and API.** `SourceInfo.isNetworkVolume`; a disconnected share shows "Share not connected", not an error, and its indexed files stay searchable. `/v1/sources` adds `network`.
+- **Polling.** `refreshSources()` rescans every network source, and any source that went offline or came back. It runs every `networkRescanInterval` (15 minutes), and the app also calls it on `NSWorkspace` mount, unmount and wake notifications. Rescans compare size and modification date, so unchanged files are not read.
+- **UI and API.** `SourceInfo.isNetworkVolume`; a disconnected share shows "Not connected", not an error, and its indexed files stay searchable. `/v1/sources` adds `network`.
 
 ## Consequences
 

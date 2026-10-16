@@ -6,7 +6,18 @@ import GlintSearch
 public enum ErrorPresenter {
     public static func message(for error: any Error) -> String {
         if let error = error as? SearchError { return searchMessage(error) }
+        if let error = error as? RemoteStorageError { return remoteMessage(error) }
         return categoryMessage(error.glintCategory)
+    }
+
+    private static func remoteMessage(_ error: RemoteStorageError) -> String {
+        switch error {
+        case .unreachable: categoryMessage(.network)
+        case .unauthorized(let detail): String(localized: "The service didn’t accept these credentials. \(detail)")
+        case .notFound(let detail): String(localized: "Not found. \(detail)")
+        case .misconfigured(let detail): detail
+        case .service(let status, let detail): String(localized: "The service returned an error (\(status)). \(detail)")
+        }
     }
 
     private static func searchMessage(_ error: SearchError) -> String {

@@ -27,7 +27,7 @@ let package = Package(
             name: "GlintKit",
             targets: [
                 "GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch", "GlintIndexer",
-                "GlintUI", "GlintLocalAPI",
+                "GlintUI", "GlintLocalAPI", "GlintRemote",
             ]),
         .library(name: "GlintMCP", targets: ["GlintMCP"]),
     ],
@@ -72,6 +72,8 @@ let package = Package(
             swiftSettings: strictSettings
         ),
         .target(name: "GlintLocalAPI", dependencies: ["GlintCore", "GlintSearch"], swiftSettings: strictSettings),
+        // The S3 client (SigV4 on CryptoKit) and Keychain secrets. No third-party code.
+        .target(name: "GlintRemote", dependencies: ["GlintCore"], swiftSettings: strictSettings),
         // Self-contained: speaks HTTP to the app, so the glint-mcp binary stays small.
         .target(name: "GlintMCP", swiftSettings: strictSettings),
         .target(
@@ -86,7 +88,7 @@ let package = Package(
             name: "GlintApp",
             dependencies: [
                 "GlintCore", "GlintExtractors", "GlintEmbedding", "GlintStore", "GlintSearch",
-                "GlintIndexer", "GlintUI", "GlintLocalAPI",
+                "GlintIndexer", "GlintUI", "GlintLocalAPI", "GlintRemote",
                 .product(name: "Sparkle", package: "Sparkle"),
             ],
             swiftSettings: strictSettings,
@@ -150,6 +152,7 @@ let package = Package(
             swiftSettings: strictSettings
         ),
         .testTarget(name: "GlintMCPTests", dependencies: ["GlintMCP"], swiftSettings: strictSettings),
+        .testTarget(name: "GlintRemoteTests", dependencies: ["GlintRemote"], swiftSettings: strictSettings),
         .testTarget(
             name: "GlintUITests",
             dependencies: ["GlintUI", "GlintSearch", "GlintStore", "GlintTestSupport"],

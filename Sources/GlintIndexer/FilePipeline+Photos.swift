@@ -17,6 +17,7 @@ extension FilePipeline {
     /// Photos assets are exported to a temporary copy without network access, so iCloud-only
     /// originals fail here instead of being downloaded.
     func resolve(_ record: FileRecord) async throws -> ResolvedFile? {
+        if RemotePath.isRemote(record.path) { return try await resolveRemote(record) }
         guard let identifier = PhotosLibraryPath.assetIdentifier(fromPath: record.path) else {
             guard FileManager.default.fileExists(atPath: record.path) else { return nil }
             return ResolvedFile(fileRef: record.fileRef, contentHash: nil, temporaryCopy: nil)

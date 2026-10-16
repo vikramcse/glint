@@ -35,7 +35,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         let actions = AppResultActions(
-            services: environment.services, savedSearches: environment.savedSearches, photos: environment.photos)
+            services: environment.services, savedSearches: environment.savedSearches, photos: environment.photos,
+            remoteFiles: environment.indexer)
         let panel = SearchPanelController(services: environment.services)
         actions.panel = panel
         panel.onHide = { [weak actions] in actions?.returnToMenuBarIfIdle() }
