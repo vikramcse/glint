@@ -46,9 +46,10 @@ public enum Formatting {
 }
 
 extension SourceInfo {
-    /// Symbol for a source row: Photos library, external drive or folder.
+    /// Symbol for a source row: Photos library, network share, external drive or folder.
     public var symbolName: String {
         if isPhotosLibrary { return "photo.on.rectangle.angled" }
+        if isNetworkVolume { return "server.rack" }
         return isExternalVolume ? "externaldrive" : "folder"
     }
 }

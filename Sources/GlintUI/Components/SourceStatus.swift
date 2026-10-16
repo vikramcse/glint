@@ -5,6 +5,8 @@ import SwiftUI
 public enum SourceIndexState: Hashable, Sendable {
     /// macOS denied access, or the drive is unplugged.
     case unreadable
+    /// A network share that is not connected. What was indexed stays searchable.
+    case disconnected
     /// The folder has just been added and its files are being listed.
     case scanning
     case indexing(done: Int, total: Int)
@@ -17,7 +19,7 @@ public enum SourceIndexState: Hashable, Sendable {
     public init(source: SourceInfo, phase: IndexStatus.Phase) {
         let total = source.indexed + source.pending
         if !source.isAccessible {
-            self = .unreadable
+            self = source.isNetworkVolume ? .disconnected : .unreadable
         } else if source.itemCount == 0 {
             self = phase == .scanning ? .scanning : .empty
         } else if source.pending == 0 {
@@ -32,6 +34,7 @@ public enum SourceIndexState: Hashable, Sendable {
     public var title: String {
         switch self {
         case .unreadable: String(localized: "Can’t read this folder")
+        case .disconnected: String(localized: "Share not connected")
         case .scanning: String(localized: "Looking for files…")
         case .indexing(let done, let total): String(localized: "Indexing \(done.formatted()) of \(total.formatted())")
         case .paused(_, let done, let total):
@@ -83,7 +86,10 @@ struct SourceStatusView: View {
     }
 
     static func footnote(for source: SourceInfo) -> String? {
-        source.failed > 0 ? String(localized: "\(source.failed.formatted()) couldn’t be read") : nil
+        if !source.isAccessible, source.isNetworkVolume, source.itemCount > 0 {
+            return String(localized: "Indexed files stay searchable")
+        }
+        return source.failed > 0 ? String(localized: "\(source.failed.formatted()) couldn’t be read") : nil
     }
 
     static func accessibilityLabel(source: SourceInfo, state: SourceIndexState) -> String {
@@ -102,6 +108,8 @@ struct SourceStatusBadge: View {
             switch state {
             case .unreadable:
                 Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+            case .disconnected:
+                Image(systemName: "network.slash").foregroundStyle(.secondary)
             case .scanning:
                 ProgressView().controlSize(.mini)
             case .indexing(let done, let total):

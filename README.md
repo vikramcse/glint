@@ -67,7 +67,7 @@ It is a single Swift process with no server and no cloud dependency. A backgroun
 - **Find similar.** Drop any file on the panel to find items like it, whether or not it's indexed.
 - **People.** Faces in photos and videos are grouped by person, like Google Photos. Click a face to see every photo and video that person is in; name people, and give two groups the same name to combine them.
 - **Stays out of the way.** Indexing yields to search, pauses on Low Power Mode, low battery and serious thermal pressure, and halves its width on battery.
-- **Keeps itself current.** FSEvents watches your folders; moves and renames are detected by content hash instead of re-indexing.
+- **Keeps itself current.** FSEvents watches your folders; moves and renames are detected by content hash instead of re-indexing. Network shares (SMB, NFS, AFP) are also rescanned every 15 minutes and on reconnect, and what was indexed stays searchable while a share is disconnected.
 - **Built for agents.** An opt-in, token-authenticated local API and a bundled `glint-mcp` server let Claude and other agents search your files.
 - **A real Mac app.** AppKit and SwiftUI, VoiceOver labels, String Catalog localization, light and dark mode, Liquid Glass on macOS 26, Sparkle updates.
 
@@ -347,6 +347,7 @@ Every significant decision is recorded as an Architecture Decision Record in [`d
 | [0006](docs/adr/0006-mlx-and-embeddinggemma-2.md) | **EmbeddingGemma 2 on MLX-Swift** | One open, commercially usable model for all media, running natively on Apple silicon, with a parity gate against the reference. |
 | [0007](docs/adr/0007-sparkle-updates.md) | **Sparkle 2 for updates** | The de facto standard for signed, delta, out-of-sandbox updates in direct-download Mac apps. |
 | [0008](docs/adr/0008-indexing-pipeline.md) | **Streaming pipeline in Swift with automatic OCR** | Indexing time is spent in Apple frameworks and the model, not Glint's code, so Rust would add FFI without speed. Streaming, cross-file batching and selective OCR gave up to 10× throughput. |
+| [0009](docs/adr/0009-network-shares.md) | **Network shares as folder sources, kept current by polling** | FSEvents misses changes made on other machines, so shares are rescanned on a timer and on mount or wake. An unreachable source keeps its files; nothing is deleted until the source can be read again. |
 
 A few decisions that are visible in the code rather than an ADR:
 

@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import GlintCore
 import GlintEmbedding
@@ -28,6 +29,7 @@ final class AppEnvironment {
     let models: ModelController
     let isUITest: Bool
     let localAPI: LocalAPIController
+    private var volumeObservers: [any NSObjectProtocol] = []
 
     init(settings: AppSettings, launch: LaunchOptions = .current) throws {
         self.settings = settings
@@ -83,6 +85,21 @@ final class AppEnvironment {
         _ = try? await engine.loadVectors()
         Log.app.info("Search ready in \(Int(stopwatch.milliseconds), privacy: .public) ms")
         await indexer.start()
+        observeVolumes()
+    }
+
+    /// Network shares and drives come and go: rescan them when a volume mounts or unmounts and
+    /// when the Mac wakes (a share may have changed, or dropped, while it slept).
+    private func observeVolumes() {
+        let center = NSWorkspace.shared.notificationCenter
+        let names = [
+            NSWorkspace.didMountNotification, NSWorkspace.didUnmountNotification, NSWorkspace.didWakeNotification,
+        ]
+        volumeObservers = names.map { name in
+            center.addObserver(forName: name, object: nil, queue: nil) { [indexer] _ in
+                Task { await indexer.refreshVolumes() }
+            }
+        }
     }
 
     /// Re-applies settings that change how files are extracted.

@@ -26,6 +26,17 @@ struct SourceIndexStateTests {
         #expect(SourceIndexState(source: source(items: 10, indexed: 4, pending: 6, accessible: false), phase: .idle) == .unreadable)
     }
 
+    @Test func disconnectedShareIsNotAnError() {
+        let share = SourceInfo(
+            id: SourceID(2), path: "/Volumes/Team", isExternalVolume: true, isNetworkVolume: true, isAccessible: false,
+            itemCount: 40, indexed: 40)
+        let state = SourceIndexState(source: share, phase: .idle)
+        #expect(state == .disconnected)
+        #expect(state.title == "Share not connected")
+        #expect(SourceStatusView.footnote(for: share) == "Indexed files stay searchable")
+        #expect(share.symbolName == "server.rack")
+    }
+
     @Test func failedFilesDoNotBlockCompletion() {
         let source = source(items: 12, indexed: 10, failed: 2)
         #expect(SourceIndexState(source: source, phase: .idle) == .complete(indexed: 10))

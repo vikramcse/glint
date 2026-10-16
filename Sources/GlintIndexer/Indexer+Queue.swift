@@ -44,7 +44,8 @@ extension Indexer {
             for _ in 0..<workers {
                 group.addTask { [weak self] in
                     while let self, !Task.isCancelled, let record = await self.claimNext() {
-                        _ = await self.pipelineSnapshot().process(record)
+                        let outcome = await self.pipelineSnapshot().process(record)
+                        if outcome == .offline { await self.setOffline(record.sourceID, true) }
                         await self.finished(record.id)
                     }
                 }
@@ -90,7 +91,9 @@ extension Indexer {
         let limit = max(2, options.concurrentFiles * 2)
         var kinds = Set(MediaKind.allCases)
         if options.videoOnlyOnPower, power.isOnBattery { kinds.remove(.video) }
-        let claimed = (try? await writer.claimPending(limit: limit, kinds: kinds, excluding: inFlight)) ?? []
+        let claimed =
+            (try? await writer.claimPending(
+                limit: limit, kinds: kinds, excluding: inFlight, excludingSources: offlineSources)) ?? []
         if claimed.isEmpty {
             queueExhausted = true
             return

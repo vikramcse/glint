@@ -56,6 +56,6 @@ extension Indexer {
 
     func isAccessible(_ path: String) -> Bool {
         if PhotosLibraryPath.isLibrary(path) { return photos?.authorizationStatus() == .authorized }
-        return FileManager.default.isReadableFile(atPath: path)
+        return volumes.isReachable(path)
     }
 }

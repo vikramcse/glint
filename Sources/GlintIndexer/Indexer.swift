@@ -15,11 +15,17 @@ public actor Indexer: IndexingService {
     let power: any PowerMonitoring
     var options: IndexerOptions
     let watcher = FileSystemWatcher()
+    let volumes: any VolumeProbing
 
     var rules = ExclusionRules.default
     var phase: IndexStatus.Phase = .idle
     var userPaused = false
     var inaccessibleSources = 0
+    /// Folder sources that cannot be reached now; their pending files are not claimed.
+    var offlineSources: Set<SourceID> = []
+    /// Sources seen on a network share, remembered so a disconnected share still shows as one.
+    var networkSources: Set<SourceID> = []
+    private var networkPollTask: Task<Void, Never>?
     private var loopTask: Task<Void, Never>?
     private var watchTask: Task<Void, Never>?
     var wakeContinuation: CheckedContinuation<Void, Never>?
@@ -51,9 +57,11 @@ public actor Indexer: IndexingService {
         power: any PowerMonitoring = SystemPowerMonitor(),
         options: IndexerOptions = IndexerOptions(),
         stats: IndexingStats? = nil,
-        photos: (any PhotoLibraryProviding)? = nil
+        photos: (any PhotoLibraryProviding)? = nil,
+        volumes: any VolumeProbing = SystemVolumeProbe()
     ) {
         self.photos = photos
+        self.volumes = volumes
         self.writer = writer
         self.vectorIndex = vectorIndex
         self.thumbnails = thumbnails
@@ -69,6 +77,7 @@ public actor Indexer: IndexingService {
             stats: stats
         )
         pipeline.photos = photos
+        pipeline.volumes = volumes
     }
 
     // MARK: Lifecycle
@@ -88,6 +97,7 @@ public actor Indexer: IndexingService {
             for await change in changes { await self?.handle(change) }
         }
         loopTask = Task { [weak self] in await self?.runLoop() }
+        networkPollTask = Task { [weak self] in await self?.pollNetworkSources() }
         startObservingPhotos()
     }
 
@@ -95,6 +105,7 @@ public actor Indexer: IndexingService {
     public func stop() {
         loopTask?.cancel()
         watchTask?.cancel()
+        networkPollTask?.cancel()
         photosTask?.cancel()
         watcher.stop()
         wake()
@@ -114,6 +125,7 @@ public actor Indexer: IndexingService {
             stats: pipeline.stats
         )
         pipeline.photos = photos
+        pipeline.volumes = volumes
         wake()
     }
 
@@ -133,6 +145,7 @@ public actor Indexer: IndexingService {
             stats: pipeline.stats
         )
         pipeline.photos = photos
+        pipeline.volumes = volumes
         let requeued = (try? await writer.requeueFiles(notIn: provider.descriptor.space)) ?? 0
         Log.indexer.info("Switched model; re-embedding \(requeued, privacy: .public) files")
         wake()
@@ -178,9 +191,12 @@ public actor Indexer: IndexingService {
         let counts = try await writer.sourceCounts()
         return try await writer.sources().map { record in
             let source = counts[record.id] ?? IndexCounts()
+            if !PhotosLibraryPath.isLibrary(record.path), volumes.isNetworkVolume(record.path) {
+                networkSources.insert(record.id)
+            }
             return SourceInfo(
                 id: record.id, path: record.path, isExternalVolume: Self.isExternal(URL(fileURLWithPath: record.path)),
-                isAccessible: isAccessible(record.path),
+                isNetworkVolume: networkSources.contains(record.id), isAccessible: isAccessible(record.path),
                 itemCount: source.totalIndexed + source.totalPending + source.failed,
                 indexed: source.totalIndexed, pending: source.totalPending, failed: source.failed
             )

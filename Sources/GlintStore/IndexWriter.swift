@@ -266,22 +266,30 @@ public actor IndexWriter {
     /// Each claim counts as an attempt, so a file that crashes the app is not retried forever.
     /// - Parameter excluding: files already claimed and still in flight, so concurrent workers
     ///   never receive the same file twice.
-    public func claimPending(limit: Int, kinds: Set<MediaKind>, excluding: Set<FileID> = []) throws -> [FileRecord] {
+    /// - Parameter excludingSources: sources that are offline (a disconnected share or an
+    ///   unplugged drive); their files wait for the source to come back.
+    public func claimPending(
+        limit: Int, kinds: Set<MediaKind>, excluding: Set<FileID> = [], excludingSources: Set<SourceID> = []
+    ) throws -> [FileRecord] {
         guard !kinds.isEmpty, limit > 0 else { return [] }
         return try db.transaction {
             let placeholders = Array(repeating: "?", count: kinds.count).joined(separator: ",")
             let excluded =
                 excluding.isEmpty
                 ? "" : " AND id NOT IN (" + Array(repeating: "?", count: excluding.count).joined(separator: ",") + ")"
+            let excludedSources =
+                excludingSources.isEmpty
+                ? ""
+                : " AND source_id NOT IN (" + Array(repeating: "?", count: excludingSources.count).joined(separator: ",") + ")"
             let records = try db.query(
                 """
                 SELECT \(SQLiteConnection.fileColumns) FROM files
-                WHERE status = 0 AND attempts < ? AND kind IN (\(placeholders))\(excluded)
+                WHERE status = 0 AND attempts < ? AND kind IN (\(placeholders))\(excluded)\(excludedSources)
                 ORDER BY priority, modified DESC LIMIT ?
                 """,
                 [SQLValue(Self.maxAttempts)] + kinds.sorted().map { .text($0.rawValue) }
-                    + excluding.map { .int($0.rawValue) } + [SQLValue(limit)],
-                cache: excluding.isEmpty, map: SQLiteConnection.fileRecord
+                    + excluding.map { .int($0.rawValue) } + excludingSources.map { .int($0.rawValue) } + [SQLValue(limit)],
+                cache: excluding.isEmpty && excludingSources.isEmpty, map: SQLiteConnection.fileRecord
             ).compactMap { $0 }
             for record in records {
                 try db.run("UPDATE files SET attempts = attempts + 1 WHERE id = ?", [.int(record.id.rawValue)])

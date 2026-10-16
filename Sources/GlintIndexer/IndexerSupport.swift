@@ -54,6 +54,9 @@ public struct IndexerOptions: Sendable, Hashable {
     public var documentTitles: Bool
     /// How long to wait between watcher events before applying them.
     public var watcherLatency: TimeInterval
+    /// How often sources on network shares are rescanned. FSEvents misses changes made on
+    /// other machines, and offline sources are checked for their return on the same timer.
+    public var networkRescanInterval: Duration
 
     public init(
         concurrentFiles: Int = max(2, ProcessInfo.processInfo.activeProcessorCount),
@@ -68,7 +71,8 @@ public struct IndexerOptions: Sendable, Hashable {
         videoOnlyOnPower: Bool = false,
         fuseTextIntoMedia: Bool = true,
         documentTitles: Bool = false,
-        watcherLatency: TimeInterval = 1
+        watcherLatency: TimeInterval = 1,
+        networkRescanInterval: Duration = .seconds(15 * 60)
     ) {
         self.concurrentFiles = concurrentFiles
         self.embeddingBatchSize = embeddingBatchSize
@@ -83,6 +87,7 @@ public struct IndexerOptions: Sendable, Hashable {
         self.fuseTextIntoMedia = fuseTextIntoMedia
         self.documentTitles = documentTitles
         self.watcherLatency = watcherLatency
+        self.networkRescanInterval = networkRescanInterval
     }
 
     /// Workers to run given the power state.

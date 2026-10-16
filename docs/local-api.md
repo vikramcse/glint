@@ -35,7 +35,7 @@ The server rejects these requests:
 | Method | Path | Body | Returns |
 | --- | --- | --- | --- |
 | GET | `/v1/status` | — | `phase`, `pauseReason?`, `indexed{kind:n}`, `totalIndexed`, `pending`, `failed`, `sources` |
-| GET | `/v1/sources` | — | `sources[]`: `path`, `name`, `accessible`, `external`, `items`, `indexed`, `pending`, `failed`, `complete` |
+| GET | `/v1/sources` | — | `sources[]`: `path`, `name`, `accessible`, `external`, `network`, `items`, `indexed`, `pending`, `failed`, `complete` |
 | POST | `/v1/search` | `{query, kinds?, limit?, folders?, modifiedAfter?}` | `results[]` |
 | POST | `/v1/similar` | `{path, limit?}` (absolute path) | `results[]` |
 

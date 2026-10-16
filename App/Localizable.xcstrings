@@ -299,6 +299,9 @@
     "Index video only when plugged in" : {
 
     },
+    "Indexed files stay searchable" : {
+
+    },
     "Indexed · %@ items" : {
 
     },
@@ -661,6 +664,9 @@
 
     },
     "Settings…" : {
+
+    },
+    "Share not connected" : {
 
     },
     "Shortest First" : {

@@ -104,6 +104,7 @@ public struct SourceDTO: Codable, Sendable, Hashable {
     public var name: String
     public var accessible: Bool
     public var external: Bool
+    public var network: Bool
     public var items: Int
     public var indexed: Int
     public var pending: Int
@@ -115,6 +116,7 @@ public struct SourceDTO: Codable, Sendable, Hashable {
         name = source.displayName
         accessible = source.isAccessible
         external = source.isExternalVolume
+        network = source.isNetworkVolume
         items = source.itemCount
         indexed = source.indexed
         pending = source.pending

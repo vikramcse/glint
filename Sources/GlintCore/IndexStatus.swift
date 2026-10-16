@@ -5,6 +5,8 @@ public struct SourceInfo: Sendable, Hashable, Identifiable, Codable {
     public var id: SourceID
     public var path: String
     public var isExternalVolume: Bool
+    /// On a network share (SMB, NFS, AFP). When it is not accessible, the share is disconnected.
+    public var isNetworkVolume: Bool
     public var isAccessible: Bool
     /// Indexable files found in the folder.
     public var itemCount: Int
@@ -16,12 +18,13 @@ public struct SourceInfo: Sendable, Hashable, Identifiable, Codable {
     public var failed: Int
 
     public init(
-        id: SourceID, path: String, isExternalVolume: Bool, isAccessible: Bool, itemCount: Int,
-        indexed: Int = 0, pending: Int = 0, failed: Int = 0
+        id: SourceID, path: String, isExternalVolume: Bool, isNetworkVolume: Bool = false, isAccessible: Bool,
+        itemCount: Int, indexed: Int = 0, pending: Int = 0, failed: Int = 0
     ) {
         self.id = id
         self.path = path
         self.isExternalVolume = isExternalVolume
+        self.isNetworkVolume = isNetworkVolume
         self.isAccessible = isAccessible
         self.itemCount = itemCount
         self.indexed = indexed
