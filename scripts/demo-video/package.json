@@ -4,7 +4,7 @@
   "description": "Renders the README demo video from real Glint search results. See README.md.",
   "scripts": {
     "studio": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts Demo out/demo.mp4 && remotion render src/index.ts Demo out/demo.gif --codec=gif --every-nth-frame=2 --scale=0.6"
+    "render": "./render.sh"
   },
   "dependencies": {
     "@remotion/cli": "4.0.531",

@@ -6,6 +6,8 @@ import Foundation
 ///   built-in model (no download) and no local API.
 /// - `GLINT_UI_TEST_SOURCE`: a fixture folder, copied into the test root and added as a source at launch.
 /// - `-GlintShowPanel`, `-GlintShowMainWindow`, `-GlintSkipOnboarding`.
+/// - `-GlintUseInstalledModel`: with a test root, use EmbeddingGemma 2 from the test root's
+///   `Models` folder instead of the built-in model (the README demo recording uses it).
 struct LaunchOptions {
     let testRoot: URL?
     /// The copy of the fixture folder that Glint indexes (see `prepareUITest()`).
@@ -13,6 +15,7 @@ struct LaunchOptions {
     let showPanel: Bool
     let showMainWindow: Bool
     let skipOnboarding: Bool
+    let usesInstalledModel: Bool
     private let testFixtures: URL?
 
     static let current = LaunchOptions(environment: ProcessInfo.processInfo.environment, arguments: ProcessInfo.processInfo.arguments)
@@ -32,6 +35,7 @@ struct LaunchOptions {
         showPanel = arguments.contains("-GlintShowPanel")
         showMainWindow = arguments.contains("-GlintShowMainWindow")
         skipOnboarding = arguments.contains("-GlintSkipOnboarding")
+        usesInstalledModel = arguments.contains("-GlintUseInstalledModel")
     }
 
     var isUITest: Bool { testRoot != nil }

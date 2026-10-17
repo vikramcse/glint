@@ -2,7 +2,7 @@
 
 Renders `docs/media/demo.gif` (README) and `docs/media/demo.mp4` (social posts) with [Remotion](https://www.remotion.dev).
 
-Nothing in the video is mocked up except the panel's frame and the typing: each query was run against a real index built with EmbeddingGemma 2, and the result rows are rendered by the app's own `ResultRow`.
+Nothing in the video is mocked up except the search panel's frame and typing. The panel's result rows are rendered by the app's own `ResultRow` from real queries against an EmbeddingGemma 2 index, and the main-window part is screenshots of the real app, recorded by `UITests/DemoRecording.swift`.
 
 ## Steps
 
@@ -35,17 +35,30 @@ Nothing in the video is mocked up except the panel's frame and the typing: each 
    GLINT_DEMO_RESULTS=$DEMO/results.json GLINT_DEMO_OUT=scripts/demo-video/public swift test --filter DemoRenderTests
    ```
 
-4. **Add previews** to `public/`: `preview-N` is the file shown full size for scene N (the photo, a PDF page render, the screenshot), and `icon.png` is `App/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png`.
+4. **Record the main window.** This drives the real app on your screen for about two minutes, so keep hands off the Mac. Window screenshots capture whatever is on screen in the window's frame; the test activates Glint before every frame, but check every frame before using it.
 
-5. **Render:**
+   ```sh
+   ROOT="/Users/Shared/Glint Demo"; mkdir -p "$ROOT/Models/embeddinggemma-2-bf16"
+   # A real folder of hard links: the model loader doesn't follow a symlinked folder.
+   ln "$MODEL"/* "$MODEL"/.*.verified "$ROOT/Models/embeddinggemma-2-bf16/"
+   mkdir -p Xcode && xcodegen generate --project Xcode && sed -i '' 's|relativePath = \.;|relativePath = ..;|' Xcode/Glint.xcodeproj/project.pbxproj
+   TEST_RUNNER_GLINT_DEMO_ROOT="$ROOT" TEST_RUNNER_GLINT_DEMO_SOURCE=$DEMO/corpus TEST_RUNNER_GLINT_DEMO_WAIT=80 \
+     xcodebuild test -project Xcode/Glint.xcodeproj -scheme Glint -destination 'platform=macOS,arch=arm64' \
+     -only-testing:GlintAppUITests/DemoRecording/testRecordsMainWindow
+   ```
+
+   Frames and `frames.json` land in `~/Library/Containers/app.glint.mac.uitests.xctrunner/Data/tmp/glint-demo-frames`. Copy the ones `src/MainWindow.tsx` uses into `public/main/`.
+
+5. **Add previews** to `public/`: `preview-N` is the file shown full size for scene N (the photo, a PDF page render, the screenshot), and `icon.png` is `App/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png`.
+
+6. **Render:**
 
    ```sh
    cd scripts/demo-video && npm install
-   npx remotion render src/index.ts Demo out/demo.mp4 --crf=18
-   npx remotion render src/index.ts Demo out/demo.gif --codec=gif --every-nth-frame=2 --scale=0.5
+   ./render.sh        # out/demo.mp4 (1920×1080) and out/demo.gif (1280 px, palette-optimized)
    cp out/demo.gif out/demo.mp4 ../../docs/media/
    ```
 
-   `npm run studio` previews the composition. Scenes, captions and timing are in `src/Demo.tsx`.
+   `npm run studio` previews the composition. Panel scenes and captions are in `src/Demo.tsx`, the main-window part in `src/MainWindow.tsx`.
 
 Remotion is free for individuals and companies with up to three people; see [its license](https://www.remotion.dev/license).

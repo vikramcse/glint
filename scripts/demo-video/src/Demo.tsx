@@ -1,3 +1,4 @@
+import { MainWindow, mainWindowDuration } from "./MainWindow";
 import { AbsoluteFill, Img, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 
 // Each scene types a real query and shows the rows Glint returned for it, rendered by the app's
@@ -11,13 +12,6 @@ const scenes: Scene[] = [
     preview: "preview-0.jpg",
     caption: "Finds photos by what's in them",
     detail: "The file is called IMG_4517.jpg",
-  },
-  {
-    query: "red car parked under trees",
-    rows: "rows-1.png",
-    preview: "preview-1.jpg",
-    caption: "No tags, no albums, no file names",
-    detail: "Every image is embedded on your Mac's GPU",
   },
   {
     query: "pricing slide",
@@ -38,10 +32,11 @@ const scenes: Scene[] = [
 const intro = 45;
 const sceneLength = 120;
 const outro = 105;
-export const demoDuration = intro + scenes.length * sceneLength + outro;
+const panelEnd = intro + scenes.length * sceneLength;
+export const demoDuration = panelEnd + mainWindowDuration + outro;
 
 const font = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif';
-const panelWidth = 1080; // the panel's 720 pt at 1.5×
+const panelWidth = 1152; // the panel's 720 pt at 1.6×
 
 const Wallpaper = () => (
   <AbsoluteFill
@@ -114,8 +109,8 @@ const Panel = ({ scene }: { scene: Scene }) => {
     <div
       style={{
         position: "absolute",
-        top: 110,
-        left: (1600 - panelWidth) / 2,
+        top: 140,
+        left: (1920 - panelWidth) / 2,
         width: panelWidth,
         borderRadius: 39,
         overflow: "hidden",
@@ -167,8 +162,8 @@ const Preview = ({ scene }: { scene: Scene }) => {
       <Img
         src={staticFile(scene.preview)}
         style={{
-          maxWidth: 1000,
-          maxHeight: 600,
+          maxWidth: 1200,
+          maxHeight: 660,
           borderRadius: 18,
           boxShadow: "0 40px 120px rgba(0,0,0,.6)",
           transform: `translateY(${(1 - rise) * 60}px) scale(${0.92 + 0.08 * rise})`,
@@ -225,7 +220,10 @@ export const Demo = () => (
         <Caption scene={scene} />
       </Sequence>
     ))}
-    <Sequence from={intro + scenes.length * sceneLength}>
+    <Sequence from={panelEnd} durationInFrames={mainWindowDuration}>
+      <MainWindow />
+    </Sequence>
+    <Sequence from={panelEnd + mainWindowDuration}>
       <Outro />
     </Sequence>
   </AbsoluteFill>

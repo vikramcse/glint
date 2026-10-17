@@ -6,9 +6,9 @@
 
 Press <kbd>⌥</kbd> <kbd>Space</kbd>, describe what you're looking for, and Glint finds it: photos and screenshots, moments inside videos, things said in recordings, PDF pages and documents. Nothing leaves your Mac.
 
-<img src="docs/media/demo.gif" alt="Glint's search panel finding a photo named IMG_4517.jpg from the query &quot;dog splashing in a river&quot;, then a PDF page and a screenshot" width="800">
+<img src="docs/media/demo.gif" alt="Glint's search panel finding a photo named IMG_4517.jpg from &quot;dog splashing in a river&quot;, a PDF page and a screenshot; then the main window finding IMG_4657.jpg from &quot;red car parked under trees&quot; and two photos from &quot;noodle soup&quot;" width="880">
 
-<sub>Real results from a demo library of public-domain photos (<a href="docs/media/CREDITS.md">credits</a>). <a href="docs/media/demo.mp4">MP4</a></sub>
+<sub>Real results from a demo library of public-domain photos (<a href="docs/media/CREDITS.md">credits</a>). <a href="docs/media/demo.mp4">Watch in 1080p</a></sub>
 
 [![CI](https://github.com/vikramcse/glint/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/vikramcse/glint/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
