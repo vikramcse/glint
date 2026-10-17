@@ -31,12 +31,14 @@ final class AppEnvironment {
     let remotes: RemoteStorageFactory
     let models: ModelController
     let isUITest: Bool
+    private let activatesInstalledModel: Bool
     let localAPI: LocalAPIController
     private var volumeObservers: [any NSObjectProtocol] = []
 
     init(settings: AppSettings, launch: LaunchOptions = .current) throws {
         self.settings = settings
         isUITest = launch.isUITest
+        activatesInstalledModel = !launch.isUITest || launch.usesInstalledModel
         paths = try launch.testRoot.map(AppPaths.init(root:)) ?? AppPaths.standard()
         try paths.createDirectories()
 
@@ -87,7 +89,7 @@ final class AppEnvironment {
         try? FileManager.default.removeItem(at: AppResultActions.remoteDownloads)
         // Activate EmbeddingGemma 2 first (when downloaded) so indexing starts in its space.
         // UI tests use the built-in model so they don't depend on a 1.5 GB download.
-        if !isUITest { await models.activateIfInstalled() }
+        if activatesInstalledModel { await models.activateIfInstalled() }
         _ = try? await engine.loadVectors()
         Log.app.info("Search ready in \(Int(stopwatch.milliseconds), privacy: .public) ms")
         await indexer.start()

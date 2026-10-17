@@ -12,6 +12,13 @@ public struct FileSystemChange: Sendable, Hashable {
 /// Wraps an FSEvents stream for a set of folders and delivers coalesced batches.
 public final class FileSystemWatcher: @unchecked Sendable {
     private let queue = DispatchQueue(label: "app.glint.fsevents", qos: .utility)
+    private static let queueKey = DispatchSpecificKey<Void>()
+    /// What the FSEvents context points at. The callback holds the watcher only weakly, so an event
+    /// that races with the last release never touches a deallocating watcher.
+    private final class WeakBox: @unchecked Sendable {
+        weak var watcher: FileSystemWatcher?
+    }
+    private let box = WeakBox()
     private var stream: FSEventStreamRef?
     private let continuation: AsyncStream<FileSystemChange>.Continuation
     /// Coalesced batches of changes.
@@ -19,20 +26,24 @@ public final class FileSystemWatcher: @unchecked Sendable {
 
     public init() {
         (changes, continuation) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(64))
+        queue.setSpecific(key: Self.queueKey, value: ())
+        box.watcher = self
     }
 
     deinit {
-        stop()
+        // The last release can come from the FSEvents callback itself, on `queue`; a `queue.sync`
+        // there would deadlock.
+        onQueue { stopLocked() }
         continuation.finish()
     }
 
     /// Starts (or restarts) watching `paths`.
     public func watch(_ paths: [String], latency: TimeInterval) {
-        queue.sync {
+        onQueue {
             stopLocked()
             guard !paths.isEmpty else { return }
             var context = FSEventStreamContext(
-                version: 0, info: Unmanaged.passUnretained(self).toOpaque(), retain: nil, release: nil, copyDescription: nil
+                version: 0, info: Unmanaged.passUnretained(box).toOpaque(), retain: nil, release: nil, copyDescription: nil
             )
             let flags = UInt32(
                 kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagUseCFTypes
@@ -60,7 +71,15 @@ public final class FileSystemWatcher: @unchecked Sendable {
     }
 
     public func stop() {
-        queue.sync { stopLocked() }
+        onQueue { stopLocked() }
+    }
+
+    private func onQueue(_ body: () -> Void) {
+        if DispatchQueue.getSpecific(key: Self.queueKey) != nil {
+            body()
+        } else {
+            queue.sync(execute: body)
+        }
     }
 
     private func stopLocked() {
@@ -88,8 +107,7 @@ public final class FileSystemWatcher: @unchecked Sendable {
     }
 
     private static let callback: FSEventStreamCallback = { _, info, count, paths, flags, _ in
-        guard let info else { return }
-        let watcher = Unmanaged<FileSystemWatcher>.fromOpaque(info).takeUnretainedValue()
+        guard let info, let watcher = Unmanaged<WeakBox>.fromOpaque(info).takeUnretainedValue().watcher else { return }
         let array = unsafeBitCast(paths, to: NSArray.self)
         let pathList = (0..<count).compactMap { array[$0] as? String }
         let flagList = (0..<count).map { flags[$0] }

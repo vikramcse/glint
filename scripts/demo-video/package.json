@@ -1,0 +1,19 @@
+{
+  "name": "glint-demo-video",
+  "private": true,
+  "description": "Renders the README demo video from real Glint search results. See README.md.",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "./render.sh"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.531",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.531"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
+}

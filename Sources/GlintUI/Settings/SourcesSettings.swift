@@ -68,6 +68,7 @@ struct SourcesSettings: View {
                         Button("S3 Bucket…") { isAddingBucket = true }
                     }
                     .fixedSize()
+                    .accessibilityIdentifier("sources.add")
                     Button("Re-index") {
                         guard let selection else { return }
                         Task { errorMessage = await SourceActions.reindex(selection, services: services) }

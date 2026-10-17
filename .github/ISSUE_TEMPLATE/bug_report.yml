@@ -1,0 +1,31 @@
+name: Bug report
+description: Something crashes, hangs or behaves wrongly
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add a folder with …
+        2. Search for …
+  - type: input
+    id: versions
+    attributes:
+      label: Glint version, macOS version, Mac model
+      placeholder: Glint 1.0.0, macOS 26.1, MacBook Air M2 16 GB
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or crash report
+      description: "`log show --last 10m --predicate 'subsystem BEGINSWITH \"app.glint\"'`, or the crash report from Console › Crash Reports. Check it for file paths you'd rather not share."
+      render: text
