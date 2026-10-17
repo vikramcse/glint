@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="App/Assets.xcassets/AppIcon.appiconset/icon_256x256@2x.png" alt="" width="128" height="128">
+
 # Glint
 
 **On-device multimodal search for the Mac.**

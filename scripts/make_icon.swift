@@ -1,74 +1,147 @@
-// Renders the Glint app icon into an .iconset folder: a deep indigo-to-teal squircle with
-// a magnifying glass and a four-point glint. Run: swift scripts/make_icon.swift <out.iconset>
+// Renders the Glint app icon: a graphite loupe on a warm paper tile, with a streak of light
+// on the glass (the glint). Drawn in a 1024 grid, so every size is rendered, not scaled.
+// Run: swift scripts/make_icon.swift [App/Assets.xcassets/AppIcon.appiconset]
 import AppKit
 import CoreGraphics
 
-let output = URL(fileURLWithPath: CommandLine.arguments.dropFirst().first ?? "build/AppIcon.iconset")
+let output = URL(fileURLWithPath: CommandLine.arguments.dropFirst().first ?? "App/Assets.xcassets/AppIcon.appiconset")
 try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
 
+let space = CGColorSpace(name: CGColorSpace.displayP3)!
+
+func rgb(_ hex: UInt32, _ alpha: CGFloat = 1) -> CGColor {
+    let red = CGFloat((hex >> 16) & 0xFF) / 255, green = CGFloat((hex >> 8) & 0xFF) / 255, blue = CGFloat(hex & 0xFF) / 255
+    return CGColor(colorSpace: space, components: [red, green, blue, alpha])!
+}
+
+func gradient(_ stops: [(CGFloat, CGColor)]) -> CGGradient {
+    CGGradient(colorsSpace: space, colors: stops.map(\.1) as CFArray, locations: stops.map(\.0))!
+}
+
+func circle(_ center: CGPoint, _ radius: CGFloat) -> CGRect {
+    CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
+}
+
+/// The macOS icon shape: a superellipse (continuous corners), not a rounded rectangle.
+func squircle(_ rect: CGRect) -> CGPath {
+    let path = CGMutablePath()
+    let exponent: CGFloat = 5
+    for step in 0...720 {
+        let angle = CGFloat(step) / 720 * 2 * .pi
+        let x = rect.width / 2 * (cos(angle) < 0 ? -1 : 1) * pow(abs(cos(angle)), 2 / exponent)
+        let y = rect.height / 2 * (sin(angle) < 0 ? -1 : 1) * pow(abs(sin(angle)), 2 / exponent)
+        let point = CGPoint(x: rect.midX + x, y: rect.midY + y)
+        if step == 0 { path.move(to: point) } else { path.addLine(to: point) }
+    }
+    path.closeSubpath()
+    return path
+}
+
 func render(_ pixels: Int) -> Data? {
-    let size = CGFloat(pixels)
-    guard let context = CGContext(
-        data: nil, width: pixels, height: pixels, bitsPerComponent: 8, bytesPerRow: 0,
-        space: CGColorSpace(name: CGColorSpace.displayP3) ?? CGColorSpaceCreateDeviceRGB(),
-        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    ) else { return nil }
+    guard
+        let context = CGContext(
+            data: nil, width: pixels, height: pixels, bitsPerComponent: 16, bytesPerRow: 0, space: space,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder16Little.rawValue)
+    else { return nil }
+    context.scaleBy(x: CGFloat(pixels) / 1024, y: CGFloat(pixels) / 1024)
 
-    // macOS icon grid: 824/1024 body with soft shadow.
-    let inset = size * 100 / 1024
-    let body = CGRect(x: inset, y: inset, width: size - inset * 2, height: size - inset * 2)
-    let radius = body.width * 0.225
-    let path = CGPath(roundedRect: body, cornerWidth: radius, cornerHeight: radius, transform: nil)
+    /// A thin band of reflected light along an arc, fading out at both ends.
+    func streak(_ center: CGPoint, inner: CGFloat, outer: CGFloat, from start: CGFloat, to end: CGFloat, alpha: CGFloat) {
+        let band = CGMutablePath()
+        band.addArc(center: center, radius: outer, startAngle: start, endAngle: end, clockwise: false)
+        band.addArc(center: center, radius: inner, startAngle: end, endAngle: start, clockwise: true)
+        band.closeSubpath()
+        context.saveGState()
+        context.addPath(band)
+        context.clip()
+        let fade = gradient([(0, rgb(0xFFFFFF, 0)), (0.35, rgb(0xFFFFFF, alpha)), (0.65, rgb(0xFFFFFF, alpha)), (1, rgb(0xFFFFFF, 0))])
+        context.drawLinearGradient(
+            fade, start: CGPoint(x: center.x + cos(start) * outer, y: center.y + sin(start) * outer),
+            end: CGPoint(x: center.x + cos(end) * outer, y: center.y + sin(end) * outer), options: [])
+        context.restoreGState()
+    }
 
+    // Tile: the 824 pt body of the macOS icon grid, warm paper with a hairline edge.
+    let tile = squircle(CGRect(x: 100, y: 100, width: 824, height: 824))
     context.saveGState()
-    context.setShadow(offset: CGSize(width: 0, height: -size * 0.01), blur: size * 0.025, color: CGColor(gray: 0, alpha: 0.35))
-    context.addPath(path)
-    context.setFillColor(CGColor(red: 0.12, green: 0.1, blue: 0.35, alpha: 1))
+    context.setShadow(offset: CGSize(width: 0, height: -10), blur: 28, color: rgb(0x000000, 0.30))
+    context.addPath(tile)
+    context.setFillColor(rgb(0xE4DDD0))
     context.fillPath()
     context.restoreGState()
-
     context.saveGState()
-    context.addPath(path)
+    context.addPath(tile)
     context.clip()
-    let colors = [
-        CGColor(red: 0.16, green: 0.11, blue: 0.45, alpha: 1),
-        CGColor(red: 0.20, green: 0.33, blue: 0.80, alpha: 1),
-        CGColor(red: 0.18, green: 0.72, blue: 0.80, alpha: 1),
-    ] as CFArray
-    if let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 0.55, 1]) {
-        context.drawLinearGradient(gradient, start: CGPoint(x: body.minX, y: body.minY), end: CGPoint(x: body.maxX, y: body.maxY), options: [])
-    }
-    // Soft top highlight.
-    context.setFillColor(CGColor(gray: 1, alpha: 0.08))
-    context.fillEllipse(in: CGRect(x: body.minX - body.width * 0.2, y: body.midY, width: body.width * 1.4, height: body.height))
+    context.drawLinearGradient(
+        gradient([(0, rgb(0xF8F5EF)), (1, rgb(0xE4DDD0))]), start: CGPoint(x: 512, y: 924), end: CGPoint(x: 512, y: 100), options: [])
+    context.addPath(tile)
+    context.setLineWidth(4)
+    context.replacePathWithStrokedPath()
+    context.clip()
+    context.drawLinearGradient(
+        gradient([(0, rgb(0xFFFFFF, 0.55)), (0.5, rgb(0xFFFFFF, 0)), (1, rgb(0x000000, 0.18))]),
+        start: CGPoint(x: 512, y: 924), end: CGPoint(x: 512, y: 100), options: [])
     context.restoreGState()
 
-    // Magnifying glass.
-    let lensCenter = CGPoint(x: body.midX - body.width * 0.06, y: body.midY + body.height * 0.05)
-    let lensRadius = body.width * 0.24
-    context.setStrokeColor(CGColor(gray: 1, alpha: 0.95))
-    context.setLineWidth(body.width * 0.07)
-    context.strokeEllipse(in: CGRect(x: lensCenter.x - lensRadius, y: lensCenter.y - lensRadius, width: lensRadius * 2, height: lensRadius * 2))
-    context.setLineCap(.round)
-    context.setLineWidth(body.width * 0.095)
-    let handleStart = CGPoint(x: lensCenter.x + lensRadius * 0.74, y: lensCenter.y - lensRadius * 0.74)
-    context.move(to: handleStart)
-    context.addLine(to: CGPoint(x: handleStart.x + body.width * 0.17, y: handleStart.y - body.width * 0.17))
-    context.strokePath()
+    let center = CGPoint(x: 462, y: 566)
+    let outer: CGFloat = 214
+    let glass: CGFloat = 168
+    let angle = -CGFloat.pi / 4
 
-    // Four-point glint inside the lens.
-    func glint(at center: CGPoint, radius: CGFloat, alpha: CGFloat) {
-        let waist = radius * 0.22
-        context.setFillColor(CGColor(red: 1, green: 0.95, blue: 0.75, alpha: alpha))
-        context.move(to: CGPoint(x: center.x, y: center.y + radius))
-        context.addQuadCurve(to: CGPoint(x: center.x + radius, y: center.y), control: CGPoint(x: center.x + waist, y: center.y + waist))
-        context.addQuadCurve(to: CGPoint(x: center.x, y: center.y - radius), control: CGPoint(x: center.x + waist, y: center.y - waist))
-        context.addQuadCurve(to: CGPoint(x: center.x - radius, y: center.y), control: CGPoint(x: center.x - waist, y: center.y - waist))
-        context.addQuadCurve(to: CGPoint(x: center.x, y: center.y + radius), control: CGPoint(x: center.x - waist, y: center.y + waist))
-        context.fillPath()
-    }
-    glint(at: CGPoint(x: lensCenter.x + lensRadius * 0.08, y: lensCenter.y + lensRadius * 0.1), radius: lensRadius * 0.62, alpha: 1)
-    glint(at: CGPoint(x: lensCenter.x - lensRadius * 0.45, y: lensCenter.y - lensRadius * 0.38), radius: lensRadius * 0.2, alpha: 0.85)
+    // Handle, under the ring, with a steel ferrule where it meets the ring.
+    context.saveGState()
+    context.setShadow(offset: CGSize(width: 10, height: -22), blur: 34, color: rgb(0x3B2F1E, 0.30))
+    context.translateBy(x: center.x + cos(angle) * (outer - 10), y: center.y + sin(angle) * (outer - 10))
+    context.rotate(by: angle)
+    context.addPath(CGPath(roundedRect: CGRect(x: 0, y: -44, width: 250, height: 88), cornerWidth: 44, cornerHeight: 44, transform: nil))
+    context.clip()
+    context.drawLinearGradient(
+        gradient([(0, rgb(0x4A4E57)), (0.45, rgb(0x2A2D33)), (1, rgb(0x16181C))]), start: CGPoint(x: 0, y: 44),
+        end: CGPoint(x: 0, y: -44), options: [])
+    context.setFillColor(rgb(0xB9BCC2))
+    context.fill(CGRect(x: 18, y: -44, width: 26, height: 88))
+    context.setFillColor(rgb(0xFFFFFF, 0.35))
+    context.fill(CGRect(x: 18, y: 14, width: 26, height: 20))
+    context.restoreGState()
+
+    // Ring, casting a shadow on the paper.
+    context.saveGState()
+    context.setShadow(offset: CGSize(width: 8, height: -20), blur: 36, color: rgb(0x3B2F1E, 0.32))
+    context.setFillColor(rgb(0x202227))
+    context.fillEllipse(in: circle(center, outer))
+    context.restoreGState()
+    context.saveGState()
+    context.addEllipse(in: circle(center, outer))
+    context.clip()
+    context.drawLinearGradient(
+        gradient([(0, rgb(0x5A5F69)), (0.5, rgb(0x2B2E35)), (1, rgb(0x15171B))]),
+        start: CGPoint(x: center.x - outer, y: center.y + outer), end: CGPoint(x: center.x + outer, y: center.y - outer), options: [])
+    context.restoreGState()
+
+    // Glass: clear and slightly blue, lighter where it catches the sky, shaded by the ring.
+    context.saveGState()
+    context.addEllipse(in: circle(center, glass))
+    context.clip()
+    context.drawLinearGradient(
+        gradient([(0, rgb(0xE9F2FC)), (0.55, rgb(0xB7CEEA)), (1, rgb(0x7E9FCB))]),
+        start: CGPoint(x: center.x - glass, y: center.y + glass), end: CGPoint(x: center.x + glass, y: center.y - glass), options: [])
+    context.setShadow(offset: CGSize(width: 4, height: -8), blur: 24, color: rgb(0x0B1630, 0.55))
+    context.addRect(circle(center, glass + 60))
+    context.addEllipse(in: circle(center, glass))
+    context.setFillColor(rgb(0x000000))
+    context.fillPath(using: .evenOdd)
+    context.restoreGState()
+
+    // The glint: a streak of light along the upper left of the glass, and a small spark opposite.
+    streak(center, inner: glass - 46, outer: glass - 24, from: .pi * 0.58, to: .pi * 1.02, alpha: 0.95)
+    context.setFillColor(rgb(0xFFFFFF, 0.9))
+    context.fillEllipse(in: circle(CGPoint(x: center.x + glass * 0.5, y: center.y - glass * 0.5), 11))
+
+    // Bevel on the ring's upper left.
+    context.setStrokeColor(rgb(0xFFFFFF, 0.22))
+    context.setLineWidth(3)
+    context.addArc(center: center, radius: outer - 3, startAngle: .pi * 0.55, endAngle: .pi * 1.05, clockwise: false)
+    context.strokePath()
 
     guard let image = context.makeImage() else { return nil }
     return NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])
