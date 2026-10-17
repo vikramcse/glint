@@ -1,12 +1,14 @@
 name: CI
 
-# CI minutes are limited, so nothing runs on push or pull request. Run it on demand:
+# Pull requests and pushes to main run the hosted jobs. To run CI on another commit:
 #   git tag ci-<name> && git push origin ci-<name>   (runs on the tagged commit)
 #   a tag containing "perf" or "model" also runs those jobs on the self-hosted reference Macs
 #   gh workflow run CI --ref <branch>                 (or "Run workflow" in the Actions tab)
 on:
   push:
+    branches: [main]
     tags: ["ci-*"]
+  pull_request:
   workflow_dispatch:
 
 concurrency:

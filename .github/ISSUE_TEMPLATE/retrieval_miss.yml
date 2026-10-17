@@ -1,0 +1,34 @@
+name: Retrieval miss
+description: "I searched for X and expected Y"
+labels: [retrieval]
+body:
+  - type: markdown
+    attributes:
+      value: These reports become eval queries, so they directly improve ranking. Describe files rather than attaching private ones.
+  - type: input
+    id: query
+    attributes:
+      label: Query
+      placeholder: boarding pass for the Goa flight
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: The file you wanted, its type, and what's in it (for example "a phone screenshot of an airline boarding pass, PNG").
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What came back
+      description: Where the expected file ranked, if at all, and what ranked above it.
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Model and library size
+      description: Settings › Models shows the active model. Roughly how many files are indexed?
+      placeholder: EmbeddingGemma 2 (512 d), ~40k files
