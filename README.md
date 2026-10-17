@@ -6,10 +6,11 @@
 
 Press <kbd>⌥</kbd> <kbd>Space</kbd>, describe what you're looking for, and Glint finds it: photos and screenshots, moments inside videos, things said in recordings, PDF pages and documents. Nothing leaves your Mac.
 
-<!-- Demo: add docs/media/demo.gif (15–30 s, ⌥Space → query → result opens at the moment) and uncomment.
-<img src="docs/media/demo.gif" alt="Typing a description into Glint's search panel and opening the matching video at the right moment" width="720">
--->
+<img src="docs/media/demo.gif" alt="Glint's search panel finding a photo named IMG_4517.jpg from the query &quot;dog splashing in a river&quot;, then a PDF page and a screenshot" width="800">
 
+<sub>Real results from a demo library of public-domain photos (<a href="docs/media/CREDITS.md">credits</a>). <a href="docs/media/demo.mp4">MP4</a></sub>
+
+[![CI](https://github.com/vikramcse/glint/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/vikramcse/glint/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey.svg)](#requirements)
 [![Apple silicon](https://img.shields.io/badge/Apple%20silicon-required-black.svg)](#requirements)
@@ -97,16 +98,22 @@ A background indexer and an interactive search path share one SQLite index, and 
 
 ## Install
 
-> [!NOTE]
-> A signed, notarized download is coming soon. Until then, build from source; it takes a few minutes.
+### Download
 
-### Build tools
+Download **[Glint-1.0.0.dmg](https://github.com/vikramcse/glint/releases/latest/download/Glint-1.0.0.dmg)** from the [latest release](https://github.com/vikramcse/glint/releases/latest), open it, and drag Glint to Applications.
+
+> [!IMPORTANT]
+> This preview build is not notarized by Apple yet, so macOS blocks it the first time. Open Glint once, then go to **System Settings › Privacy & Security**, scroll to *"Glint" was blocked*, and click **Open Anyway**. Prefer not to? Build it from source below; it takes a few minutes. The SHA-256 of each DMG is listed on its release page.
+
+### Build from source
+
+#### Build tools
 
 - A Mac that meets the [requirements](#requirements)
 - Xcode 26 (with the Metal Toolchain component)
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 
-### Build and run
+#### Build and run
 
 ```sh
 git clone https://github.com/vikramcse/glint.git && cd glint
@@ -269,7 +276,7 @@ Yes, by adding an `EmbeddingProvider` conformance and a `ModelCatalog` entry. Ve
 <details>
 <summary><b>Why isn't Glint on the Mac App Store?</b></summary>
 
-The App Sandbox conflicts with indexing arbitrary folders and external drives, so Glint is distributed directly, signed and notarized, with Sparkle updates. See [ADR 0001](docs/adr/0001-swiftpm-and-direct-distribution.md).
+The App Sandbox conflicts with indexing arbitrary folders and external drives, so Glint is distributed directly, with Sparkle updates once releases are notarized. The current preview build is not notarized yet; see [Install](#install). See [ADR 0001](docs/adr/0001-swiftpm-and-direct-distribution.md).
 
 </details>
 

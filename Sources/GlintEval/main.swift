@@ -226,10 +226,13 @@ case "query":
         if next.hasPrefix("--") { _ = rest.popFirst() } else { texts.append(next) }
     }
     guard !texts.isEmpty, let modelDir = option("--model-dir", in: arguments) else {
-        fail("usage: glint-eval query <text>... --model-dir D [--index index.sqlite] [--dimensions N]")
+        fail("usage: glint-eval query <text>... --model-dir D [--root dir | --index index.sqlite] [--json out.json] [--dimensions N]")
     }
     do {
-        let paths = try AppPaths.standard()
+        // --root: an index built elsewhere (for example by `run --index-cache`) instead of the app's.
+        let paths =
+            try option("--root", in: arguments).map { AppPaths(root: URL(fileURLWithPath: $0, isDirectory: true)) }
+            ?? AppPaths.standard()
         let database = option("--index", in: arguments).map(URL.init(fileURLWithPath:)) ?? paths.database
         let dimensions = option("--dimensions", in: arguments).flatMap(Int.init) ?? 512
         // --idle-unload S: release the model after S seconds idle and wait past it between
@@ -256,6 +259,7 @@ case "query":
         let names = Dictionary(
             try await engine.recent(kinds: Set(MediaKind.allCases), limit: 100_000).map { ($0.file.id, $0.file.name) },
             uniquingKeysWith: { first, _ in first })
+        var exported: [ExportedQuery] = []
         for (index, text) in texts.enumerated() {
             if let idle, index > 0 { try await Task.sleep(for: .milliseconds(Int(idle * 2_000))) }
             print("\n\"\(text)\"")
@@ -280,6 +284,12 @@ case "query":
             let shown = try await engine.mergedResults(for: SearchQuery(text: text)).items
             let labels = shown.map { "\($0.file.name) [\($0.sources.label)]" }.joined(separator: ", ")
             print("  app shows: \(shown.isEmpty ? "nothing" : labels)")
+            let keyword = try await engine.keywordResults(for: SearchQuery(text: text)).items
+            exported.append(ExportedQuery(query: text, keyword: keyword.map(ExportedResult.init), merged: shown.map(ExportedResult.init)))
+        }
+        // --json: the keyword and merged results per query, for rendering outside the app.
+        if let out = option("--json", in: arguments) {
+            try JSONEncoder.pretty.encode(exported).write(to: URL(fileURLWithPath: out))
         }
     } catch {
         fail(String(describing: error))
