@@ -7,6 +7,8 @@ All notable changes to Glint are listed here. The format follows [Keep a Changel
 ### Fixed
 
 - A crash when a folder watcher was released while file-system events were arriving.
+- Photos no longer show stray OCR snippets such as "•–" when they contain no words.
+- Cached thumbnails show immediately instead of flashing the file icon.
 
 ## [1.0.0]
 

@@ -3,6 +3,9 @@
 # and signs the DMG.
 #
 #   SIGN_IDENTITY="Developer ID Application: …" scripts/release/make_dmg.sh build/Glint.app build/release
+#
+# SIGN_IDENTITY=- packs an ad hoc signed app for an unnotarized preview build and leaves the
+# DMG unsigned; Gatekeeper then asks users to approve the app once.
 source "$(dirname "$0")/common.sh"
 
 APP="${1:-}"
@@ -20,5 +23,7 @@ ditto "$APP" "$STAGING/Glint.app"
 ln -s /Applications "$STAGING/Applications"
 rm -f "$DMG"
 hdiutil create -volname "Glint $VERSION" -srcfolder "$STAGING" -fs APFS -format ULFO -ov "$DMG" >/dev/null
-codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG"
+if [[ "$SIGN_IDENTITY" != "-" ]]; then
+  codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG"
+fi
 echo "$DMG"

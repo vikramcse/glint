@@ -48,3 +48,19 @@ These scripts take a built `Glint.app` from any build (`scripts/build_app.sh rel
 4. Upload `build/release/*.dmg`, the matching `.html` notes and `appcast.xml` to `DOWNLOAD_URL_PREFIX`.
 
 Keep previous DMGs in the updates folder. `generate_appcast` uses them to build delta updates.
+
+## Preview builds without a Developer ID
+
+Until the signing setup above exists, releases are ad hoc signed and not notarized:
+
+```sh
+scripts/build_app.sh release
+SIGN_IDENTITY=- scripts/release/make_dmg.sh build/Glint.app build/release
+shasum -a 256 build/release/Glint-*.dmg
+```
+
+Attach the DMG to a GitHub release tagged `v<version>` and put its SHA-256 in the notes. Users approve the app once in System Settings › Privacy & Security (the README's Install section says how). Sparkle stays off because `SUFeedURL` and `SUPublicEDKey` are empty.
+
+## Homebrew
+
+`homebrew/glint.rb` is a cask for a personal tap. Homebrew requires casks to pass Gatekeeper, so publish it only for notarized releases: copy it to `Casks/glint.rb` in `vikramcse/homebrew-tap`, then set `version` and `sha256` on each release.
