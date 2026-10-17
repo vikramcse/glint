@@ -80,6 +80,6 @@ final class GlintAppUITests: XCTestCase {
             XCTAssertTrue(tabs.buttons[tab].exists, "missing tab \(tab)")
         }
         tabs.buttons["Sources"].click()
-        XCTAssertTrue(settings.buttons["Add Folder…"].waitForExistence(timeout: 5))
+        XCTAssertTrue(settings.descendants(matching: .any)["sources.add"].waitForExistence(timeout: 5))
     }
 }
