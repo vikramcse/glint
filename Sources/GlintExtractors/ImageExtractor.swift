@@ -30,7 +30,8 @@ public struct ImageExtractor: ContentExtractor {
         try ExtractionError.checkReadable(file.url)
         guard ExtractionError.fileSize(file.url) > 0 else { throw ExtractionError.empty }
 
-        let decoded = try decodeAndRead(file.url, options: options)
+        var decoded = try decodeAndRead(file.url, options: options)
+        if let text = decoded.text, !containsWord(text) { decoded.text = nil }
         let thumbnail = ImageProcessing.scaled(decoded.image, maxPixel: options.thumbnailMaxPixel)
         var input = EmbeddingInput.image(decoded.image)
         if let text = decoded.text, decoded.source != .camera, readsLikeText(text) {
@@ -58,6 +59,12 @@ public struct ImageExtractor: ContentExtractor {
     /// signs ("TasT ENTRY → 1 TO SEAT SLEEP") that pull the vector away from what the photo
     /// shows (COCO Recall@10 0.77 -> 0.86 without them). Camera metadata settles it first;
     /// photos without it (messaging apps strip it) rely on this check alone.
+    /// Whether OCR found at least one word. Textures and edges in photos read as "•–" or
+    /// "211 *A3", which would only show up as noise in snippets and keyword matches.
+    static func containsWord(_ text: String) -> Bool {
+        text.split(whereSeparator: { !$0.isLetter }).contains { $0.count >= 3 }
+    }
+
     static func readsLikeText(_ text: String, minimumWords: Int = 6) -> Bool {
         let words = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline })
         let wordy = words.filter { word in word.count >= 3 && word.allSatisfy(\.isLetter) }

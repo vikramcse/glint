@@ -102,6 +102,16 @@ struct ImageExtractorTests {
 
     init() throws { directory = try TemporaryDirectory() }
 
+    @Test func keepsOCRTextOnlyWhenItHasAWord() {
+        // Edges and textures in photos that the recognizer reads as text.
+        #expect(!ImageExtractor.containsWord("•–"))
+        #expect(!ImageExtractor.containsWord("211 *A3"))
+        #expect(!ImageExtractor.containsWord(""))
+        // A single sign is still worth a keyword match.
+        #expect(ImageExtractor.containsWord("STOP"))
+        #expect(ImageExtractor.containsWord("Gate 12"))
+    }
+
     @Test func fusesWordsOnlyWhenTheyReadLikeText() {
         // A photo of a train coach without camera metadata: a few garbled signs.
         #expect(!ImageExtractor.readsLikeText("Ja석 ENTRY CIR 23381| 2338I1 65-72 0อลง•oibE 2D.6.3 LIFT HERE"))

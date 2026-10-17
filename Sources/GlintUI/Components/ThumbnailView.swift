@@ -35,6 +35,16 @@ struct ThumbnailView: View {
 
     @State private var image: NSImage?
 
+    init(url: URL?, filePath: String, kind: MediaKind, cornerRadius: CGFloat = 6, contentMode: ContentMode = .fill) {
+        self.url = url
+        self.filePath = filePath
+        self.kind = kind
+        self.cornerRadius = cornerRadius
+        self.contentMode = contentMode
+        // A cached thumbnail shows on the first frame instead of flashing the Finder icon.
+        _image = State(initialValue: url.flatMap { ThumbnailCache.shared.cached($0) })
+    }
+
     var body: some View {
         framed
             .clipShape(.rect(cornerRadius: cornerRadius))
