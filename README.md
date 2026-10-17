@@ -53,9 +53,9 @@ It is a single Swift process with no server and no cloud dependency. A backgroun
 
 | | |
 | --- | --- |
-| **What it searches** | Images (incl. HEIC and screenshots), video, audio, PDFs, text documents, the Apple Photos library |
+| **What it searches** | Images (incl. HEIC and screenshots), video, audio, PDFs, text documents, the Apple Photos library, in folders, drives, network shares and S3 buckets |
 | **How it searches** | Hybrid: SQLite FTS5 keyword search fused with GPU vector search |
-| **Where it runs** | Entirely on your Mac. Network access is limited to the one-time model download and app updates |
+| **Where it runs** | Entirely on your Mac. Network access is limited to the one-time model download, app updates, and reading from remote sources you add |
 | **How fast** | Merged results in 26 ms p95 over 100k chunks (M5, release) |
 | **Who can use it** | People, through a Spotlight-style panel; scripts and AI agents, through a loopback API and an MCP server |
 
@@ -67,7 +67,8 @@ It is a single Swift process with no server and no cloud dependency. A backgroun
 - **Find similar.** Drop any file on the panel to find items like it, whether or not it's indexed.
 - **People.** Faces in photos and videos are grouped by person, like Google Photos. Click a face to see every photo and video that person is in; name people, and give two groups the same name to combine them.
 - **Stays out of the way.** Indexing yields to search, pauses on Low Power Mode, low battery and serious thermal pressure, and halves its width on battery.
-- **Keeps itself current.** FSEvents watches your folders; moves and renames are detected by content hash instead of re-indexing.
+- **S3 buckets.** Add an S3-compatible bucket (AWS, R2, B2, MinIO), or a prefix in one. Files are downloaded one at a time to be indexed and then deleted; the index stays on your Mac and is searchable offline. See [docs/remote-sources.md](docs/remote-sources.md).
+- **Keeps itself current.** FSEvents watches your folders; moves and renames are detected by content hash instead of re-indexing. Network shares (SMB, NFS, AFP) are also rescanned every 15 minutes and on reconnect, and what was indexed stays searchable while a share is disconnected.
 - **Built for agents.** An opt-in, token-authenticated local API and a bundled `glint-mcp` server let Claude and other agents search your files.
 - **A real Mac app.** AppKit and SwiftUI, VoiceOver labels, String Catalog localization, light and dark mode, Liquid Glass on macOS 26, Sparkle updates.
 
@@ -231,6 +232,7 @@ flowchart TB
     API["GlintLocalAPI<br/><sub>loopback HTTP/JSON</sub>"]
     SRCH["GlintSearch<br/><sub>Metal scan · fusion · filters · two-phase</sub>"]
     IDX["GlintIndexer<br/><sub>scan · FSEvents · queue · lanes · power policy</sub>"]
+    REM["GlintRemote<br/><sub>S3 · SigV4 · Keychain</sub>"]
     STORE[("GlintStore<br/><sub>SQLite WAL · FTS5 · f16 vectors</sub>")]
     EMB["GlintEmbedding<br/><sub>EmbeddingGemma 2 on MLX · PriorityGate</sub>"]
     EXT["GlintExtractors<br/><sub>text · PDF · image · audio · video</sub>"]
@@ -239,7 +241,7 @@ flowchart TB
     MCP["glint-mcp<br/><sub>stdio MCP server</sub>"]
     AGENT(["AI agents"])
 
-    App --> UI & API & SRCH & IDX & EMB
+    App --> UI & API & SRCH & IDX & EMB & REM
     UI --> SRCH
     API --> SRCH
     SRCH -- reads --> STORE
@@ -248,7 +250,7 @@ flowchart TB
     SRCH -. query vectors .-> EMB
     AGENT --> MCP -- HTTP + bearer token --> API
 
-    UI & API & SRCH & IDX & STORE & EMB & EXT -.-> CORE
+    UI & API & SRCH & IDX & STORE & EMB & EXT & REM -.-> CORE
 ```
 
 ### Modules
@@ -263,6 +265,7 @@ flowchart TB
 | **`GlintIndexer`** | Scanner, FSEvents watcher, priority queue, worker pool, embedding lanes, group commit, power and thermal policy, content-hash dedupe, move/rename detection, Photos library. |
 | **`GlintUI`** | Search panel, main window (sidebar, grid/list, inspector, People), PDF viewer, Settings, onboarding, menu bar content, view models. |
 | **`GlintLocalAPI`** | Loopback JSON API with bearer-token auth, for scripts and agents. |
+| **`GlintRemote`** | `RemoteStorage` for S3-compatible buckets (SigV4 on CryptoKit, ListObjectsV2, GetObject); secret keys in the Keychain. The indexer sees only the `RemoteStorage` protocol from GlintCore. |
 | **`GlintMCP`** · `glint-mcp` | Self-contained MCP server over stdio that talks HTTP to the running app. |
 | **`GlintEval`** · `glint-eval` | Retrieval eval and indexing benchmark harness using the real extractors and model. |
 
@@ -347,6 +350,8 @@ Every significant decision is recorded as an Architecture Decision Record in [`d
 | [0006](docs/adr/0006-mlx-and-embeddinggemma-2.md) | **EmbeddingGemma 2 on MLX-Swift** | One open, commercially usable model for all media, running natively on Apple silicon, with a parity gate against the reference. |
 | [0007](docs/adr/0007-sparkle-updates.md) | **Sparkle 2 for updates** | The de facto standard for signed, delta, out-of-sandbox updates in direct-download Mac apps. |
 | [0008](docs/adr/0008-indexing-pipeline.md) | **Streaming pipeline in Swift with automatic OCR** | Indexing time is spent in Apple frameworks and the model, not Glint's code, so Rust would add FFI without speed. Streaming, cross-file batching and selective OCR gave up to 10× throughput. |
+| [0009](docs/adr/0009-network-shares.md) | **Network shares as folder sources, kept current by polling** | FSEvents misses changes made on other machines, so shares are rescanned on a timer and on mount or wake. An unreachable source keeps its files; nothing is deleted until the source can be read again. |
+| [0010](docs/adr/0010-remote-sources.md) | **S3 buckets downloaded to index, never mounted** | Objects are listed over the S3 API, downloaded one at a time, indexed and deleted. Secret keys stay in the Keychain; an unreachable bucket or rejected key keeps its index. |
 
 A few decisions that are visible in the code rather than an ADR:
 
@@ -435,7 +440,8 @@ The underlying HTTP API listens on `127.0.0.1` only, requires a bearer token, an
 ## Privacy
 
 - **Your files never leave your Mac.** Extraction, OCR, transcription, face recognition and embedding all run locally. Face fingerprints and names stay in the index and are removed with it.
-- **Two network calls, both optional to the core experience:** the one-time model download from a pinned Hugging Face revision, and Sparkle update checks (disabled in development builds).
+- **Network access, all optional to the core experience:** the one-time model download from a pinned Hugging Face revision, Sparkle update checks (disabled in development builds), and, only for buckets you add, read-only listing and downloading from your own S3 storage. Downloaded copies are deleted once indexed; nothing is uploaded.
+- **Credentials stay in your Keychain.** S3 secret keys are never written to the index, and are deleted when you remove the source.
 - **No telemetry, no accounts, no analytics.**
 - **The local API is off by default.** When on, it listens on loopback only, and its logs record routes and status codes, never queries or paths.
 - **Deleting the index** removes everything Glint derived from your files.
@@ -489,6 +495,7 @@ glint/
 │   ├── GlintIndexer/     # scanning, watching, pipeline, power policy
 │   ├── GlintUI/          # SwiftUI views and view models
 │   ├── GlintLocalAPI/    # loopback HTTP API
+│   ├── GlintRemote/      # S3 client (SigV4), Keychain secrets
 │   ├── GlintMCP/         # MCP server library
 │   ├── GlintMCPTool/     # glint-mcp executable
 │   ├── GlintEval/        # glint-eval executable

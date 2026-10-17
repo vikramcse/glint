@@ -1,8 +1,10 @@
+import AppKit
 import Foundation
 import GlintCore
 import GlintEmbedding
 import GlintExtractors
 import GlintIndexer
+import GlintRemote
 import GlintSearch
 import GlintStore
 import GlintUI
@@ -25,9 +27,12 @@ final class AppEnvironment {
     let services: GlintServices
     let savedSearches: AppSavedSearches
     let photos = PhotoKitLibrary()
+    /// S3 buckets. Secret keys live in the Keychain (UI tests use memory).
+    let remotes: RemoteStorageFactory
     let models: ModelController
     let isUITest: Bool
     let localAPI: LocalAPIController
+    private var volumeObservers: [any NSObjectProtocol] = []
 
     init(settings: AppSettings, launch: LaunchOptions = .current) throws {
         self.settings = settings
@@ -46,11 +51,12 @@ final class AppEnvironment {
             reader: reader, vectorIndex: vectorIndex, encoder: GatedQueryEncoder(provider: provider, gate: priorityGate),
             exampleEncoder: FileExampleEncoder(registry: registry, provider: provider), thumbnails: thumbnails
         )
+        remotes = RemoteStorageFactory(secrets: launch.isUITest ? InMemorySecretStore() : KeychainSecretStore())
         indexer = Indexer(
             writer: writer, extractors: registry.extractors, provider: provider, vectorIndex: vectorIndex,
             gate: priorityGate, thumbnails: thumbnails,
             options: IndexerOptions(videoOnlyOnPower: settings.videoOnlyOnPower),
-            photos: photos
+            photos: photos, remotes: remotes
         )
 
         metricKit = MetricKitReporter(directory: paths.diagnostics)
@@ -77,12 +83,29 @@ final class AppEnvironment {
     /// Loads vectors into the resident index, then starts the indexer.
     func start() async {
         let stopwatch = Stopwatch()
+        // Remote files opened last session; they are downloaded again when opened.
+        try? FileManager.default.removeItem(at: AppResultActions.remoteDownloads)
         // Activate EmbeddingGemma 2 first (when downloaded) so indexing starts in its space.
         // UI tests use the built-in model so they don't depend on a 1.5 GB download.
         if !isUITest { await models.activateIfInstalled() }
         _ = try? await engine.loadVectors()
         Log.app.info("Search ready in \(Int(stopwatch.milliseconds), privacy: .public) ms")
         await indexer.start()
+        observeVolumes()
+    }
+
+    /// Network shares and drives come and go: rescan them when a volume mounts or unmounts and
+    /// when the Mac wakes (a share may have changed, or dropped, while it slept).
+    private func observeVolumes() {
+        let center = NSWorkspace.shared.notificationCenter
+        let names = [
+            NSWorkspace.didMountNotification, NSWorkspace.didUnmountNotification, NSWorkspace.didWakeNotification,
+        ]
+        volumeObservers = names.map { name in
+            center.addObserver(forName: name, object: nil, queue: nil) { [indexer] _ in
+                Task { await indexer.refreshSources() }
+            }
+        }
     }
 
     /// Re-applies settings that change how files are extracted.

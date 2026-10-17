@@ -7,6 +7,7 @@ struct SourcesSettings: View {
     @State private var errorMessage: String?
     @State private var isUpdatingPhotos = false
     @State private var pendingRemoval: SourceInfo?
+    @State private var isAddingBucket = false
 
     private var photosSource: SourceInfo? { services.status.sources.first(where: \.isPhotosLibrary) }
     private var selectedSource: SourceInfo? { services.status.sources.first { $0.id == selection } }
@@ -48,12 +49,8 @@ struct SourcesSettings: View {
                                 .foregroundStyle(.tint)
                             VStack(alignment: .leading) {
                                 Text(source.displayName)
-                                Text(
-                                    verbatim: source.isPhotosLibrary
-                                        ? String(localized: "Photos and videos stored on this Mac")
-                                        : (source.path as NSString).abbreviatingWithTildeInPath
-                                )
-                                .font(.caption).foregroundStyle(.secondary)
+                                Text(verbatim: Self.subtitle(for: source))
+                                    .font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
                             SourceStatusView(source: source, phase: services.status.status.phase)
@@ -64,9 +61,13 @@ struct SourcesSettings: View {
                 }
                 .frame(minHeight: 140)
                 HStack {
-                    Button("Add Folder…") {
-                        Task { errorMessage = await SourceAdder.pickAndAdd(services: services) }
+                    Menu("Add") {
+                        Button("Folder or Network Share…") {
+                            Task { errorMessage = await SourceAdder.pickAndAdd(services: services) }
+                        }
+                        Button("S3 Bucket…") { isAddingBucket = true }
                     }
+                    .fixedSize()
                     Button("Re-index") {
                         guard let selection else { return }
                         Task { errorMessage = await SourceActions.reindex(selection, services: services) }
@@ -79,7 +80,7 @@ struct SourcesSettings: View {
                     Text(errorMessage).font(.caption).foregroundStyle(.red)
                 }
             } header: {
-                Text("Folders and drives")
+                Text("Folders, drives and cloud storage")
             }
 
             Section {
@@ -135,10 +136,19 @@ struct SourcesSettings: View {
             }
         }
         .formStyle(.grouped)
+        .sheet(isPresented: $isAddingBucket) {
+            S3SourceSheet(services: services) { isAddingBucket = false }
+        }
         .removeSourceConfirmation(for: $pendingRemoval) { source in
             if selection == source.id { selection = nil }
             errorMessage = await SourceActions.remove(source.id, services: services)
         }
+    }
+
+    static func subtitle(for source: SourceInfo) -> String {
+        if source.isPhotosLibrary { return String(localized: "Photos and videos stored on this Mac") }
+        if let remote = source.remote { return remote.locationDescription }
+        return (source.path as NSString).abbreviatingWithTildeInPath
     }
 
     private func update(_ rules: ExclusionRules) {

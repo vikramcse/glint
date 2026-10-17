@@ -21,17 +21,6 @@ public actor IndexWriter {
 
     // MARK: Sources
 
-    public func addSource(path: String, bookmark: Data?) throws -> SourceID {
-        if let existing = try db.scalarInt("SELECT id FROM sources WHERE path = ?", [.text(path)]) {
-            return SourceID(existing)
-        }
-        try db.run(
-            "INSERT INTO sources(path, bookmark, added_at) VALUES (?, ?, ?)",
-            [.text(path), bookmark.map(SQLValue.blob) ?? .null, SQLValue(now())]
-        )
-        return SourceID(db.lastInsertRowID)
-    }
-
     /// Removes a source and every file under it. Returns the removed file ids.
     /// What removing a source deleted: its files (chunks, text and vectors cascade) and the
     /// thumbnails no other file still uses.
@@ -266,22 +255,30 @@ public actor IndexWriter {
     /// Each claim counts as an attempt, so a file that crashes the app is not retried forever.
     /// - Parameter excluding: files already claimed and still in flight, so concurrent workers
     ///   never receive the same file twice.
-    public func claimPending(limit: Int, kinds: Set<MediaKind>, excluding: Set<FileID> = []) throws -> [FileRecord] {
+    /// - Parameter excludingSources: sources that are offline (a disconnected share or an
+    ///   unplugged drive); their files wait for the source to come back.
+    public func claimPending(
+        limit: Int, kinds: Set<MediaKind>, excluding: Set<FileID> = [], excludingSources: Set<SourceID> = []
+    ) throws -> [FileRecord] {
         guard !kinds.isEmpty, limit > 0 else { return [] }
         return try db.transaction {
             let placeholders = Array(repeating: "?", count: kinds.count).joined(separator: ",")
             let excluded =
                 excluding.isEmpty
                 ? "" : " AND id NOT IN (" + Array(repeating: "?", count: excluding.count).joined(separator: ",") + ")"
+            let excludedSources =
+                excludingSources.isEmpty
+                ? ""
+                : " AND source_id NOT IN (" + Array(repeating: "?", count: excludingSources.count).joined(separator: ",") + ")"
             let records = try db.query(
                 """
                 SELECT \(SQLiteConnection.fileColumns) FROM files
-                WHERE status = 0 AND attempts < ? AND kind IN (\(placeholders))\(excluded)
+                WHERE status = 0 AND attempts < ? AND kind IN (\(placeholders))\(excluded)\(excludedSources)
                 ORDER BY priority, modified DESC LIMIT ?
                 """,
                 [SQLValue(Self.maxAttempts)] + kinds.sorted().map { .text($0.rawValue) }
-                    + excluding.map { .int($0.rawValue) } + [SQLValue(limit)],
-                cache: excluding.isEmpty, map: SQLiteConnection.fileRecord
+                    + excluding.map { .int($0.rawValue) } + excludingSources.map { .int($0.rawValue) } + [SQLValue(limit)],
+                cache: excluding.isEmpty && excludingSources.isEmpty, map: SQLiteConnection.fileRecord
             ).compactMap { $0 }
             for record in records {
                 try db.run("UPDATE files SET attempts = attempts + 1 WHERE id = ?", [.int(record.id.rawValue)])
@@ -378,5 +375,26 @@ public actor IndexWriter {
         try db.run("INSERT INTO chunks_fts(chunks_fts) VALUES ('optimize')")
         try db.run("INSERT INTO names_fts(names_fts) VALUES ('optimize')")
         try db.execute("PRAGMA optimize")
+    }
+}
+
+extension IndexWriter {
+    /// Adds a folder, the Photos library, or a remote source with its settings (never its secret).
+    public func addSource(path: String, bookmark: Data?, remote: RemoteSourceConfig? = nil) throws -> SourceID {
+        if let existing = try db.scalarInt("SELECT id FROM sources WHERE path = ?", [.text(path)]) {
+            return SourceID(existing)
+        }
+        let config = try remote.map { String(bytes: try JSONEncoder().encode($0), encoding: .utf8) ?? "{}" }
+        return try db.transaction {
+            try db.run(
+                "INSERT INTO sources(path, bookmark, added_at) VALUES (?, ?, ?)",
+                [.text(path), bookmark.map(SQLValue.blob) ?? .null, SQLValue(now())]
+            )
+            let id = SourceID(db.lastInsertRowID)
+            if let config {
+                try db.run("INSERT INTO remote_sources(source_id, config) VALUES (?, ?)", [.int(id.rawValue), .text(config)])
+            }
+            return id
+        }
     }
 }

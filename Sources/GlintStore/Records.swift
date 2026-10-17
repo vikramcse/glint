@@ -9,6 +9,8 @@ public struct SourceRecord: Sendable, Hashable, Identifiable {
     public var path: String
     public var bookmark: Data?
     public var addedAt: Date
+    /// Set for S3 sources.
+    public var remote: RemoteSourceConfig?
 }
 
 /// A file found by the scanner, before it has an id.

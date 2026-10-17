@@ -54,8 +54,14 @@ extension Indexer {
         await rescanPhotos(sourceID: source.id)
     }
 
-    func isAccessible(_ path: String) -> Bool {
-        if PhotosLibraryPath.isLibrary(path) { return photos?.authorizationStatus() == .authorized }
-        return FileManager.default.isReadableFile(atPath: path)
+    func isAccessible(_ source: SourceRecord) -> Bool {
+        if PhotosLibraryPath.isLibrary(source.path) { return photos?.authorizationStatus() == .authorized }
+        if source.remote != nil { return !offlineSources.contains(source.id) }
+        return volumes.isReachable(source.path)
+    }
+
+    /// A folder on a disk or share, rather than the Photos library or a remote service.
+    static func isFolder(_ source: SourceRecord) -> Bool {
+        source.remote == nil && !PhotosLibraryPath.isLibrary(source.path)
     }
 }

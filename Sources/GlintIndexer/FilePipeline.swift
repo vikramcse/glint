@@ -9,6 +9,9 @@ public enum FileOutcome: Sendable, Hashable {
     case indexed(chunks: Int, vectors: Int)
     case deduplicated
     case vanished
+    /// The file's source went offline (a share disconnected, a drive was unplugged); the file
+    /// went back to the queue without counting the attempt.
+    case offline
     case failed(ErrorCategory)
     case cancelled
 }
@@ -30,12 +33,20 @@ struct FilePipeline: Sendable {
     var stats: IndexingStats?
     /// The Photos library, when it is a source.
     var photos: (any PhotoLibraryProviding)?
+    /// Tells a deleted file from one whose share or drive went away.
+    var volumes: any VolumeProbing = SystemVolumeProbe()
+    /// Downloads files of S3 sources.
+    var remotes: (any RemoteStorageResolving)?
 
     var space: VectorSpace { provider.descriptor.space }
 
     func process(_ record: FileRecord) async -> FileOutcome {
         do {
             guard let resolved = try await resolve(record) else {
+                if try await isSourceOffline(record) {
+                    try await writer.release(record.id)
+                    return .offline
+                }
                 let removed = try await writer.removeFiles(atOrBelow: record.path)
                 thumbnails.delete(relativePaths: removed.orphanedThumbnails)
                 for id in removed.removed { try await vectorIndex.remove(fileID: id) }
@@ -86,12 +97,28 @@ struct FilePipeline: Sendable {
         return .indexed(chunks: streamed.writes.count, vectors: vectors.count)
     }
 
-    /// A cancelled file goes back to the queue; any other failure is recorded against it.
+    /// The folder source `record` belongs to cannot be reached, so a missing or unreadable file
+    /// says nothing about the file itself. Photos assets never count as offline.
+    private func isSourceOffline(_ record: FileRecord) async throws -> Bool {
+        guard !PhotosLibraryPath.isAsset(record.path), !RemotePath.isRemote(record.path),
+            let source = try await writer.sources().first(where: { $0.id == record.sourceID })
+        else { return false }
+        return !volumes.isReachable(source.path)
+    }
+
+    /// A cancelled file, or one whose source went offline, goes back to the queue; any other
+    /// failure is recorded against it.
     private func outcome(of error: any Error, for record: FileRecord) async -> FileOutcome {
         let category = error is CancellationError ? .cancelled : error.glintCategory
         if category == .cancelled {
             try? await writer.release(record.id)
             return .cancelled
+        }
+        var offline = (error as? RemoteStorageError)?.takesSourceOffline == true
+        if !offline { offline = (try? await isSourceOffline(record)) == true }
+        if offline {
+            try? await writer.release(record.id)
+            return .offline
         }
         let errorType = String(describing: type(of: error))
         Log.indexer.notice(

@@ -16,6 +16,12 @@
     "A to Z" : {
       "comment" : "Sort direction"
     },
+    "Access key ID" : {
+
+    },
+    "Add" : {
+
+    },
     "Add Another Folder…" : {
 
     },
@@ -49,6 +55,9 @@
     "Allow apps and agents to search Glint" : {
 
     },
+    "Amazon S3" : {
+
+    },
     "Apple Photos Library" : {
 
     },
@@ -67,10 +76,16 @@
     "Back to People" : {
 
     },
+    "Backblaze B2" : {
+
+    },
     "Balanced (512)" : {
 
     },
     "Best (768)" : {
+
+    },
+    "Bucket" : {
 
     },
     "Cancel" : {
@@ -112,7 +127,16 @@
     "Click, then press the new key combination" : {
 
     },
+    "Cloudflare R2" : {
+
+    },
     "Compact (256)" : {
+
+    },
+    "Connected. Glint can index %@ files here." : {
+
+    },
+    "Connecting…" : {
 
     },
     "Continue" : {
@@ -124,10 +148,16 @@
     "Copy" : {
 
     },
+    "Couldn’t open the file" : {
+
+    },
     "Couldn’t rename this person: %@" : {
 
     },
     "Couldn’t start looking for people: %@" : {
+
+    },
+    "Credentials" : {
 
     },
     "Date Modified" : {
@@ -185,6 +215,9 @@
     "EmbeddingGemma 2 is active" : {
 
     },
+    "Endpoint" : {
+
+    },
     "Everything" : {
 
     },
@@ -221,7 +254,13 @@
     "Folder" : {
 
     },
-    "Folders and drives" : {
+    "Folder (prefix)" : {
+
+    },
+    "Folder or Network Share…" : {
+
+    },
+    "Folders, drives and cloud storage" : {
 
     },
     "General" : {
@@ -263,6 +302,9 @@
     "Glint is still indexing %@ items. Results appear as soon as they’re ready." : {
 
     },
+    "Glint lists the files here every 15 minutes and downloads each one once to index it. Copies are deleted right after; only the index stays on this Mac." : {
+
+    },
     "Glint needs access to Photos. Allow it in System Settings › Privacy & Security › Photos." : {
 
     },
@@ -297,6 +339,9 @@
 
     },
     "Index video only when plugged in" : {
+
+    },
+    "Indexed files stay searchable" : {
 
     },
     "Indexed · %@ items" : {
@@ -409,6 +454,12 @@
     "No searchable files" : {
 
     },
+    "Not connected" : {
+
+    },
+    "Not found. %@" : {
+
+    },
     "Not indexed yet" : {
 
     },
@@ -460,6 +511,9 @@
     "Order" : {
 
     },
+    "Other (MinIO, Wasabi…)" : {
+
+    },
     "PDF" : {
       "comment" : "Media kind"
     },
@@ -486,6 +540,9 @@
 
     },
     "Past Year" : {
+
+    },
+    "Path-style addressing" : {
 
     },
     "Pause" : {
@@ -564,6 +621,9 @@
     "Re-index" : {
 
     },
+    "Region" : {
+
+    },
     "Relevance" : {
       "comment" : "Sort field"
     },
@@ -604,6 +664,12 @@
 
     },
     "Resume Indexing" : {
+
+    },
+    "S3 Bucket" : {
+      "comment" : "Remote source kind"
+    },
+    "S3 Bucket…" : {
 
     },
     "Save" : {
@@ -658,6 +724,12 @@
 
     },
     "Search…" : {
+
+    },
+    "Secret access key" : {
+
+    },
+    "Service" : {
 
     },
     "Settings…" : {
@@ -727,6 +799,9 @@
     "Storage" : {
 
     },
+    "Test Connection" : {
+
+    },
     "The file appears to be damaged." : {
 
     },
@@ -738,6 +813,19 @@
     },
     "The search model isn’t available right now." : {
 
+    },
+    "The service didn’t accept these credentials. %@" : {
+
+    },
+    "The service returned an error (%lld). %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The service returned an error (%1$lld). %2$@"
+          }
+        }
+      }
     },
     "Today" : {
 
@@ -778,6 +866,9 @@
     "Updating %@ items for the new model. Keyword search works meanwhile." : {
 
     },
+    "Use a key that can only list and read this bucket. The secret is stored in your Keychain." : {
+
+    },
     "Verifying search model…" : {
 
     },
@@ -797,6 +888,9 @@
 
     },
     "Where" : {
+
+    },
+    "Whole bucket" : {
 
     },
     "Z to A" : {

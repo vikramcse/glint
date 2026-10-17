@@ -117,17 +117,21 @@ enum Schema {
         INSERT OR IGNORE INTO settings(key, value)
             SELECT 'faces_backfill', 'needed' WHERE EXISTS (SELECT 1 FROM files WHERE kind IN ('image', 'video'));
         """,
+        // v3: where S3 sources live (JSON `RemoteSourceConfig`, never
+        // secrets; those are in the Keychain). Safe to run again: see `repairRemoteSources`.
+        """
+        CREATE TABLE IF NOT EXISTS remote_sources(
+            source_id INTEGER PRIMARY KEY REFERENCES sources(id) ON DELETE CASCADE,
+            config TEXT NOT NULL
+        );
+        """,
     ]
 
     static var currentVersion: Int { migrations.count }
 
     static func migrate(_ connection: SQLiteConnection) throws {
         let version = Int(try connection.scalarInt("PRAGMA user_version") ?? 0)
-        guard version < currentVersion else {
-            try repairFaces(connection, version: version)
-            return
-        }
-        for index in version..<currentVersion {
+        for index in version..<max(version, currentVersion) {
             do {
                 try connection.transaction {
                     try connection.execute(migrations[index])
@@ -138,6 +142,10 @@ enum Schema {
                 throw StoreError.migration(version: index + 1, message: String(describing: error))
             }
         }
+        // Also after upgrading: a drifted v2 that upgrades to v3 still lacks the faces tables.
+        let migrated = max(version, currentVersion)
+        try repairFaces(connection, version: migrated)
+        try repairRemoteSources(connection, version: migrated)
     }
 }
 
@@ -154,6 +162,22 @@ extension Schema {
             Log.store.info("Added the faces tables missing from a schema v2 index")
         } catch {
             throw StoreError.migration(version: 2, message: String(describing: error))
+        }
+    }
+}
+
+extension Schema {
+    /// A database can report v3 without the table if a development build used the number for
+    /// something else (as happened with v2). Re-applies v3 when its table is missing.
+    static func repairRemoteSources(_ connection: SQLiteConnection, version: Int) throws {
+        guard version >= 3,
+            try connection.scalarInt("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'remote_sources'") == nil
+        else { return }
+        do {
+            try connection.transaction { try connection.execute(migrations[2]) }
+            Log.store.info("Added the remote_sources table missing from a schema v3 index")
+        } catch {
+            throw StoreError.migration(version: 3, message: String(describing: error))
         }
     }
 }

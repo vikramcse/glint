@@ -14,6 +14,7 @@ allowed() {
     GlintIndexer)     echo "GlintCore GlintExtractors GlintEmbedding GlintStore" ;;
     GlintUI)          echo "GlintCore GlintSearch" ;;
     GlintLocalAPI)    echo "GlintCore GlintSearch" ;;
+    GlintRemote)      echo "GlintCore" ;;
     GlintMCP)         echo "" ;;
     GlintMCPTool)     echo "GlintMCP" ;;
     GlintEval)        echo "GlintCore GlintExtractors GlintEmbedding GlintStore GlintSearch GlintIndexer GlintTestSupport" ;;
